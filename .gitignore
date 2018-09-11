@@ -3,3 +3,4 @@
 /src/config/secrets
 .nyc_output
 *.txt
+/build

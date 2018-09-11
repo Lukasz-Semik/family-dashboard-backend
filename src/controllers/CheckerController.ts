@@ -8,11 +8,4 @@ export class UserController {
   getAll(@Req() req: any, @Res() res: any) {
     return res.status(200).json({ hello: 'hello' });
   }
-
-  @Post('/test')
-  @UseBefore(urlencodedParser)
-  post(@Body() req: any, @Res() res: any) {
-    console.log(req);
-    return res.status(200).json({ dd: 'd' });
-  }
 }

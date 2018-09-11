@@ -9,6 +9,7 @@ const APP: express.Application = express();
 
 const PORT: number = Number(process.env.PORT) || 8080;
 
+// tslint:disable no-console
 export const DbConnection = createConnection()
   .then(conn => console.log('Database connection established'))
   .catch(error => console.log('TypeORM connection error: ', error));
@@ -19,7 +20,6 @@ useExpressServer(APP, {
 });
 
 APP.listen(PORT, () => {
-  // tslint:disable no-console
   console.log(`App is running on ${PORT}`);
   // tslint:enable
 });
