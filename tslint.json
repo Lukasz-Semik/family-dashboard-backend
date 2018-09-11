@@ -14,7 +14,7 @@
     "trailing-comma": false,
     "curly": [true, "same-line-single-line", "as-needed"],
     "interface-name": [true, "never-prefix"],
-    "max-line-length": { "options": [80] },
+    "max-line-length": { "options": [100] },
     "indent": [true, "spaces", 2],
     "no-unused-variable": true
   },
