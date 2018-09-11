@@ -1,7 +1,7 @@
 import 'reflect-metadata';
-import express from 'express';
-import logger from 'morgan';
+import * as express from 'express';
 import { useExpressServer } from 'routing-controllers';
+import { createConnection } from 'typeorm';
 
 import { UserController } from './controllers/CheckerController';
 
@@ -9,7 +9,9 @@ const APP: express.Application = express();
 
 const PORT: number = Number(process.env.PORT) || 8080;
 
-APP.use(logger('dev'));
+export const DbConnection = createConnection()
+  .then(conn => console.log('Database connection established'))
+  .catch(error => console.log('TypeORM connection error: ', error));
 
 useExpressServer(APP, {
   routePrefix: '/api',
