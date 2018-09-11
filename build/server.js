@@ -10,7 +10,9 @@ var APP = express_1.default();
 var PORT = Number(process.env.PORT) || 8080;
 APP.use(body_parser_1.default);
 APP.use(body_parser_1.default.urlencoded({ extended: false }));
-APP.use(morgan_1.default("dev"));
+APP.use(morgan_1.default('dev'));
 APP.listen(PORT, function () {
+    // tslint:disable no-console
     console.log("App is running on " + PORT);
+    // tslint:enable
 });
