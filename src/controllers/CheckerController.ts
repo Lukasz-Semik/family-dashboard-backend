@@ -17,6 +17,10 @@ export class UserController {
     const userRepository = getRepository(User);
     const user = new User();
     user.firstname = 'tescik';
-    userRepository.save(user).then(arg => console.log(arg));
+
+    return userRepository
+      .save(user)
+      .then(arg => res.status(200).json(arg))
+      .catch(err => console.log(err));
   }
 }
