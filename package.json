@@ -10,7 +10,9 @@
     "watch": "nodemon",
     "dev": "concurrently \"yarn tsc --watch\" \"yarn watch build/server.js \"",
     "lint": "tslint -p . -c tslint.json 'src/**/*.ts'",
-    "test": "export NODE_ENV=test || SET NODE_ENV=test && yarn tsc && nyc mocha build/**/*.spec.js --exit"
+    "test": "export NODE_ENV=test || SET NODE_ENV=test && yarn tsc && nyc mocha build/**/*.spec.js --exit",
+    "start": "node build/server.js",
+    "heroku-postbuild": "yarn tsc"
   },
   "devDependencies": {
     "@types/body-parser": "^1.17.0",
