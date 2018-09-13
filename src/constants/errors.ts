@@ -29,3 +29,6 @@ export const passwordErrors: PasswordErrors = {
   isRequired: 'password-required',
   notEqual: 'passwords-not-equal',
 };
+
+export const firstNameRequired: string = 'first-name-required';
+export const lastNameRequired: string = 'last-name-required';
