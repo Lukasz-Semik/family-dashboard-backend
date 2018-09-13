@@ -4,6 +4,7 @@ module.exports = {
   type: config.DB_TYPE,
   host: config.DB_HOST,
   port: config.DB_PORT,
+  url: config.DB_URL,
   username: config.DB_USERNAME,
   password: config.DB_PASSWORD,
   database: config.DB_NAME,
