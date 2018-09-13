@@ -3,7 +3,7 @@ import * as express from 'express';
 import { useExpressServer } from 'routing-controllers';
 import { createConnection } from 'typeorm';
 
-import { UserController } from './controllers/CheckerController';
+import { UserController } from './controllers/UserController';
 
 const APP: express.Application = express();
 
