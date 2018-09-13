@@ -1,3 +1,5 @@
+import { isEmpty } from 'lodash';
+
 import { isBlank, isEmail, hasProperLength } from '../helpers/validators';
 import { emailErrors, passwordErrors } from '../constants/errors';
 
@@ -33,11 +35,14 @@ export const validateSignIn: (email: string, password: string) => SignInValidato
 ) => {
   const errors: SignInErrors = {};
 
-  errors.email = validateEmail(email);
-  errors.password = validatePassword(password);
+  const emailValidation: string = validateEmail(email);
+  if (!isBlank(emailValidation)) errors.email = emailValidation;
+
+  const passwordValidation: string = validatePassword(password);
+  if (!isBlank(passwordValidation)) errors.password = passwordValidation;
 
   return {
-    isValid: isBlank(errors.email) && isBlank(errors.password),
+    isValid: isEmpty(errors),
     errors,
   };
 };

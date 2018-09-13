@@ -20,7 +20,7 @@ export class UserController {
     const { email, password, firstName, lastName } = body;
     const { isValid, errors } = validateSignIn(email, password);
 
-    if (!isValid) res.status(400).json({ errors });
+    if (!isValid) return res.status(400).json({ errors });
 
     const user = new User();
     user.email = email;
