@@ -28,7 +28,7 @@ if (config.NODE_ENV === 'production') {
     username: connectionOptions.user,
     password: connectionOptions.password,
     database: connectionOptions.database,
-    entities: ['build/entity/*.js'],
+    entities: ['src/entity/*.js'],
   };
 }
 console.log('config options', configOptions);
