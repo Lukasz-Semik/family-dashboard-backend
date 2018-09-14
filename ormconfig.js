@@ -19,16 +19,17 @@ let configOptions = {
 
 if (config.NODE_ENV === 'production') {
   const parse = require('pg-connection-string').parse;
-  const config = parse(config.DATABASE_URL);
+  const connectionOptions = parse(config.DATABASE_URL);
 
   configOptions = {
-    type: config.DB_TYPE,
-    host: config.host,
-    port: config.port || config.DB_PORT,
-    username: config.user || config.DB_USERNAME,
-    password: config.password || config.DB_PASSWORD,
-    database: config.database || config.DB_NAME,
+    type: connectionOptions.DB_TYPE,
+    host: connectionOptions.host,
+    port: connectionOptions.port,
+    username: connectionOptions.user,
+    password: connectionOptions.password,
+    database: connectionOptions.database,
+    entities: ['build/entity/*.js'],
   };
 }
-
+console.log('config options', configOptions);
 module.exports = configOptions;
