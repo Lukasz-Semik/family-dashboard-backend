@@ -2,6 +2,6 @@
   "extends": "./tsconfig.json",
   "exclude": ["src/**/*.spec.ts", "build/**/*"],
   "compilerOptions": {
-    "outDir": "./app/build"
+    "outDir": "./build"
   }
 }
