@@ -1,9 +1,19 @@
 const envPath = `.env.${process.env.NODE_ENV || 'development'}`;
 require('dotenv').config({ path: envPath });
 
-const { DB_TYPE, DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_NAME, NODE_PORT } = process.env;
+const {
+  DB_TYPE,
+  DB_HOST,
+  DB_PORT,
+  DB_USERNAME,
+  DB_PASSWORD,
+  DB_NAME,
+  DATABASE_URL,
+  NODE_PORT,
+  NODE_ENV,
+} = process.env;
 
-if (NODE_PORT !== 'production') {
+if (NODE_ENV !== 'production') {
   const REQUIRED_KEYS = [
     'DB_TYPE',
     'DB_HOST',
@@ -29,4 +39,6 @@ module.exports = {
   DB_PASSWORD,
   DB_NAME,
   NODE_PORT,
+  NODE_ENV,
+  DATABASE_URL,
 };
