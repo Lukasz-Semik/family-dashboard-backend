@@ -28,9 +28,9 @@ if (config.NODE_ENV === 'production') {
     username: connectionOptions.user,
     password: connectionOptions.password,
     database: connectionOptions.database,
-    entities: ['src/entity/*.js'],
+    entities: ['build/src/entity/*.js'],
     cli: {
-      entitiesDir: 'src/entity',
+      entitiesDir: 'build/src/entity',
       migrationsDir: 'src/migration',
     },
   };
