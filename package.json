@@ -1,18 +1,19 @@
 {
   "name": "family-dashboard-backend-pg",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
   "repository": "git@github.com:Lukasz-Semik/family-dashboard-backend-pg.git",
   "author": "djpluki <djpluki@gmail.com>",
   "license": "MIT",
   "scripts": {
     "tsc": "tsc",
     "watch": "nodemon",
-    "dev": "concurrently \"yarn tsc --watch\" \"yarn watch build/server.js \"",
+    "dev": "concurrently \"yarn tsc --watch  --project \"./tsconfig.json\"\" \"yarn watch build/src/server.js \"",
     "lint": "tslint -p . -c tslint.json 'src/**/*.ts'",
     "test": "export NODE_ENV=test || SET NODE_ENV=test && yarn tsc && nyc mocha build/**/*.spec.js --exit",
-    "start": "node build/server.js",
-    "heroku-postbuild": "yarn tsc"
+    "start": "node build/src/server.js",
+    "build:prod": "yarn tsc --project \"./tsconfig.prod.json\"",
+    "heroku-postbuild": "yarn build:prod"
   },
   "devDependencies": {
     "@types/body-parser": "^1.17.0",
