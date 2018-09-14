@@ -22,7 +22,7 @@ if (config.NODE_ENV === 'production') {
   const connectionOptions = parse(config.DATABASE_URL);
 
   configOptions = {
-    type: connectionOptions.DB_TYPE,
+    type: 'postgres',
     host: connectionOptions.host,
     port: connectionOptions.port,
     username: connectionOptions.user,
