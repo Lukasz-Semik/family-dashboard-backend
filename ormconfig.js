@@ -9,7 +9,7 @@ let configOptions = {
   database: config.DB_NAME,
   synchronize: true,
   logging: false,
-  entities: ['build/entity/*.js'],
+  entities: ['build/src/entity/*.js'],
   migrations: ['src/migration/**/*.ts'],
   cli: {
     entitiesDir: 'src/entity',
@@ -28,6 +28,7 @@ if (config.NODE_ENV === 'production') {
     username: connectionOptions.user,
     password: connectionOptions.password,
     database: connectionOptions.database,
+    synchronize: true,
     entities: ['build/src/entity/*.js'],
     cli: {
       entitiesDir: 'build/src/entity',
