@@ -1,6 +1,7 @@
 import { JsonController, Body, Post, Res, UseBefore } from 'routing-controllers';
 import { getRepository } from 'typeorm';
 import { isEmpty } from 'lodash';
+import { hash } from 'bcryptjs';
 
 import { User } from '../entity/User';
 import urlencodedParser from '../utils/bodyParser';
@@ -28,12 +29,14 @@ export class UserController {
 
       if (!isValid) return res.status(400).json({ errors });
 
+      const hashedPassword = await hash(password, 10);
+
       const user = new User();
 
       const savedUser = await this.userRepository.save({
         ...user,
+        password: hashedPassword,
         email,
-        password,
         firstName,
         lastName,
       });

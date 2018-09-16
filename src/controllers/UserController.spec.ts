@@ -26,12 +26,12 @@ describe('User Controller', () => {
         .expect(res => {
           expect(res.body).to.include({
             email,
-            password,
             firstName,
             lastName,
             isVerified: false,
           });
 
+          expect(res.body.password).to.be.a('string');
           expect(res.body.createdAt).to.be.a('string');
           expect(res.body.createdAt).to.equal(res.body.updatedAt);
         })
