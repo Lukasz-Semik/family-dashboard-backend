@@ -36,5 +36,5 @@ if (config.NODE_ENV === 'production') {
     },
   };
 }
-console.log('config options', configOptions);
+
 module.exports = configOptions;

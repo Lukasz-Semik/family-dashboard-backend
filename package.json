@@ -13,7 +13,8 @@
     "test": "export NODE_ENV=test || SET NODE_ENV=test && yarn tsc && nyc mocha build/**/*.spec.js --exit",
     "start": "node build/src/server.js",
     "build:prod": "yarn tsc --project \"./tsconfig.prod.json\"",
-    "heroku-postbuild": "yarn build:prod"
+    "heroku-postbuild": "yarn build:prod",
+    "prepush": "yarn lint && yarn test"
   },
   "devDependencies": {
     "@types/body-parser": "^1.17.0",
@@ -25,6 +26,7 @@
     "@types/node": "^10.9.4",
     "chai": "^4.1.2",
     "concurrently": "^4.0.1",
+    "husky": "^0.14.3",
     "mocha": "^5.2.0",
     "nodemon": "^1.18.4",
     "nyc": "^13.0.1",

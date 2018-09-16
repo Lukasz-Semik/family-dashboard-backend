@@ -17,34 +17,30 @@ export class UserController {
   // @access public
   @Post(API_SIGN_UP)
   @UseBefore(urlencodedParser)
-  createUser(@Body() body: any, @Res() res: any) {
+  async createUser(@Body() body: any, @Res() res: any) {
     const { email, password, firstName, lastName } = body;
     const { isValid, errors } = validateSignUp(email, password, firstName, lastName);
 
-    return this.userRepository
-      .find({ email })
-      .then(existingUser => {
-        if (!isEmpty(existingUser)) return res.status(400).json({ email: emailErrors.emailTaken });
+    try {
+      const existingUser = await this.userRepository.find({ email });
+      if (!isEmpty(existingUser))
+        return res.status(400).json({ errors: { email: emailErrors.emailTaken } });
 
-        if (!isValid) return res.status(400).json({ errors });
+      if (!isValid) return res.status(400).json({ errors });
 
-        const user = new User();
+      const user = new User();
 
-        return this.userRepository
-          .save({
-            ...user,
-            email,
-            password,
-            firstName,
-            lastName,
-          })
-          .then(arg => res.status(200).json(arg))
-          .catch(err =>
-            res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err })
-          );
-      })
-      .catch(err =>
-        res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err })
-      );
+      const savedUser = await this.userRepository.save({
+        ...user,
+        email,
+        password,
+        firstName,
+        lastName,
+      });
+
+      return res.status(200).json(savedUser);
+    } catch (err) {
+      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+    }
   }
 }

@@ -30,5 +30,10 @@ export const passwordErrors: PasswordErrors = {
   notEqual: 'passwords-not-equal',
 };
 
-export const firstNameRequired: string = 'first-name-required';
-export const lastNameRequired: string = 'last-name-required';
+interface DefaultErrorsTypes {
+  isRequired: string;
+}
+
+export const defaultErrors = {
+  isRequired: 'is-required',
+};
