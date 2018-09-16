@@ -25,6 +25,11 @@ export class User {
   @Column()
   lastName: string;
 
+  @Column({
+    default: false,
+  })
+  isVerified: boolean;
+
   @CreateDateColumn({
     type: 'timestamp',
   })

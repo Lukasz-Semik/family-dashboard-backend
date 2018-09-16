@@ -1,12 +1,7 @@
 import { isEmpty } from 'lodash';
 
 import { isBlank, isEmail, hasProperLength } from '../helpers/validators';
-import {
-  emailErrors,
-  passwordErrors,
-  firstNameRequired,
-  lastNameRequired,
-} from '../constants/errors';
+import { emailErrors, passwordErrors, defaultErrors } from '../constants/errors';
 
 const validateEmail: (email: string) => string = email => {
   if (isBlank(email)) return emailErrors.isRequired;
@@ -24,21 +19,21 @@ const validatePassword: (password: string) => string = password => {
   return '';
 };
 
-interface SignInErrors {
+interface SignInErrorsTypes {
   email?: string;
   password?: string;
 }
 
-interface SignInValidator {
+interface SignInValidatorTypes {
   isValid: boolean;
-  errors: SignInErrors;
+  errors: SignInErrorsTypes;
 }
 
-export const validateSignIn: (email: string, password: string) => SignInValidator = (
+export const validateSignIn: (email: string, password: string) => SignInValidatorTypes = (
   email,
   password
 ) => {
-  const errors: SignInErrors = {};
+  const errors: SignInErrorsTypes = {};
 
   const emailError: string = validateEmail(email);
   if (!isBlank(emailError)) errors.email = emailError;
@@ -52,16 +47,16 @@ export const validateSignIn: (email: string, password: string) => SignInValidato
   };
 };
 
-interface SignUpErrors {
+interface SignUpErrorsTypes {
   email?: string;
   password?: string;
   firstName?: string;
   lastName?: string;
 }
 
-interface SignUpValidator {
+interface SignUpValidatorTypes {
   isValid: boolean;
-  errors: SignUpErrors;
+  errors: SignUpErrorsTypes;
 }
 
 export const validateSignUp: (
@@ -69,18 +64,18 @@ export const validateSignUp: (
   password: string,
   firstName: string,
   lastName: string
-) => SignUpValidator = (email, password, firstName, lastName) => {
-  const errors: SignUpErrors = {};
+) => SignUpValidatorTypes = (email, password, firstName, lastName) => {
+  const errors: SignUpErrorsTypes = {};
 
-  const signInValidated: SignInValidator = validateSignIn(email, password);
+  const signInValidated: SignInValidatorTypes = validateSignIn(email, password);
 
   const { email: emailError, password: passwordError } = signInValidated.errors;
 
   if (!isBlank(emailError)) errors.email = emailError;
   if (!isBlank(passwordError)) errors.password = passwordError;
 
-  if (isBlank(firstName)) errors.firstName = firstNameRequired;
-  if (isBlank(lastName)) errors.lastName = lastNameRequired;
+  if (isBlank(firstName)) errors.firstName = defaultErrors.isRequired;
+  if (isBlank(lastName)) errors.lastName = defaultErrors.isRequired;
 
   return {
     isValid: isEmpty(errors),
