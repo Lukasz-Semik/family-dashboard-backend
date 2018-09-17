@@ -3,6 +3,7 @@ import { getRepository } from 'typeorm';
 import { isEmpty } from 'lodash';
 import { hash, compare } from 'bcryptjs';
 
+import Token from './Token';
 import { User } from '../entity/User';
 import urlencodedParser from '../utils/bodyParser';
 import { API_SIGN_UP, API_SIGN_IN } from '../constants/routes';
@@ -66,6 +67,12 @@ export class UserController {
 
     if (!isMatch) return res.status(400).json({ errors: { password: passwordErrors.notValid } });
 
-    return res.status(200).json({ isAuthorized: true });
+    const token = Token.create({ id: user.id, email: user.email });
+
+    user.token = token;
+
+    await this.userRepository.save(user);
+
+    return res.status(200).json({ user });
   }
 }
