@@ -3,7 +3,7 @@ import * as express from 'express';
 import { useExpressServer } from 'routing-controllers';
 import { createConnection } from 'typeorm';
 
-import authenticate from './middleware/authenticate';
+import authenticate from './services/authenticate';
 import { UserController } from './controllers/UserController';
 
 export const APP: express.Application = express();
