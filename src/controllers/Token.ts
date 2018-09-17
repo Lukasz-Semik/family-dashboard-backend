@@ -3,14 +3,12 @@ import * as jwt from 'jsonwebtoken';
 import { EXPIRE_2_WEEKS } from '../constants/expirations';
 
 interface TokenPayloadTypes {
-  id: number;
   email: string;
 }
 
 class Token {
   public static create(user: TokenPayloadTypes) {
     const payload = {
-      id: user.id,
       email: user.email,
     };
 
@@ -25,7 +23,6 @@ class Token {
   public static decode(
     token: string | string[] | number
   ): Promise<{
-    id: number;
     email: string;
   }> {
     return new Promise((resolve, reject) => {

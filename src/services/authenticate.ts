@@ -5,7 +5,7 @@ import { isEmpty } from 'lodash';
 import Token from '../controllers/Token';
 import { User } from '../entity/User';
 
-const authenticate = async (action: Action, roles: string[]) => {
+const authenticate = async (action: Action) => {
   const token = action.request.headers.authorization;
 
   const userRepository = getRepository(User);

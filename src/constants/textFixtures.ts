@@ -18,4 +18,10 @@ export const users: UsersTypes[] = [
     email: 'jane@seed-1.com',
     password: 'Password123',
   },
+  {
+    firstName: 'George',
+    lastName: 'Seed-2-signed-in',
+    email: 'george@seed-2-signed-in.com',
+    password: 'Password123',
+  },
 ];
