@@ -3,8 +3,8 @@ import * as request from 'supertest';
 
 import { APP } from '../server';
 import { dbSeedTests, generatedToken } from '../utils/testsSeeds';
+import { users } from '../constants/testFixtures';
 import { API_FULL_SIGN_UP, API_FULL_SIGN_IN, API_FULL_IS_AUTHORIZED } from '../constants/routes';
-import { users } from '../constants/textFixtures';
 import { emailErrors, passwordErrors, defaultErrors } from '../constants/errors';
 
 before(() => dbSeedTests());

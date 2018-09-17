@@ -24,6 +24,8 @@ class Token {
     token: string | string[] | number
   ): Promise<{
     email: string;
+    iat: number;
+    exp: number;
   }> {
     return new Promise((resolve, reject) => {
       jwt.verify(token, process.env.JWT_TOKEN, (err, decoded) => {

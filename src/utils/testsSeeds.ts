@@ -2,8 +2,8 @@ import { getRepository } from 'typeorm';
 import { createConnection } from 'typeorm';
 import { hash } from 'bcryptjs';
 
+import { users } from '../constants/testFixtures';
 import { User } from '../entity/User';
-import { users } from '../constants/textFixtures';
 import Token from '../controllers/Token';
 
 export let generatedToken: string = '';
