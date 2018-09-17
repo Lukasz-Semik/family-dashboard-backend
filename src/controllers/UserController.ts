@@ -1,4 +1,4 @@
-import { JsonController, Body, Post, Res, UseBefore } from 'routing-controllers';
+import { JsonController, Body, Get, Post, Res, UseBefore, Authorized } from 'routing-controllers';
 import { getRepository } from 'typeorm';
 import { isEmpty } from 'lodash';
 import { hash, compare } from 'bcryptjs';
@@ -6,7 +6,7 @@ import { hash, compare } from 'bcryptjs';
 import Token from './Token';
 import { User } from '../entity/User';
 import urlencodedParser from '../utils/bodyParser';
-import { API_SIGN_UP, API_SIGN_IN } from '../constants/routes';
+import { API_SIGN_UP, API_SIGN_IN, API_IS_AUTHORIZED } from '../constants/routes';
 import { internalServerErrors, emailErrors, passwordErrors } from '../constants/errors';
 import { validateSignUp, validateSignIn } from '../validators/user';
 
@@ -74,5 +74,11 @@ export class UserController {
     await this.userRepository.save(user);
 
     return res.status(200).json({ user });
+  }
+
+  @Authorized()
+  @Get(API_IS_AUTHORIZED)
+  tescik(@Body() body: any, @Res() res: any) {
+    return res.status(200).json({ isAuthorized: true });
   }
 }

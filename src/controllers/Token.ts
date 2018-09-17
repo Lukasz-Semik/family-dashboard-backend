@@ -21,6 +21,21 @@ class Token {
 
     return token;
   }
+
+  public static decode(
+    token: string | string[] | number
+  ): Promise<{
+    id: number;
+    email: string;
+  }> {
+    return new Promise((resolve, reject) => {
+      jwt.verify(token, process.env.JWT_TOKEN, (err, decoded) => {
+        if (err) return reject(err);
+
+        resolve(decoded);
+      });
+    });
+  }
 }
 
 export default Token;
