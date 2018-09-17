@@ -76,6 +76,9 @@ export class UserController {
     return res.status(200).json({ user });
   }
 
+  // @description check if user is authorize
+  // @full route: /api/user/is-authorized
+  // @access private
   @Authorized()
   @Get(API_IS_AUTHORIZED)
   tescik(@Body() body: any, @Res() res: any) {
