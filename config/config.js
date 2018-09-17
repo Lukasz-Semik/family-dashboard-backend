@@ -11,6 +11,7 @@ const {
   DATABASE_URL,
   NODE_PORT,
   NODE_ENV,
+  JWT_TOKEN,
 } = process.env;
 
 if (NODE_ENV !== 'production') {
@@ -22,6 +23,7 @@ if (NODE_ENV !== 'production') {
     'DB_PASSWORD',
     'DB_NAME',
     'NODE_PORT',
+    'JWT_TOKEN',
   ];
 
   REQUIRED_KEYS.forEach(key => {
@@ -41,4 +43,5 @@ module.exports = {
   NODE_PORT,
   NODE_ENV,
   DATABASE_URL,
+  JWT_TOKEN,
 };

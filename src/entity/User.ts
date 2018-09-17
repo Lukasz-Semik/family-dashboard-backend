@@ -30,6 +30,11 @@ export class User {
   })
   isVerified: boolean;
 
+  @Column({
+    nullable: true,
+  })
+  token: string;
+
   @CreateDateColumn({
     type: 'timestamp',
   })
