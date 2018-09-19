@@ -10,6 +10,7 @@ interface EmailErrors {
   emailTaken: string;
   wrongFormat: string;
   notExist: string;
+  notVerified: string;
   isRequired: string;
 }
 
@@ -17,6 +18,7 @@ export const emailErrors: EmailErrors = {
   emailTaken: 'email-already-registered',
   wrongFormat: 'email-wrong-format',
   notExist: 'email-not-exist',
+  notVerified: 'email-not-verified',
   isRequired: 'email-required',
 };
 

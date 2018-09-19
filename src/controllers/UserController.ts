@@ -6,9 +6,11 @@ import { hash, compare } from 'bcryptjs';
 import Token from './Token';
 import { User } from '../entity/User';
 import urlencodedParser from '../utils/bodyParser';
+import sendAccountConfirmationRequest from '../services/mailers';
+import { validateSignUp, validateSignIn } from '../validators/user';
 import { API_SIGN_UP, API_SIGN_IN, API_IS_AUTHORIZED } from '../constants/routes';
 import { internalServerErrors, emailErrors, passwordErrors } from '../constants/errors';
-import { validateSignUp, validateSignIn } from '../validators/user';
+import { EXPIRE_24_H } from '../constants/expirations';
 
 @JsonController()
 export class UserController {
@@ -32,15 +34,20 @@ export class UserController {
 
       const hashedPassword = await hash(password, 10);
 
+      const token = Token.create({ email }, EXPIRE_24_H);
+
       const user = new User();
 
       const savedUser = await this.userRepository.save({
         ...user,
         password: hashedPassword,
+        verificationAccountToken: token,
         email,
         firstName,
         lastName,
       });
+
+      sendAccountConfirmationRequest(email, firstName, token);
 
       return res.status(200).json(savedUser);
     } catch (err) {
@@ -62,6 +69,9 @@ export class UserController {
     const user = await this.userRepository.findOne({ email });
 
     if (isEmpty(user)) return res.status(400).json({ errors: { email: emailErrors.notExist } });
+
+    if (!user.isVerified)
+      return res.status(400).json({ errors: { email: emailErrors.notVerified } });
 
     const isMatch = await compare(password, user.password);
 
