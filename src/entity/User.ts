@@ -35,6 +35,11 @@ export class User {
   })
   token: string;
 
+  @Column({
+    nullable: true,
+  })
+  verificationAccountToken: string;
+
   @CreateDateColumn({
     type: 'timestamp',
   })
