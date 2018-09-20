@@ -20,6 +20,7 @@ export const dbSeedTests: any = async () => {
   await userRepository.save({
     ...userOne,
     ...users[1],
+    isVerified: true,
     password: hashedPassword,
   });
 
@@ -33,5 +34,6 @@ export const dbSeedTests: any = async () => {
     ...users[2],
     password: hashedPassword,
     token: generatedToken,
+    isVerified: true,
   });
 };

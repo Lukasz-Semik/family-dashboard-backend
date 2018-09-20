@@ -45,6 +45,7 @@ export class UserController {
         email,
         firstName,
         lastName,
+        isVerified: false,
       });
 
       sendAccountConfirmationRequest(email, firstName, token);

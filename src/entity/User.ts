@@ -36,9 +36,7 @@ export class User {
   })
   lastName: string;
 
-  @Column({
-    default: false,
-  })
+  @Column()
   isVerified: boolean;
 
   @Column({

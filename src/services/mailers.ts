@@ -23,8 +23,9 @@ const sendAccountConfirmationRequest = (email: string, userName: string, token: 
     `,
   };
 
-  // tslint:disable-next-line no-console
-  sgMail.send(msg).catch(err => console.log(err));
+  if (process.env.NODE_ENV !== 'test')
+    // tslint:disable-next-line no-console
+    sgMail.send(msg).catch(err => console.log(err));
 };
 
 export default sendAccountConfirmationRequest;
