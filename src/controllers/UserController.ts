@@ -52,10 +52,10 @@ export class UserController {
         ...user,
         password: hashedPassword,
         verificationAccountToken: token,
+        isVerified: false,
         email,
         firstName,
         lastName,
-        isVerified: false,
       });
 
       sendAccountConfirmationRequest(email, firstName, token);
