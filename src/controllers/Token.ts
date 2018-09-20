@@ -7,13 +7,13 @@ interface TokenPayloadTypes {
 }
 
 class Token {
-  public static create(user: TokenPayloadTypes) {
+  public static create(user: TokenPayloadTypes, expiresIn = EXPIRE_2_WEEKS) {
     const payload = {
       email: user.email,
     };
 
     const token = jwt.sign(payload, process.env.JWT_TOKEN, {
-      expiresIn: EXPIRE_2_WEEKS,
+      expiresIn,
       algorithm: 'HS256',
     });
 

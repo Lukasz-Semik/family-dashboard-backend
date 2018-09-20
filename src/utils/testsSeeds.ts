@@ -20,6 +20,7 @@ export const dbSeedTests: any = async () => {
   await userRepository.save({
     ...userOne,
     ...users[1],
+    isVerified: true,
     password: hashedPassword,
   });
 
@@ -28,10 +29,24 @@ export const dbSeedTests: any = async () => {
   generatedToken = await Token.create({ email: users[2].email });
   hashedPassword = await hash(users[2].password, 10);
 
-  return await userRepository.save({
+  await userRepository.save({
     ...userTwo,
     ...users[2],
     password: hashedPassword,
     token: generatedToken,
+    isVerified: true,
+  });
+
+  const userThree = new User();
+
+  generatedToken = await Token.create({ email: users[3].email });
+  hashedPassword = await hash(users[3].password, 10);
+
+  return await userRepository.save({
+    ...userThree,
+    ...users[3],
+    password: hashedPassword,
+    token: generatedToken,
+    isVerified: false,
   });
 };

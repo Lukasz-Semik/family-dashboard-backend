@@ -175,6 +175,22 @@ describe('User Controller', () => {
           done();
         });
     });
+
+    it('should return proper error message for not verified user', done => {
+      request(APP)
+        .post(API_FULL_SIGN_IN)
+        .send({ email: users[3].email, password: users[3].password })
+        .expect(400)
+        .expect(res => {
+          expect(res.body.errors).to.deep.equal({
+            email: emailErrors.notVerified,
+          });
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
   });
 
   describe(`Route ${API_FULL_IS_AUTHORIZED}`, () => {

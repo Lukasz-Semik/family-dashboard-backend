@@ -1,6 +1,6 @@
 {
   "extends": "./tsconfig.json",
-  "exclude": ["src/**/*.spec.ts", "build/**/*"],
+  "exclude": ["src/**/*.spec.ts", "build/**/*", "config/createEnvFiles.js"],
   "compilerOptions": {
     "outDir": "./build"
   }
