@@ -4,7 +4,11 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  JoinColumn,
+  OneToOne,
 } from 'typeorm';
+
+import { UserProfile } from './UserProfile';
 
 @Entity()
 export class User {
@@ -24,18 +28,6 @@ export class User {
   })
   password: string;
 
-  @Column({
-    type: 'varchar',
-    length: 255,
-  })
-  firstName: string;
-
-  @Column({
-    type: 'varchar',
-    length: 255,
-  })
-  lastName: string;
-
   @Column()
   isVerified: boolean;
 
@@ -47,7 +39,11 @@ export class User {
   @Column({
     nullable: true,
   })
-  verificationAccountToken: string;
+  confirmationAccountToken: string;
+
+  @OneToOne(type => UserProfile)
+  @JoinColumn()
+  userProfile: UserProfile;
 
   @CreateDateColumn({
     type: 'timestamp',
