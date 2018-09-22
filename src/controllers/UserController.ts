@@ -1,10 +1,19 @@
-import { JsonController, Body, Get, Post, Res, UseBefore, Authorized } from 'routing-controllers';
+import {
+  JsonController,
+  Body,
+  Get,
+  Post,
+  Res,
+  UseBefore,
+  Authorized,
+  HeaderParam,
+} from 'routing-controllers';
 import { getRepository } from 'typeorm';
 import { isEmpty } from 'lodash';
 import { hash, compare } from 'bcryptjs';
 
 import Token from './Token';
-import { User } from '../entity/User';
+import { User, UserProfile } from '../entity';
 import urlencodedParser from '../utils/bodyParser';
 import sendAccountConfirmationRequest from '../services/mailers';
 import { validateSignUp, validateSignIn } from '../validators/user';
@@ -13,6 +22,7 @@ import {
   API_SIGN_IN,
   API_IS_AUTHORIZED,
   API_CONFIRM_ACCOUNT,
+  API_GET_CURRENT_USER,
 } from '../constants/routes';
 import {
   internalServerErrors,
@@ -20,11 +30,13 @@ import {
   passwordErrors,
   defaultErrors,
 } from '../constants/errors';
+import { accountSuccesses } from '../constants/successes';
 import { EXPIRE_24_H } from '../constants/expirations';
 
 @JsonController()
 export class UserController {
   userRepository = getRepository(User);
+  userProfileRepository = getRepository(UserProfile);
 
   // @description create user
   // @full route: /api/user/sign-up
@@ -46,46 +58,54 @@ export class UserController {
 
       const token = Token.create({ email }, EXPIRE_24_H);
 
-      const user = new User();
+      const newUser = new User();
+      const newUserProfile = new UserProfile();
 
-      const savedUser = await this.userRepository.save({
-        ...user,
-        password: hashedPassword,
-        verificationAccountToken: token,
-        isVerified: false,
-        email,
+      const userProfile = await this.userProfileRepository.save({
+        ...newUserProfile,
+        isFamilyHead: false,
         firstName,
         lastName,
       });
 
+      await this.userRepository.save({
+        ...newUser,
+        password: hashedPassword,
+        confirmationAccountToken: token,
+        isVerified: false,
+        email,
+        userProfile,
+      });
+
       sendAccountConfirmationRequest(email, firstName, token);
 
-      return res.status(200).json(savedUser);
+      return res.status(200).json({ account: accountSuccesses.created });
     } catch (err) {
       return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
+  // TODO: THINK ABOUT AND EVENTUALLY MOVE TOKEN TO HEADERS!
   // @description confirm user account
   // @full route: /api/user/confirm-account
   // @access public
   @Post(API_CONFIRM_ACCOUNT)
   @UseBefore(urlencodedParser)
   async confirmAccount(@Body() body: any, @Res() res: any) {
-    const { verificationAccountToken } = body;
+    const { confirmationAccountToken } = body;
 
-    if (isEmpty(verificationAccountToken))
+    if (isEmpty(confirmationAccountToken))
       return res.status(400).json({ errors: { token: defaultErrors.isRequired } });
 
-    const { email } = await Token.decode(verificationAccountToken);
+    const { email } = await Token.decode(confirmationAccountToken);
 
     const user = await this.userRepository.findOne({ email });
 
     if (isEmpty(user)) return res.status(400).json({ errors: { email: emailErrors.notExist } });
 
-    await this.userRepository.save({ ...user, isVerified: true, verificationAccountToken: null });
+    await this.userRepository.save({ ...user, isVerified: true, confirmationAccountToken: null });
 
-    return res.status(200).json({ user });
+    return res.status(200).json({ account: accountSuccesses.confirmed });
   }
 
   // @description create user
@@ -116,7 +136,40 @@ export class UserController {
 
     await this.userRepository.save(user);
 
-    return res.status(200).json({ user });
+    return res.status(200).json({ isAuthorized: true, token });
+  }
+
+  // @description get current user
+  // @full route: /api/user/get-current-user
+  // @access private
+  @Authorized()
+  @Get(API_GET_CURRENT_USER)
+  async getCurrentUser(@HeaderParam('authorization') token: string, @Res() res: any) {
+    const { email: emailDecoded } = await Token.decode(token);
+
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.userProfile', 'userProfile')
+      .where('user.email = :email', { email: emailDecoded })
+      .getOne();
+
+    const {
+      id: userId,
+      email,
+      userProfile: { isFamilyHead, firstName, lastName, age, gender },
+    } = user;
+
+    return res.status(200).json({
+      currentUser: {
+        userId,
+        email,
+        isFamilyHead,
+        firstName,
+        lastName,
+        age,
+        gender,
+      },
+    });
   }
 
   // @description check if user is authorize
@@ -124,7 +177,7 @@ export class UserController {
   // @access private
   @Authorized()
   @Get(API_IS_AUTHORIZED)
-  tescik(@Body() body: any, @Res() res: any) {
+  isAuthorized(@Body() body: any, @Res() res: any) {
     return res.status(200).json({ isAuthorized: true });
   }
 }
