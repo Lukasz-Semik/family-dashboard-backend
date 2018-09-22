@@ -3,9 +3,15 @@ import * as request from 'supertest';
 
 import { APP } from '../server';
 import { dbSeedTests, generatedToken } from '../utils/testsSeeds';
-import { users } from '../constants/testFixtures';
-import { API_FULL_SIGN_UP, API_FULL_SIGN_IN, API_FULL_IS_AUTHORIZED } from '../constants/routes';
+import { users, wrongToken } from '../constants/testFixtures';
+import {
+  API_FULL_SIGN_UP,
+  API_FULL_SIGN_IN,
+  API_FULL_IS_AUTHORIZED,
+  API_FULL_GET_CURRENT_USER,
+} from '../constants/routes';
 import { emailErrors, passwordErrors, defaultErrors } from '../constants/errors';
+import { accountSuccesses } from '../constants/successes';
 
 before(() => dbSeedTests());
 
@@ -24,16 +30,7 @@ describe('User Controller', () => {
         })
         .expect(200)
         .expect(res => {
-          expect(res.body).to.include({
-            email,
-            firstName,
-            lastName,
-            isVerified: false,
-          });
-
-          expect(res.body.password).to.be.a('string');
-          expect(res.body.createdAt).to.be.a('string');
-          expect(res.body.createdAt).to.equal(res.body.updatedAt);
+          expect(res.body.account).to.equal(accountSuccesses.created);
         })
         .end(err => {
           if (err) return done(err);
@@ -115,13 +112,8 @@ describe('User Controller', () => {
         .send({ email, password })
         .expect(200)
         .expect(res => {
-          expect(res.body.user).to.include({
-            email,
-            firstName: users[1].firstName,
-            lastName: users[1].lastName,
-          });
-
-          expect(res.body.user.token).to.be.a('string');
+          expect(res.body.isAuthorized).to.equal(true);
+          expect(res.body.token).to.be.a('string');
         })
         .end(err => {
           if (err) return done(err);
@@ -193,6 +185,43 @@ describe('User Controller', () => {
     });
   });
 
+  describe(`Route ${API_FULL_GET_CURRENT_USER}`, () => {
+    it('should return proper data for current user', done => {
+      request(APP)
+        .get(API_FULL_GET_CURRENT_USER)
+        .set('authorization', generatedToken)
+        .expect(200)
+        .expect(res => {
+          expect(res.body.currentUser).to.include({
+            email: 'kate@seed-3-not-verified.com',
+            isFamilyHead: false,
+            firstName: 'Kate',
+            lastName: 'Seed-3-not-verified',
+            age: 33,
+            gender: 'female',
+          });
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+
+    it('should return proper data for current user', done => {
+      request(APP)
+        .get(API_FULL_GET_CURRENT_USER)
+        .set('authorization', wrongToken)
+        .expect(401)
+        .expect(res => {
+          expect(res.body.name).to.equal('AuthorizationRequiredError');
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+  });
+
   describe(`Route ${API_FULL_IS_AUTHORIZED}`, () => {
     it('should return isAuthorized info', done => {
       request(APP)
@@ -211,11 +240,8 @@ describe('User Controller', () => {
     it('should return proper error message for some not proper token', done => {
       request(APP)
         .get(API_FULL_IS_AUTHORIZED)
-        .set(
-          'authorization',
-          // tslint:disable-next-line max-line-length
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imdlb3JnZUBzZWVkLTItc2lnbmVkLWluLW5vdC12YWxpZC1tb2NrZWQuY29tIiwiaWF0IjoxNTM3MjEwNDAzLCJleHAiOjE1Mzg0MjAwMDN9.NqtSZcqzGkByKJJY-DjqUfFIUqmNYrKgsne1eqHVQMQ'
-        )
+        .set('authorization', wrongToken)
+        .expect(401)
         .expect(res => {
           expect(res.body.name).to.equal('AuthorizationRequiredError');
         })

@@ -13,3 +13,6 @@ export const API_FULL_IS_AUTHORIZED: string = generateFullApi(API_IS_AUTHORIZED)
 
 export const API_CONFIRM_ACCOUNT: string = '/user/confirm-account';
 export const API_FULL_CONFIRM_ACCOUNT: string = generateFullApi(API_CONFIRM_ACCOUNT);
+
+export const API_GET_CURRENT_USER: string = '/user/get-current-user';
+export const API_FULL_GET_CURRENT_USER: string = generateFullApi(API_GET_CURRENT_USER);

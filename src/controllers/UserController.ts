@@ -1,4 +1,13 @@
-import { JsonController, Body, Get, Post, Res, UseBefore, Authorized } from 'routing-controllers';
+import {
+  JsonController,
+  Body,
+  Get,
+  Post,
+  Res,
+  UseBefore,
+  Authorized,
+  HeaderParam,
+} from 'routing-controllers';
 import { getRepository } from 'typeorm';
 import { isEmpty } from 'lodash';
 import { hash, compare } from 'bcryptjs';
@@ -13,6 +22,7 @@ import {
   API_SIGN_IN,
   API_IS_AUTHORIZED,
   API_CONFIRM_ACCOUNT,
+  API_GET_CURRENT_USER,
 } from '../constants/routes';
 import {
   internalServerErrors,
@@ -75,6 +85,7 @@ export class UserController {
     }
   }
 
+  // TODO: THINK ABOUT AND EVENTUALLY MOVE TOKEN TO HEADERS!
   // @description confirm user account
   // @full route: /api/user/confirm-account
   // @access public
@@ -128,12 +139,45 @@ export class UserController {
     return res.status(200).json({ isAuthorized: true, token });
   }
 
+  // @description get current user
+  // @full route: /api/user/get-current-user
+  // @access private
+  @Authorized()
+  @Get(API_GET_CURRENT_USER)
+  async getCurrentUser(@HeaderParam('authorization') token: string, @Res() res: any) {
+    const { email: emailDecoded } = await Token.decode(token);
+
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.userProfile', 'userProfile')
+      .where('user.email = :email', { email: emailDecoded })
+      .getOne();
+
+    const {
+      id: userId,
+      email,
+      userProfile: { isFamilyHead, firstName, lastName, age, gender },
+    } = user;
+
+    return res.status(200).json({
+      currentUser: {
+        userId,
+        email,
+        isFamilyHead,
+        firstName,
+        lastName,
+        age,
+        gender,
+      },
+    });
+  }
+
   // @description check if user is authorize
   // @full route: /api/user/is-authorized
   // @access private
   @Authorized()
   @Get(API_IS_AUTHORIZED)
-  tescik(@Body() body: any, @Res() res: any) {
+  isAuthorized(@Body() body: any, @Res() res: any) {
     return res.status(200).json({ isAuthorized: true });
   }
 }

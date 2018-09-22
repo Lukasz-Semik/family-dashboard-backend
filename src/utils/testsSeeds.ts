@@ -3,7 +3,7 @@ import { createConnection } from 'typeorm';
 import { hash } from 'bcryptjs';
 
 import { users } from '../constants/testFixtures';
-import { User } from '../entity/User';
+import { User, UserProfile } from '../entity';
 import Token from '../controllers/Token';
 
 export let generatedToken: string = '';
@@ -12,41 +12,73 @@ export const dbSeedTests: any = async () => {
   await createConnection();
 
   const userRepository = getRepository(User);
+  const userProfileRepository = getRepository(UserProfile);
   await userRepository.clear();
 
   const userOne = new User();
-  let hashedPassword = await hash(users[1].password, 10);
+  const newUserProfileOne = new UserProfile();
+  const userProfileOne = await userProfileRepository.save({
+    ...newUserProfileOne,
+    firstName: users[1].firstName,
+    lastName: users[1].lastName,
+    age: users[1].age,
+    gender: users[1].gender,
+    isFamilyHead: false,
+  });
+
+  const hashedPassword = await hash(users[1].password, 10);
 
   await userRepository.save({
     ...userOne,
-    ...users[1],
+    email: users[1].email,
     isVerified: true,
     password: hashedPassword,
+    userProfile: userProfileOne,
   });
 
   const userTwo = new User();
-
+  const newUserProfileTwo = new UserProfile();
   generatedToken = await Token.create({ email: users[2].email });
-  hashedPassword = await hash(users[2].password, 10);
+
+  // const newUserProfile = new UserProfile();
+
+  const userProfileTwo = await userProfileRepository.save({
+    ...newUserProfileTwo,
+    firstName: users[2].firstName,
+    lastName: users[2].lastName,
+    age: users[2].age,
+    gender: users[2].gender,
+    isFamilyHead: false,
+  });
 
   await userRepository.save({
     ...userTwo,
-    ...users[2],
+    email: users[2].email,
     password: hashedPassword,
     token: generatedToken,
     isVerified: true,
+    userProfile: userProfileTwo,
   });
 
   const userThree = new User();
-
+  const newUserProfileThree = new UserProfile();
   generatedToken = await Token.create({ email: users[3].email });
-  hashedPassword = await hash(users[3].password, 10);
+
+  const userProfileThree = await userProfileRepository.save({
+    ...newUserProfileThree,
+    firstName: users[3].firstName,
+    lastName: users[3].lastName,
+    age: users[3].age,
+    gender: users[3].gender,
+    isFamilyHead: false,
+  });
 
   return await userRepository.save({
     ...userThree,
-    ...users[3],
+    email: users[3].email,
     password: hashedPassword,
     token: generatedToken,
     isVerified: false,
+    userProfile: userProfileThree,
   });
 };
