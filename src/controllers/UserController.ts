@@ -13,7 +13,7 @@ import { isEmpty } from 'lodash';
 import { hash, compare } from 'bcryptjs';
 
 import Token from './Token';
-import { User, UserProfile } from '../entity';
+import { User } from '../entity';
 import urlencodedParser from '../utils/bodyParser';
 import sendAccountConfirmationRequest from '../services/mailers';
 import { validateSignUp, validateSignIn } from '../validators/user';
@@ -36,7 +36,6 @@ import { EXPIRE_24_H } from '../constants/expirations';
 @JsonController()
 export class UserController {
   userRepository = getRepository(User);
-  userProfileRepository = getRepository(UserProfile);
 
   // @description create user
   // @full route: /api/user/sign-up
@@ -59,25 +58,20 @@ export class UserController {
       const token = Token.create({ email }, EXPIRE_24_H);
 
       const newUser = new User();
-      const newUserProfile = new UserProfile();
-
-      const userProfile = await this.userProfileRepository.save({
-        ...newUserProfile,
-        isFamilyHead: false,
-        firstName,
-        lastName,
-      });
 
       await this.userRepository.save({
         ...newUser,
         password: hashedPassword,
         confirmationAccountToken: token,
         isVerified: false,
+        isFamilyHead: false,
+        hasFamily: false,
+        firstName,
+        lastName,
         email,
-        userProfile,
       });
 
-      sendAccountConfirmationRequest(email, firstName, token);
+      // sendAccountConfirmationRequest(email, firstName, token);
 
       return res.status(200).json({ account: accountSuccesses.created });
     } catch (err) {
@@ -147,23 +141,16 @@ export class UserController {
   async getCurrentUser(@HeaderParam('authorization') token: string, @Res() res: any) {
     const { email: emailDecoded } = await Token.decode(token);
 
-    const user = await this.userRepository
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.userProfile', 'userProfile')
-      .where('user.email = :email', { email: emailDecoded })
-      .getOne();
+    const user = await this.userRepository.findOne({ email: emailDecoded });
 
-    const {
-      id: userId,
-      email,
-      userProfile: { isFamilyHead, firstName, lastName, age, gender },
-    } = user;
+    const { id: userId, email, isFamilyHead, hasFamily, firstName, lastName, age, gender } = user;
 
     return res.status(200).json({
       currentUser: {
         userId,
         email,
         isFamilyHead,
+        hasFamily,
         firstName,
         lastName,
         age,
