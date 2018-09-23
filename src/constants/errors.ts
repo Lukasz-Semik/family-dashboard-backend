@@ -12,6 +12,7 @@ interface EmailErrors {
   notExist: string;
   notVerified: string;
   isRequired: string;
+  hasFamily: string;
 }
 
 export const emailErrors: EmailErrors = {
@@ -20,6 +21,7 @@ export const emailErrors: EmailErrors = {
   notExist: 'email-not-exist',
   notVerified: 'email-not-verified',
   isRequired: 'email-required',
+  hasFamily: 'email-is-assigned-to-family',
 };
 
 interface PasswordErrors {

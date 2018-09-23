@@ -2,7 +2,7 @@ import { Action } from 'routing-controllers';
 import { getRepository } from 'typeorm';
 import { isEmpty } from 'lodash';
 
-import Token from '../controllers/Token';
+import { Token } from '../controllers';
 import { User } from '../entity/User';
 
 const authenticate = async (action: Action) => {

@@ -12,7 +12,7 @@ import { getRepository } from 'typeorm';
 import { isEmpty } from 'lodash';
 import { hash, compare } from 'bcryptjs';
 
-import Token from './Token';
+import { Token } from '.';
 import { User } from '../entity';
 import urlencodedParser from '../utils/bodyParser';
 import sendAccountConfirmationRequest from '../services/mailers';

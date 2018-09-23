@@ -4,7 +4,7 @@ import { hash } from 'bcryptjs';
 
 import { users } from '../constants/testFixtures';
 import { User } from '../entity';
-import Token from '../controllers/Token';
+import { Token } from '../controllers';
 
 export let generatedToken: string = '';
 

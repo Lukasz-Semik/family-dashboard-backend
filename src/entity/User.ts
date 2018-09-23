@@ -4,12 +4,25 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
 } from 'typeorm';
+
+import { Family } from './Family';
 
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({
+    nullable: true,
+  })
+  token: string;
+
+  @Column({
+    nullable: true,
+  })
+  confirmationAccountToken: string;
 
   @Column({
     unique: true,
@@ -33,15 +46,8 @@ export class User {
   @Column()
   hasFamily: boolean;
 
-  @Column({
-    nullable: true,
-  })
-  token: string;
-
-  @Column({
-    nullable: true,
-  })
-  confirmationAccountToken: string;
+  @ManyToOne(type => Family, family => family.users)
+  family: Family;
 
   @Column({
     type: 'varchar',
