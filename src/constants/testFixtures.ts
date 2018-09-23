@@ -3,9 +3,11 @@ interface UsersTypes {
   lastName: string;
   email: string;
   password: string;
-  age?: number;
-  gender?: string;
-  isFamilyHead?: boolean;
+  age: number;
+  gender: string;
+  isFamilyHead: boolean;
+  hasFamily: boolean;
+  isVerified: boolean;
 }
 
 export const users: UsersTypes[] = [
@@ -16,6 +18,9 @@ export const users: UsersTypes[] = [
     gender: 'male',
     email: 'john@existing.com',
     password: 'Password123',
+    isFamilyHead: false,
+    hasFamily: false,
+    isVerified: false,
   },
   {
     firstName: 'Jane',
@@ -24,6 +29,9 @@ export const users: UsersTypes[] = [
     gender: 'female',
     email: 'jane@seed-1.com',
     password: 'Password123',
+    isFamilyHead: false,
+    hasFamily: false,
+    isVerified: false,
   },
   {
     firstName: 'George',
@@ -32,6 +40,9 @@ export const users: UsersTypes[] = [
     gender: 'male',
     email: 'george@seed-2-signed-in.com',
     password: 'Password123',
+    isFamilyHead: false,
+    hasFamily: false,
+    isVerified: false,
   },
   {
     firstName: 'Kate',
@@ -40,6 +51,9 @@ export const users: UsersTypes[] = [
     gender: 'female',
     email: 'kate@seed-3-not-verified.com',
     password: 'Password123',
+    isFamilyHead: false,
+    hasFamily: false,
+    isVerified: false,
   },
 ];
 

@@ -195,11 +195,14 @@ describe('User Controller', () => {
           expect(res.body.currentUser).to.include({
             email: 'kate@seed-3-not-verified.com',
             isFamilyHead: false,
+            hasFamily: false,
             firstName: 'Kate',
             lastName: 'Seed-3-not-verified',
             age: 33,
             gender: 'female',
           });
+
+          expect(res.body.currentUser.userId).to.be.a('number');
         })
         .end(err => {
           if (err) return done(err);
