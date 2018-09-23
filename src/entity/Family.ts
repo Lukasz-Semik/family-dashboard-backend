@@ -15,7 +15,7 @@ export class Family {
   id: number;
 
   @Column()
-  familyName: string;
+  name: string;
 
   @OneToMany(type => User, user => user.family)
   users: User[];
