@@ -9,7 +9,7 @@ let configOptions = {
   database: config.DB_NAME,
   synchronize: true,
   logging: false,
-  entities: ['build/src/entity/*.js'],
+  entities: config.NODE_ENV === 'test' ? ['build/src/entity/*.js'] : ['src/entity/*.ts'],
   migrations: ['src/migration/**/*.ts'],
   cli: {
     entitiesDir: 'src/entity',
