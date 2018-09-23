@@ -1,8 +1,7 @@
 import { expect } from 'chai';
 
-import Token from './Token';
+import { Token } from '.';
 import { users } from '../constants/testFixtures';
-import { equal } from 'assert';
 
 describe('Token', () => {
   it('should create and decode token', async () => {

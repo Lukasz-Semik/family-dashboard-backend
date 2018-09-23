@@ -193,13 +193,13 @@ describe('User Controller', () => {
         .expect(200)
         .expect(res => {
           expect(res.body.currentUser).to.include({
-            email: 'kate@seed-3-not-verified.com',
+            email: 'george@seed-2-signed-in.com',
             isFamilyHead: false,
             hasFamily: false,
-            firstName: 'Kate',
-            lastName: 'Seed-3-not-verified',
-            age: 33,
-            gender: 'female',
+            firstName: 'George',
+            lastName: 'Seed-2-signed-in',
+            age: 20,
+            gender: 'male',
           });
 
           expect(res.body.currentUser.userId).to.be.a('number');
@@ -210,7 +210,7 @@ describe('User Controller', () => {
         });
     });
 
-    it('should return proper data for current user', done => {
+    it('should return proper message for not authorized user', done => {
       request(APP)
         .get(API_FULL_GET_CURRENT_USER)
         .set('authorization', wrongToken)
