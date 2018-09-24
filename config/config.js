@@ -14,7 +14,7 @@ const {
   JWT_TOKEN,
   SENDGRID_API_KEY,
 } = process.env;
-console.log(NODE_PORT);
+
 if (NODE_ENV !== 'production') {
   const REQUIRED_KEYS = [
     'DB_TYPE',
