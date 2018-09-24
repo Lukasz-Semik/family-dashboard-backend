@@ -6,7 +6,7 @@ interface TokenPayloadTypes {
   email: string;
 }
 
-class Token {
+export class Token {
   public static create(user: TokenPayloadTypes, expiresIn = EXPIRE_2_WEEKS) {
     const payload = {
       email: user.email,
@@ -36,5 +36,3 @@ class Token {
     });
   }
 }
-
-export default Token;

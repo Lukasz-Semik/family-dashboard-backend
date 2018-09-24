@@ -3,10 +3,11 @@ import { createConnection } from 'typeorm';
 import { hash } from 'bcryptjs';
 
 import { users } from '../constants/testFixtures';
-import { User } from '../entity';
-import Token from '../controllers/Token';
+import { User, Family } from '../entity';
+import { Token } from '../controllers';
 
 export let generatedToken: string = '';
+export let familyCreatorGeneratedToken: string = '';
 
 export const dbSeedTests: any = async () => {
   await createConnection();
@@ -38,13 +39,22 @@ export const dbSeedTests: any = async () => {
   });
 
   const userThree = new User();
-  generatedToken = await Token.create({ email: users[3].email });
 
-  return await userRepository.save({
+  await userRepository.save({
     ...userThree,
     ...users[3],
     password: hashedPassword,
-    token: generatedToken,
     isVerified: false,
+  });
+
+  const userFour = new User();
+  familyCreatorGeneratedToken = await Token.create({ email: users[4].email });
+
+  return await userRepository.save({
+    ...userFour,
+    ...users[4],
+    password: hashedPassword,
+    token: familyCreatorGeneratedToken,
+    isVerified: true,
   });
 };

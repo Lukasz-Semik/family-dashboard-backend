@@ -55,6 +55,17 @@ export const users: UsersTypes[] = [
     hasFamily: false,
     isVerified: false,
   },
+  {
+    firstName: 'Brian',
+    lastName: 'Seed-4-family-creator',
+    age: 23,
+    gender: 'male',
+    email: 'brian@4-family-creator.com',
+    password: 'Password123',
+    isFamilyHead: false,
+    hasFamily: false,
+    isVerified: false,
+  },
 ];
 
 export const wrongToken: string =
