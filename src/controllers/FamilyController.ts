@@ -32,7 +32,14 @@ export class FamilyController {
     this.familyRepository
       .createQueryBuilder('family')
       .leftJoin('family.users', 'users')
-      .select(['family', 'users.id', 'users.firstName', 'users.lastName', 'users.isFamilyHead'])
+      .select([
+        'family',
+        'users.id',
+        'users.firstName',
+        'users.lastName',
+        'users.isFamilyHead',
+        'users.isVerified',
+      ])
       .where('family.id = :id', { id })
       // tslint:disable-next-line semicolon
       .getOne();
@@ -61,6 +68,7 @@ export class FamilyController {
 
     await this.userRepository.save({
       ...user,
+      isFamilyHead: true,
       hasFamily: true,
     });
 

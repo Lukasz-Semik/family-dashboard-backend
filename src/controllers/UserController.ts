@@ -14,7 +14,7 @@ import { isEmpty } from 'lodash';
 import { hash, compare } from 'bcryptjs';
 
 import { Token } from '.';
-import { User } from '../entity';
+import { User, Family } from '../entity';
 import urlencodedParser from '../utils/bodyParser';
 import sendAccountConfirmationRequest from '../services/mailers';
 import { validateSignUp, validateSignIn, validateInvite } from '../validators/user';
@@ -38,6 +38,7 @@ import { EXPIRE_24_H } from '../constants/expirations';
 @JsonController()
 export class UserController {
   userRepository = getRepository(User);
+  familyRepository = getRepository(Family);
 
   // @description create user
   // @full route: /api/user/sign-up
@@ -143,7 +144,10 @@ export class UserController {
   @Post(API_INVITE_USER)
   async inviteUser(@Req() req: any, @Res() res: any) {
     const { email: emailDecoded } = await Token.decode(req.headers.authorization);
-    const currentUser = await this.userRepository.findOne({ email: emailDecoded });
+    const currentUser = await this.userRepository.findOne(
+      { email: emailDecoded },
+      { relations: ['family'] }
+    );
 
     if (!currentUser.hasFamily)
       return res.status(400).json({
@@ -153,22 +157,34 @@ export class UserController {
     const { email, firstName, lastName } = req.body;
     const { isValid, errors } = validateInvite(email, firstName, lastName);
 
+    const foundUser = await this.userRepository.findOne({ email });
+
+    if (!isEmpty(foundUser))
+      return res.status(400).json({ errors: { email: emailErrors.emailTaken } });
+
     if (!isValid) return res.status(400).json({ errors });
 
     const token = Token.create({ email }, EXPIRE_24_H);
 
     const newUser = new User();
 
-    await this.userRepository.save({
+    const createdUser = await this.userRepository.save({
       ...newUser,
       invitationToken: token,
       isVerified: false,
       isFamilyHead: false,
-      hasFamily: false,
+      hasFamily: true,
       firstName,
       lastName,
       email,
     });
+
+    const { id: familyId } = currentUser.family;
+    const family = await this.familyRepository.findOne({ id: familyId }, { relations: ['users'] });
+
+    family.users.push(createdUser);
+
+    await this.familyRepository.save(family);
 
     return res.status(200).json({ account: accountSuccesses.invited });
   }
