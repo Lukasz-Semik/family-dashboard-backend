@@ -1,3 +1,4 @@
+// TODO: add try catch blocks, add interfaces
 import {
   JsonController,
   Body,
@@ -17,7 +18,12 @@ import { Token } from '.';
 import { User, Family } from '../entity';
 import urlencodedParser from '../utils/bodyParser';
 import sendAccountConfirmationRequest from '../services/mailers';
-import { validateSignUp, validateSignIn, validateInvite } from '../validators/user';
+import {
+  validateSignUp,
+  validateSignIn,
+  validateInvite,
+  validateConfirmationInvited,
+} from '../validators/user';
 import {
   API_SIGN_UP,
   API_SIGN_IN,
@@ -25,6 +31,7 @@ import {
   API_CONFIRM_ACCOUNT,
   API_GET_CURRENT_USER,
   API_INVITE_USER,
+  API_CONFIRM_INVITED_USER,
 } from '../constants/routes';
 import {
   internalServerErrors,
@@ -49,12 +56,12 @@ export class UserController {
     const { email, password, firstName, lastName } = body;
     const { isValid, errors } = validateSignUp(email, password, firstName, lastName);
 
+    if (!isValid) return res.status(400).json({ errors });
+
     try {
       const existingUser = await this.userRepository.find({ email });
       if (!isEmpty(existingUser))
         return res.status(400).json({ errors: { email: emailErrors.emailTaken } });
-
-      if (!isValid) return res.status(400).json({ errors });
 
       const hashedPassword = await hash(password, 10);
 
@@ -84,7 +91,7 @@ export class UserController {
 
   // TODO: THINK ABOUT AND EVENTUALLY MOVE TOKEN TO HEADERS!
   // @description confirm user account
-  // @full route: /api/user/confirm-account
+  // @full route: /api/user/confirm
   // @access public
   @Post(API_CONFIRM_ACCOUNT)
   @UseBefore(urlencodedParser)
@@ -137,7 +144,7 @@ export class UserController {
   }
 
   // @description invite user
-  // @full route: /api/user/invite-user
+  // @full route: /api/user/invite
   // @access private
   @Authorized()
   @UseBefore(urlencodedParser)
@@ -189,8 +196,38 @@ export class UserController {
     return res.status(200).json({ account: accountSuccesses.invited });
   }
 
+  // @description confirm invite user
+  // @full route: /api/user/confirm-invited
+  // @access public
+
+  @Post(API_CONFIRM_INVITED_USER)
+  @UseBefore(urlencodedParser)
+  async confirmInvitedUser(@Body() body: any, @Res() res: any) {
+    const { password, invitationToken } = body;
+    const { isValid, errors } = validateConfirmationInvited(password, invitationToken);
+
+    if (!isValid) return res.status(400).json({ errors });
+
+    const { email: emailDecoded } = await Token.decode(invitationToken);
+
+    const user = await this.userRepository.findOne({ email: emailDecoded });
+
+    if (isEmpty(user)) return res.status(404).json({ errors: { email: emailErrors.notExist } });
+
+    const hashedPassword = await hash(password, 10);
+
+    await this.userRepository.save({
+      ...user,
+      password: hashedPassword,
+      invitationToken: null,
+      isVerified: true,
+    });
+
+    return res.status(200).json({ account: accountSuccesses.confirmed });
+  }
+
   // @description get current user
-  // @full route: /api/user/get-current-user
+  // @full route: /api/user/current
   // @access private
   @Authorized()
   @Get(API_GET_CURRENT_USER)

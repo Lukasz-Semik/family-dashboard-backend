@@ -1,3 +1,4 @@
+// TODO: Add try catch blocks, add interfaces
 import {
   JsonController,
   Body,
@@ -44,6 +45,9 @@ export class FamilyController {
       // tslint:disable-next-line semicolon
       .getOne();
 
+  // @description create family
+  // @full route: /api/family/create
+  // @access private
   @Post(API_CREATE_FAMILY)
   @UseBefore(urlencodedParser)
   @Authorized()
@@ -77,6 +81,9 @@ export class FamilyController {
     return res.status(200).json({ family });
   }
 
+  // @description get family
+  // @full route: /api/family/current
+  // @access private
   @Get(API_GET_FAMILY)
   @UseBefore(urlencodedParser)
   @Authorized()
