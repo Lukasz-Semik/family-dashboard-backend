@@ -25,6 +25,11 @@ export class User {
   confirmationAccountToken: string;
 
   @Column({
+    nullable: true,
+  })
+  invitationToken: string;
+
+  @Column({
     unique: true,
     type: 'varchar',
     length: 255,
@@ -34,6 +39,7 @@ export class User {
   @Column({
     type: 'varchar',
     length: 255,
+    nullable: true,
   })
   password: string;
 

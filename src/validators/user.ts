@@ -82,3 +82,32 @@ export const validateSignUp: (
     errors,
   };
 };
+
+interface InviteErrorsTypes {
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+interface InviteValidatorTypes {
+  isValid: boolean;
+  errors: SignUpErrorsTypes;
+}
+
+export const validateInvite: (
+  email: string,
+  firstName: string,
+  lastName: string
+) => SignInValidatorTypes = (email, firstName, lastName) => {
+  const errors: InviteErrorsTypes = {};
+
+  const emailError: string = validateEmail(email);
+  if (!isBlank(emailError)) errors.email = emailError;
+  if (isBlank(firstName)) errors.firstName = defaultErrors.isRequired;
+  if (isBlank(lastName)) errors.lastName = defaultErrors.isRequired;
+
+  return {
+    isValid: isEmpty(errors),
+    errors,
+  };
+};

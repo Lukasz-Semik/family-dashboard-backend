@@ -7,6 +7,7 @@ import {
   UseBefore,
   Authorized,
   HeaderParam,
+  Req,
 } from 'routing-controllers';
 import { getRepository } from 'typeorm';
 import { isEmpty } from 'lodash';
@@ -16,13 +17,14 @@ import { Token } from '.';
 import { User } from '../entity';
 import urlencodedParser from '../utils/bodyParser';
 import sendAccountConfirmationRequest from '../services/mailers';
-import { validateSignUp, validateSignIn } from '../validators/user';
+import { validateSignUp, validateSignIn, validateInvite } from '../validators/user';
 import {
   API_SIGN_UP,
   API_SIGN_IN,
   API_IS_AUTHORIZED,
   API_CONFIRM_ACCOUNT,
   API_GET_CURRENT_USER,
+  API_INVITE_USER,
 } from '../constants/routes';
 import {
   internalServerErrors,
@@ -131,6 +133,44 @@ export class UserController {
     await this.userRepository.save(user);
 
     return res.status(200).json({ isAuthorized: true, token });
+  }
+
+  // @description invite user
+  // @full route: /api/user/invite-user
+  // @access private
+  @Authorized()
+  @UseBefore(urlencodedParser)
+  @Post(API_INVITE_USER)
+  async inviteUser(@Req() req: any, @Res() res: any) {
+    const { email: emailDecoded } = await Token.decode(req.headers.authorization);
+    const currentUser = await this.userRepository.findOne({ email: emailDecoded });
+
+    if (!currentUser.hasFamily)
+      return res.status(400).json({
+        email: emailErrors.hasNoFamily,
+      });
+
+    const { email, firstName, lastName } = req.body;
+    const { isValid, errors } = validateInvite(email, firstName, lastName);
+
+    if (!isValid) return res.status(400).json({ errors });
+
+    const token = Token.create({ email }, EXPIRE_24_H);
+
+    const newUser = new User();
+
+    await this.userRepository.save({
+      ...newUser,
+      invitationToken: token,
+      isVerified: false,
+      isFamilyHead: false,
+      hasFamily: false,
+      firstName,
+      lastName,
+      email,
+    });
+
+    return res.status(200).json({ account: accountSuccesses.invited });
   }
 
   // @description get current user
