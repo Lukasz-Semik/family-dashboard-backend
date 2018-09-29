@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import * as request from 'supertest';
 
 import { APP } from '../server';
-import { dbSeedTests, generatedToken } from '../utils/testsSeeds';
+import { dbSeedTests, generatedToken, familyOwnerGeneratedToken } from '../utils/testsSeeds';
 import { users, wrongToken } from '../constants/testFixtures';
 import {
   generateFullApi,
@@ -10,6 +10,7 @@ import {
   API_SIGN_IN,
   API_IS_AUTHORIZED,
   API_GET_CURRENT_USER,
+  API_INVITE_USER,
 } from '../constants/routes';
 import { emailErrors, passwordErrors, defaultErrors } from '../constants/errors';
 import { accountSuccesses } from '../constants/successes';
@@ -248,6 +249,82 @@ describe('User Controller', () => {
         .expect(401)
         .expect(res => {
           expect(res.body.name).to.equal('AuthorizationRequiredError');
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+  });
+
+  describe(`Route ${API_INVITE_USER}`, () => {
+    it('should invite user', done => {
+      const { email, firstName, lastName } = users[6];
+
+      request(APP)
+        .post(generateFullApi(API_INVITE_USER))
+        .set('authorization', familyOwnerGeneratedToken)
+        .type('form')
+        .send({ email, firstName, lastName })
+        .expect(200)
+        .expect(res => {
+          expect(res.body).to.include({
+            account: accountSuccesses.invited,
+          });
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+
+    it('should return proper messages for wrong data sent', done => {
+      request(APP)
+        .post(generateFullApi(API_INVITE_USER))
+        .set('authorization', familyOwnerGeneratedToken)
+        .type('form')
+        .send()
+        .expect(400)
+        .expect(res => {
+          expect(res.body.errors).to.include({
+            email: emailErrors.isRequired,
+            firstName: defaultErrors.isRequired,
+            lastName: defaultErrors.isRequired,
+          });
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+
+    it('should return proper error for user without family', done => {
+      request(APP)
+        .post(generateFullApi(API_INVITE_USER))
+        .set('authorization', generatedToken)
+        .type('form')
+        .send()
+        .expect(400)
+        .expect(res => {
+          expect(res.body.errors.email).to.equal(emailErrors.hasNoFamily);
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+
+    it('should return proper error for existing user', done => {
+      const { email, firstName, lastName } = users[2];
+
+      request(APP)
+        .post(generateFullApi(API_INVITE_USER))
+        .set('authorization', familyOwnerGeneratedToken)
+        .type('form')
+        .send({ email, firstName, lastName })
+        .expect(400)
+        .expect(res => {
+          expect(res.body.errors.email).to.equal(emailErrors.emailTaken);
         })
         .end(err => {
           if (err) return done(err);

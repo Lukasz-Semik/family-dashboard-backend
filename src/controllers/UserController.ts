@@ -147,8 +147,8 @@ export class UserController {
   // @full route: /api/user/invite
   // @access private
   @Authorized()
-  @UseBefore(urlencodedParser)
   @Post(API_INVITE_USER)
+  @UseBefore(urlencodedParser)
   async inviteUser(@Req() req: any, @Res() res: any) {
     const { email: emailDecoded } = await Token.decode(req.headers.authorization);
     const currentUser = await this.userRepository.findOne(
@@ -158,7 +158,9 @@ export class UserController {
 
     if (!currentUser.hasFamily)
       return res.status(400).json({
-        email: emailErrors.hasNoFamily,
+        errors: {
+          email: emailErrors.hasNoFamily,
+        },
       });
 
     const { email, firstName, lastName } = req.body;
