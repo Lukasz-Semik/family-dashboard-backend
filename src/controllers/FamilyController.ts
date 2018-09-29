@@ -1,3 +1,4 @@
+// TODO: Add try catch blocks, add interfaces
 import {
   JsonController,
   Body,
@@ -32,11 +33,21 @@ export class FamilyController {
     this.familyRepository
       .createQueryBuilder('family')
       .leftJoin('family.users', 'users')
-      .select(['family', 'users.id', 'users.firstName', 'users.lastName', 'users.isFamilyHead'])
+      .select([
+        'family',
+        'users.id',
+        'users.firstName',
+        'users.lastName',
+        'users.isFamilyHead',
+        'users.isVerified',
+      ])
       .where('family.id = :id', { id })
       // tslint:disable-next-line semicolon
       .getOne();
 
+  // @description create family
+  // @full route: /api/family/create
+  // @access private
   @Post(API_CREATE_FAMILY)
   @UseBefore(urlencodedParser)
   @Authorized()
@@ -61,6 +72,7 @@ export class FamilyController {
 
     await this.userRepository.save({
       ...user,
+      isFamilyHead: true,
       hasFamily: true,
     });
 
@@ -69,6 +81,9 @@ export class FamilyController {
     return res.status(200).json({ family });
   }
 
+  // @description get family
+  // @full route: /api/family/current
+  // @access private
   @Get(API_GET_FAMILY)
   @UseBefore(urlencodedParser)
   @Authorized()

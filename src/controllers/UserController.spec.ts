@@ -2,13 +2,21 @@ import { expect } from 'chai';
 import * as request from 'supertest';
 
 import { APP } from '../server';
-import { dbSeedTests, generatedToken } from '../utils/testsSeeds';
+import {
+  dbSeedTests,
+  generatedToken,
+  familyOwnerGeneratedToken,
+  invitationGeneratedToken,
+} from '../utils/testsSeeds';
 import { users, wrongToken } from '../constants/testFixtures';
 import {
-  API_FULL_SIGN_UP,
-  API_FULL_SIGN_IN,
-  API_FULL_IS_AUTHORIZED,
-  API_FULL_GET_CURRENT_USER,
+  generateFullApi,
+  API_SIGN_UP,
+  API_SIGN_IN,
+  API_IS_AUTHORIZED,
+  API_GET_CURRENT_USER,
+  API_INVITE_USER,
+  API_CONFIRM_INVITED_USER,
 } from '../constants/routes';
 import { emailErrors, passwordErrors, defaultErrors } from '../constants/errors';
 import { accountSuccesses } from '../constants/successes';
@@ -16,12 +24,12 @@ import { accountSuccesses } from '../constants/successes';
 before(() => dbSeedTests());
 
 describe('User Controller', () => {
-  describe(`Route ${API_FULL_SIGN_UP}`, () => {
+  describe(`Route ${generateFullApi(API_SIGN_UP)}`, () => {
     it('should create not verified account', done => {
       const { email, password, firstName, lastName } = users[0];
 
       request(APP)
-        .post(API_FULL_SIGN_UP)
+        .post(generateFullApi(API_SIGN_UP))
         .send({
           email,
           password,
@@ -40,7 +48,7 @@ describe('User Controller', () => {
 
     it('should return proper error messages for empty request', done => {
       request(APP)
-        .post(API_FULL_SIGN_UP)
+        .post(generateFullApi(API_SIGN_UP))
         .send()
         .expect(400)
         .expect(res => {
@@ -59,7 +67,7 @@ describe('User Controller', () => {
 
     it('should return proper error messages for not valid request', done => {
       request(APP)
-        .post(API_FULL_SIGN_UP)
+        .post(generateFullApi(API_SIGN_UP))
         .send({
           email: 'ddd',
           password: 'ddd',
@@ -83,7 +91,7 @@ describe('User Controller', () => {
       const { email, password, firstName, lastName } = users[1];
 
       request(APP)
-        .post(API_FULL_SIGN_UP)
+        .post(generateFullApi(API_SIGN_UP))
         .send({
           email,
           password,
@@ -103,12 +111,12 @@ describe('User Controller', () => {
     });
   });
 
-  describe(`Route ${API_FULL_SIGN_IN}`, () => {
+  describe(`Route ${generateFullApi(API_SIGN_IN)}`, () => {
     it('should return user data for proper sign in', done => {
       const { email, password } = users[1];
 
       request(APP)
-        .post(API_FULL_SIGN_IN)
+        .post(generateFullApi(API_SIGN_IN))
         .send({ email, password })
         .expect(200)
         .expect(res => {
@@ -123,7 +131,7 @@ describe('User Controller', () => {
 
     it('should return proper error message for not existing user', done => {
       request(APP)
-        .post(API_FULL_SIGN_IN)
+        .post(generateFullApi(API_SIGN_IN))
         .send({ email: 'not-existing@guser.com', password: 'Password123*' })
         .expect(400)
         .expect(res => {
@@ -137,7 +145,7 @@ describe('User Controller', () => {
 
     it('should return proper error message for not not valid sign in data', done => {
       request(APP)
-        .post(API_FULL_SIGN_IN)
+        .post(generateFullApi(API_SIGN_IN))
         .send({ email: 'some-wrong-email', password: '' })
         .expect(400)
         .expect(res => {
@@ -154,7 +162,7 @@ describe('User Controller', () => {
 
     it('should return proper error message for not not proper password', done => {
       request(APP)
-        .post(API_FULL_SIGN_IN)
+        .post(generateFullApi(API_SIGN_IN))
         .send({ email: users[1].email, password: 'SomeWrongPassword123' })
         .expect(400)
         .expect(res => {
@@ -170,7 +178,7 @@ describe('User Controller', () => {
 
     it('should return proper error message for not verified user', done => {
       request(APP)
-        .post(API_FULL_SIGN_IN)
+        .post(generateFullApi(API_SIGN_IN))
         .send({ email: users[3].email, password: users[3].password })
         .expect(400)
         .expect(res => {
@@ -185,10 +193,10 @@ describe('User Controller', () => {
     });
   });
 
-  describe(`Route ${API_FULL_GET_CURRENT_USER}`, () => {
+  describe(`Route ${generateFullApi(API_GET_CURRENT_USER)}`, () => {
     it('should return proper data for current user', done => {
       request(APP)
-        .get(API_FULL_GET_CURRENT_USER)
+        .get(generateFullApi(API_GET_CURRENT_USER))
         .set('authorization', generatedToken)
         .expect(200)
         .expect(res => {
@@ -212,7 +220,7 @@ describe('User Controller', () => {
 
     it('should return proper message for not authorized user', done => {
       request(APP)
-        .get(API_FULL_GET_CURRENT_USER)
+        .get(generateFullApi(API_GET_CURRENT_USER))
         .set('authorization', wrongToken)
         .expect(401)
         .expect(res => {
@@ -225,10 +233,10 @@ describe('User Controller', () => {
     });
   });
 
-  describe(`Route ${API_FULL_IS_AUTHORIZED}`, () => {
+  describe(`Route ${generateFullApi(API_IS_AUTHORIZED)}`, () => {
     it('should return isAuthorized info', done => {
       request(APP)
-        .get(API_FULL_IS_AUTHORIZED)
+        .get(generateFullApi(API_IS_AUTHORIZED))
         .set('authorization', generatedToken)
         .expect(200)
         .expect(res => {
@@ -242,11 +250,120 @@ describe('User Controller', () => {
 
     it('should return proper error message for some not proper token', done => {
       request(APP)
-        .get(API_FULL_IS_AUTHORIZED)
+        .get(generateFullApi(API_IS_AUTHORIZED))
         .set('authorization', wrongToken)
         .expect(401)
         .expect(res => {
           expect(res.body.name).to.equal('AuthorizationRequiredError');
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+  });
+
+  describe(`Route ${API_INVITE_USER}`, () => {
+    it('should invite user', done => {
+      const { email, firstName, lastName } = users[6];
+
+      request(APP)
+        .post(generateFullApi(API_INVITE_USER))
+        .set('authorization', familyOwnerGeneratedToken)
+        .type('form')
+        .send({ email, firstName, lastName })
+        .expect(200)
+        .expect(res => {
+          expect(res.body).to.include({
+            account: accountSuccesses.invited,
+          });
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+
+    it('should return proper messages for wrong data sent', done => {
+      request(APP)
+        .post(generateFullApi(API_INVITE_USER))
+        .set('authorization', familyOwnerGeneratedToken)
+        .type('form')
+        .send()
+        .expect(400)
+        .expect(res => {
+          expect(res.body.errors).to.include({
+            email: emailErrors.isRequired,
+            firstName: defaultErrors.isRequired,
+            lastName: defaultErrors.isRequired,
+          });
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+
+    it('should return proper error for user without family', done => {
+      request(APP)
+        .post(generateFullApi(API_INVITE_USER))
+        .set('authorization', generatedToken)
+        .type('form')
+        .send()
+        .expect(400)
+        .expect(res => {
+          expect(res.body.errors.email).to.equal(emailErrors.hasNoFamily);
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+
+    it('should return proper error for existing user', done => {
+      const { email, firstName, lastName } = users[2];
+
+      request(APP)
+        .post(generateFullApi(API_INVITE_USER))
+        .set('authorization', familyOwnerGeneratedToken)
+        .type('form')
+        .send({ email, firstName, lastName })
+        .expect(400)
+        .expect(res => {
+          expect(res.body.errors.email).to.equal(emailErrors.emailTaken);
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+  });
+
+  describe(`Route ${API_CONFIRM_INVITED_USER}`, () => {
+    it('should confirm invited user', done => {
+      request(APP)
+        .post(generateFullApi(API_CONFIRM_INVITED_USER))
+        .send({ password: 'Password123', invitationToken: invitationGeneratedToken })
+        .expect(200)
+        .expect(res => {
+          expect(res.body.account).to.equal(accountSuccesses.confirmed);
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+
+    it('should return proper errors for wrong data', done => {
+      request(APP)
+        .post(generateFullApi(API_CONFIRM_INVITED_USER))
+        .send()
+        .expect(400)
+        .expect(res => {
+          expect(res.body.errors).to.include({
+            password: passwordErrors.isRequired,
+            invitationToken: defaultErrors.isRequired,
+          });
         })
         .end(err => {
           if (err) return done(err);

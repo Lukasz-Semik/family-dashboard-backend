@@ -4,23 +4,13 @@ export const generateFullApi: (suffix: string) => string = suffix => `${api}${su
 
 // User routes
 export const API_SIGN_UP: string = '/user/sign-up';
-export const API_FULL_SIGN_UP: string = generateFullApi(API_SIGN_UP);
-
 export const API_SIGN_IN: string = '/user/sign-in';
-export const API_FULL_SIGN_IN: string = generateFullApi(API_SIGN_IN);
-
 export const API_IS_AUTHORIZED: string = '/user/is-authorized';
-export const API_FULL_IS_AUTHORIZED: string = generateFullApi(API_IS_AUTHORIZED);
-
-export const API_CONFIRM_ACCOUNT: string = '/user/confirm-account';
-export const API_FULL_CONFIRM_ACCOUNT: string = generateFullApi(API_CONFIRM_ACCOUNT);
-
-export const API_GET_CURRENT_USER: string = '/user/get-current-user';
-export const API_FULL_GET_CURRENT_USER: string = generateFullApi(API_GET_CURRENT_USER);
+export const API_CONFIRM_ACCOUNT: string = '/user/confirm';
+export const API_GET_CURRENT_USER: string = '/user/current';
+export const API_INVITE_USER: string = '/user/invite';
+export const API_CONFIRM_INVITED_USER: string = '/user/confirm-invited';
 
 // Family routes
-export const API_CREATE_FAMILY: string = '/family/create-family';
-export const API_FULL_CREATE_FAMILY: string = generateFullApi(API_CREATE_FAMILY);
-
-export const API_GET_FAMILY: string = '/family/get-family';
-export const API_FULL_GET_FAMILY: string = generateFullApi(API_GET_FAMILY);
+export const API_CREATE_FAMILY: string = '/family/create';
+export const API_GET_FAMILY: string = '/family/current';
