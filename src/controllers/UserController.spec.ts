@@ -2,7 +2,12 @@ import { expect } from 'chai';
 import * as request from 'supertest';
 
 import { APP } from '../server';
-import { dbSeedTests, generatedToken, familyOwnerGeneratedToken } from '../utils/testsSeeds';
+import {
+  dbSeedTests,
+  generatedToken,
+  familyOwnerGeneratedToken,
+  invitationGeneratedToken,
+} from '../utils/testsSeeds';
 import { users, wrongToken } from '../constants/testFixtures';
 import {
   generateFullApi,
@@ -11,6 +16,7 @@ import {
   API_IS_AUTHORIZED,
   API_GET_CURRENT_USER,
   API_INVITE_USER,
+  API_CONFIRM_INVITED_USER,
 } from '../constants/routes';
 import { emailErrors, passwordErrors, defaultErrors } from '../constants/errors';
 import { accountSuccesses } from '../constants/successes';
@@ -325,6 +331,39 @@ describe('User Controller', () => {
         .expect(400)
         .expect(res => {
           expect(res.body.errors.email).to.equal(emailErrors.emailTaken);
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+  });
+
+  describe(`Route ${API_CONFIRM_INVITED_USER}`, () => {
+    it('should confirm invited user', done => {
+      request(APP)
+        .post(generateFullApi(API_CONFIRM_INVITED_USER))
+        .send({ password: 'Password123', invitationToken: invitationGeneratedToken })
+        .expect(200)
+        .expect(res => {
+          expect(res.body.account).to.equal(accountSuccesses.confirmed);
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+
+    it('should return proper errors for wrong data', done => {
+      request(APP)
+        .post(generateFullApi(API_CONFIRM_INVITED_USER))
+        .send()
+        .expect(400)
+        .expect(res => {
+          expect(res.body.errors).to.include({
+            password: passwordErrors.isRequired,
+            invitationToken: defaultErrors.isRequired,
+          });
         })
         .end(err => {
           if (err) return done(err);
