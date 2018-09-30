@@ -1,10 +1,10 @@
-// TODO: Improve, add tests, add confirmation password into validators and controllers
+// TODO: Improve, add tests
 import { isEmpty } from 'lodash';
 
 import { isBlank, isEmail, hasProperLength } from '../helpers/validators';
 import { emailErrors, passwordErrors, defaultErrors } from '../constants/errors';
 
-const validateEmail: (email: string) => string = email => {
+export const validateEmail: (email: string) => string = email => {
   if (isBlank(email)) return emailErrors.isRequired;
 
   if (!isEmail(email)) return emailErrors.wrongFormat;
@@ -12,7 +12,7 @@ const validateEmail: (email: string) => string = email => {
   return '';
 };
 
-const validatePassword: (password: string) => string = password => {
+export const validatePassword: (password: string) => string = password => {
   if (isBlank(password)) return passwordErrors.isRequired;
 
   if (!hasProperLength(password, 6, 30)) return passwordErrors.wrongFormat;

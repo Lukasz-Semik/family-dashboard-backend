@@ -1,4 +1,3 @@
-// TODO: add try catch blocks, add interfaces
 import {
   JsonController,
   Body,
@@ -101,15 +100,19 @@ export class UserController {
     if (isEmpty(confirmationAccountToken))
       return res.status(400).json({ errors: { token: defaultErrors.isRequired } });
 
-    const { email } = await Token.decode(confirmationAccountToken);
+    try {
+      const { email } = await Token.decode(confirmationAccountToken);
 
-    const user = await this.userRepository.findOne({ email });
+      const user = await this.userRepository.findOne({ email });
 
-    if (isEmpty(user)) return res.status(400).json({ errors: { email: emailErrors.notExist } });
+      if (isEmpty(user)) return res.status(400).json({ errors: { email: emailErrors.notExist } });
 
-    await this.userRepository.save({ ...user, isVerified: true, confirmationAccountToken: null });
+      await this.userRepository.save({ ...user, isVerified: true, confirmationAccountToken: null });
 
-    return res.status(200).json({ account: accountSuccesses.confirmed });
+      return res.status(200).json({ account: accountSuccesses.confirmed });
+    } catch (err) {
+      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+    }
   }
 
   // @description create user
@@ -123,24 +126,28 @@ export class UserController {
 
     if (!isValid) return res.status(400).json({ errors });
 
-    const user = await this.userRepository.findOne({ email });
+    try {
+      const user = await this.userRepository.findOne({ email });
 
-    if (isEmpty(user)) return res.status(400).json({ errors: { email: emailErrors.notExist } });
+      if (isEmpty(user)) return res.status(400).json({ errors: { email: emailErrors.notExist } });
 
-    if (!user.isVerified)
-      return res.status(400).json({ errors: { email: emailErrors.notVerified } });
+      if (!user.isVerified)
+        return res.status(400).json({ errors: { email: emailErrors.notVerified } });
 
-    const isMatch = await compare(password, user.password);
+      const isMatch = await compare(password, user.password);
 
-    if (!isMatch) return res.status(400).json({ errors: { password: passwordErrors.notValid } });
+      if (!isMatch) return res.status(400).json({ errors: { password: passwordErrors.notValid } });
 
-    const token = Token.create({ email: user.email });
+      const token = Token.create({ email: user.email });
 
-    user.token = token;
+      user.token = token;
 
-    await this.userRepository.save(user);
+      await this.userRepository.save(user);
 
-    return res.status(200).json({ isAuthorized: true, token });
+      return res.status(200).json({ isAuthorized: true, token });
+    } catch (err) {
+      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+    }
   }
 
   // @description invite user
@@ -150,60 +157,66 @@ export class UserController {
   @Post(API_INVITE_USER)
   @UseBefore(urlencodedParser)
   async inviteUser(@Req() req: any, @Res() res: any) {
-    const { email: emailDecoded } = await Token.decode(req.headers.authorization);
-    const currentUser = await this.userRepository.findOne(
-      { email: emailDecoded },
-      { relations: ['family'] }
-    );
+    try {
+      const { email: emailDecoded } = await Token.decode(req.headers.authorization);
+      const currentUser = await this.userRepository.findOne(
+        { email: emailDecoded },
+        { relations: ['family'] }
+      );
 
-    if (!currentUser.hasFamily)
-      return res.status(400).json({
-        errors: {
-          email: emailErrors.hasNoFamily,
-        },
+      if (!currentUser.hasFamily)
+        return res.status(400).json({
+          errors: {
+            email: emailErrors.hasNoFamily,
+          },
+        });
+
+      const { email, firstName, lastName } = req.body;
+      const { isValid, errors } = validateInvite(email, firstName, lastName);
+
+      const foundUser = await this.userRepository.findOne({ email });
+
+      if (!isEmpty(foundUser))
+        return res.status(400).json({ errors: { email: emailErrors.emailTaken } });
+
+      if (!isValid) return res.status(400).json({ errors });
+
+      const token = Token.create({ email }, EXPIRE_24_H);
+
+      const newUser = new User();
+
+      const createdUser = await this.userRepository.save({
+        ...newUser,
+        invitationToken: token,
+        isVerified: false,
+        isFamilyHead: false,
+        hasFamily: true,
+        firstName,
+        lastName,
+        email,
       });
 
-    const { email, firstName, lastName } = req.body;
-    const { isValid, errors } = validateInvite(email, firstName, lastName);
+      const { id: familyId } = currentUser.family;
+      const family = await this.familyRepository.findOne(
+        { id: familyId },
+        { relations: ['users'] }
+      );
 
-    const foundUser = await this.userRepository.findOne({ email });
+      family.users.push(createdUser);
 
-    if (!isEmpty(foundUser))
-      return res.status(400).json({ errors: { email: emailErrors.emailTaken } });
+      await this.familyRepository.save(family);
 
-    if (!isValid) return res.status(400).json({ errors });
+      sendInvitationEmail(email, firstName, currentUser.firstName, family.name, token);
 
-    const token = Token.create({ email }, EXPIRE_24_H);
-
-    const newUser = new User();
-
-    const createdUser = await this.userRepository.save({
-      ...newUser,
-      invitationToken: token,
-      isVerified: false,
-      isFamilyHead: false,
-      hasFamily: true,
-      firstName,
-      lastName,
-      email,
-    });
-
-    const { id: familyId } = currentUser.family;
-    const family = await this.familyRepository.findOne({ id: familyId }, { relations: ['users'] });
-
-    family.users.push(createdUser);
-
-    await this.familyRepository.save(family);
-
-    sendInvitationEmail(email, firstName, currentUser.firstName, family.name, token);
-
-    return res.status(200).json({ account: accountSuccesses.invited });
+      return res.status(200).json({ account: accountSuccesses.invited });
+    } catch (err) {
+      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+    }
   }
 
   // @description confirm invite user
   // @full route: /api/user/confirm-invited
   // @access public
-
   @Post(API_CONFIRM_INVITED_USER)
   @UseBefore(urlencodedParser)
   async confirmInvitedUser(@Body() body: any, @Res() res: any) {
@@ -212,22 +225,26 @@ export class UserController {
 
     if (!isValid) return res.status(400).json({ errors });
 
-    const { email: emailDecoded } = await Token.decode(invitationToken);
+    try {
+      const { email: emailDecoded } = await Token.decode(invitationToken);
 
-    const user = await this.userRepository.findOne({ email: emailDecoded });
+      const user = await this.userRepository.findOne({ email: emailDecoded });
 
-    if (isEmpty(user)) return res.status(404).json({ errors: { email: emailErrors.notExist } });
+      if (isEmpty(user)) return res.status(404).json({ errors: { email: emailErrors.notExist } });
 
-    const hashedPassword = await hash(password, 10);
+      const hashedPassword = await hash(password, 10);
 
-    await this.userRepository.save({
-      ...user,
-      password: hashedPassword,
-      invitationToken: null,
-      isVerified: true,
-    });
+      await this.userRepository.save({
+        ...user,
+        password: hashedPassword,
+        invitationToken: null,
+        isVerified: true,
+      });
 
-    return res.status(200).json({ account: accountSuccesses.confirmed });
+      return res.status(200).json({ account: accountSuccesses.confirmed });
+    } catch (err) {
+      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+    }
   }
 
   // @description get current user
@@ -238,22 +255,26 @@ export class UserController {
   async getCurrentUser(@HeaderParam('authorization') token: string, @Res() res: any) {
     const { email: emailDecoded } = await Token.decode(token);
 
-    const user = await this.userRepository.findOne({ email: emailDecoded });
+    try {
+      const user = await this.userRepository.findOne({ email: emailDecoded });
 
-    const { id: userId, email, isFamilyHead, hasFamily, firstName, lastName, age, gender } = user;
+      const { id: userId, email, isFamilyHead, hasFamily, firstName, lastName, age, gender } = user;
 
-    return res.status(200).json({
-      currentUser: {
-        userId,
-        email,
-        isFamilyHead,
-        hasFamily,
-        firstName,
-        lastName,
-        age,
-        gender,
-      },
-    });
+      return res.status(200).json({
+        currentUser: {
+          userId,
+          email,
+          isFamilyHead,
+          hasFamily,
+          firstName,
+          lastName,
+          age,
+          gender,
+        },
+      });
+    } catch (err) {
+      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+    }
   }
 
   // @description check if user is authorize
