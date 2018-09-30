@@ -17,7 +17,7 @@ import { hash, compare } from 'bcryptjs';
 import { Token } from '.';
 import { User, Family } from '../entity';
 import urlencodedParser from '../utils/bodyParser';
-import sendAccountConfirmationRequest from '../services/mailers';
+import { sendAccountConfirmationEmail, sendInvitationEmail } from '../services/mailers';
 import {
   validateSignUp,
   validateSignIn,
@@ -81,7 +81,7 @@ export class UserController {
         email,
       });
 
-      // sendAccountConfirmationRequest(email, firstName, token);
+      sendAccountConfirmationEmail(email, firstName, token);
 
       return res.status(200).json({ account: accountSuccesses.created });
     } catch (err) {
@@ -194,6 +194,8 @@ export class UserController {
     family.users.push(createdUser);
 
     await this.familyRepository.save(family);
+
+    sendInvitationEmail(email, firstName, currentUser.firstName, family.name, token);
 
     return res.status(200).json({ account: accountSuccesses.invited });
   }
