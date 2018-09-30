@@ -16,7 +16,8 @@
     "build:prod": "yarn tsc --project \"./tsconfig.prod.json\"",
     "heroku-postbuild": "yarn build:prod",
     "prepush": "yarn lint && yarn test",
-    "prepareDev": "node config/createEnvFiles.js"
+    "prepareDev": "node config/createEnvFiles.js",
+    "deploy": "git checkout master && git pull origin master && git push heroku master"
   },
   "devDependencies": {
     "@types/body-parser": "^1.17.0",

@@ -1,7 +1,5 @@
-// TODO: Add try catch blocks, add interfaces
 import {
   JsonController,
-  Body,
   Get,
   Post,
   Res,
@@ -13,12 +11,7 @@ import {
 import { getRepository } from 'typeorm';
 import { isEmpty } from 'lodash';
 
-import {
-  internalServerErrors,
-  emailErrors,
-  passwordErrors,
-  defaultErrors,
-} from '../constants/errors';
+import { internalServerErrors, emailErrors } from '../constants/errors';
 import { API_CREATE_FAMILY, API_GET_FAMILY } from '../constants/routes';
 import urlencodedParser from '../utils/bodyParser';
 import { Family, User } from '../entity';
@@ -52,33 +45,37 @@ export class FamilyController {
   @UseBefore(urlencodedParser)
   @Authorized()
   async createFamily(@Req() req: any, @Res() res: any) {
-    const { email } = await Token.decode(req.headers.authorization);
+    try {
+      const { email } = await Token.decode(req.headers.authorization);
 
-    const user = await this.userRepository.findOne({ email });
+      const user = await this.userRepository.findOne({ email });
 
-    if (user.hasFamily) return res.status(400).json({ errors: { email: emailErrors.hasFamily } });
+      if (user.hasFamily) return res.status(400).json({ errors: { email: emailErrors.hasFamily } });
 
-    const newFamily = new Family();
+      const newFamily = new Family();
 
-    const { familyName } = req.body;
+      const { familyName } = req.body;
 
-    const name = isEmpty(familyName) ? user.lastName : familyName;
+      const name = isEmpty(familyName) ? user.lastName : familyName;
 
-    const createdFamily = await this.familyRepository.save({
-      ...newFamily,
-      users: [user],
-      name,
-    });
+      const createdFamily = await this.familyRepository.save({
+        ...newFamily,
+        users: [user],
+        name,
+      });
 
-    await this.userRepository.save({
-      ...user,
-      isFamilyHead: true,
-      hasFamily: true,
-    });
+      await this.userRepository.save({
+        ...user,
+        isFamilyHead: true,
+        hasFamily: true,
+      });
 
-    const family = await this.familyWithUserQuery(createdFamily.id);
+      const family = await this.familyWithUserQuery(createdFamily.id);
 
-    return res.status(200).json({ family });
+      return res.status(200).json({ family });
+    } catch (err) {
+      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+    }
   }
 
   // @description get family
@@ -88,15 +85,19 @@ export class FamilyController {
   @UseBefore(urlencodedParser)
   @Authorized()
   async getFamily(@HeaderParam('authorization') token: string, @Res() res: any) {
-    const { email } = await Token.decode(token);
+    try {
+      const { email } = await Token.decode(token);
 
-    const user = await this.userRepository.findOne({ email }, { relations: ['family'] });
+      const user = await this.userRepository.findOne({ email }, { relations: ['family'] });
 
-    if (!user.hasFamily || isEmpty(user.family))
-      return res.status(400).json({ errors: { email: emailErrors.hasNoFamily } });
+      if (!user.hasFamily || isEmpty(user.family))
+        return res.status(400).json({ errors: { email: emailErrors.hasNoFamily } });
 
-    const family = await this.familyWithUserQuery(user.family.id);
+      const family = await this.familyWithUserQuery(user.family.id);
 
-    return res.status(200).json({ family });
+      return res.status(200).json({ family });
+    } catch (err) {
+      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+    }
   }
 }
