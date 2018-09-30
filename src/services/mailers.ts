@@ -57,7 +57,7 @@ export const sendInvitationEmail = (
     html: `
       <h3>Hello ${invitedUserName}</h3>
       <p>
-        You have been invited to join the ${familyName} by ${invitingUserName}.
+        You have been invited to join the ${familyName} family by ${invitingUserName}.
         Please confirm your account by visiting
         <a href='${baseUrl}/confirm?token=${token}' target="_blank">
           this page
