@@ -43,6 +43,9 @@ import { EXPIRE_24_H } from '../constants/expirations';
 
 @JsonController()
 export class UserController {
+  userRepository = getRepository(User);
+  familyRepository = getRepository(Family);
+
   // @description create user
   // @full route: /api/user/sign-up
   // @access public
@@ -55,9 +58,7 @@ export class UserController {
     if (!isValid) return res.status(400).json({ errors });
 
     try {
-      const userRepository = getRepository(User);
-
-      const existingUser = await userRepository.find({ email });
+      const existingUser = await this.userRepository.find({ email });
 
       if (!isEmpty(existingUser))
         return res.status(400).json({ errors: { email: emailErrors.emailTaken } });
@@ -68,7 +69,7 @@ export class UserController {
 
       const newUser = new User();
 
-      await userRepository.save({
+      await this.userRepository.save({
         ...newUser,
         password: hashedPassword,
         confirmationAccountToken: token,
@@ -101,15 +102,13 @@ export class UserController {
       return res.status(400).json({ errors: { token: defaultErrors.isRequired } });
 
     try {
-      const userRepository = getRepository(User);
-
       const { email } = await Token.decode(confirmationAccountToken);
 
-      const user = await userRepository.findOne({ email });
+      const user = await this.userRepository.findOne({ email });
 
       if (isEmpty(user)) return res.status(400).json({ errors: { email: emailErrors.notExist } });
 
-      await userRepository.save({ ...user, isVerified: true, confirmationAccountToken: null });
+      await this.userRepository.save({ ...user, isVerified: true, confirmationAccountToken: null });
 
       return res.status(200).json({ account: accountSuccesses.confirmed });
     } catch (err) {
@@ -129,9 +128,7 @@ export class UserController {
     if (!isValid) return res.status(400).json({ errors });
 
     try {
-      const userRepository = getRepository(User);
-
-      const user = await userRepository.findOne({ email });
+      const user = await this.userRepository.findOne({ email });
 
       if (isEmpty(user)) return res.status(400).json({ errors: { email: emailErrors.notExist } });
 
@@ -146,7 +143,7 @@ export class UserController {
 
       user.token = token;
 
-      await userRepository.save(user);
+      await this.userRepository.save(user);
 
       return res.status(200).json({ isAuthorized: true, token });
     } catch (err) {
@@ -162,11 +159,9 @@ export class UserController {
   @UseBefore(urlencodedParser)
   async inviteUser(@Req() req: any, @Res() res: any) {
     try {
-      const userRepository = getRepository(User);
-
       const { email: emailDecoded } = await Token.decode(req.headers.authorization);
 
-      const currentUser = await userRepository.findOne(
+      const currentUser = await this.userRepository.findOne(
         { email: emailDecoded },
         { relations: ['family'] }
       );
@@ -181,7 +176,7 @@ export class UserController {
       const { email, firstName, lastName } = req.body;
       const { isValid, errors } = validateInvite(email, firstName, lastName);
 
-      const foundUser = await userRepository.findOne({ email });
+      const foundUser = await this.userRepository.findOne({ email });
 
       if (!isEmpty(foundUser))
         return res.status(400).json({ errors: { email: emailErrors.emailTaken } });
@@ -192,7 +187,7 @@ export class UserController {
 
       const newUser = new User();
 
-      const createdUser = await userRepository.save({
+      const createdUser = await this.userRepository.save({
         ...newUser,
         invitationToken: token,
         isVerified: false,
@@ -203,14 +198,15 @@ export class UserController {
         email,
       });
 
-      const familyRepository = getRepository(Family);
-
       const { id: familyId } = currentUser.family;
-      const family = await familyRepository.findOne({ id: familyId }, { relations: ['users'] });
+      const family = await this.familyRepository.findOne(
+        { id: familyId },
+        { relations: ['users'] }
+      );
 
       family.users.push(createdUser);
 
-      await familyRepository.save(family);
+      await this.familyRepository.save(family);
 
       sendInvitationEmail(email, firstName, currentUser.firstName, family.name, token);
 
@@ -232,17 +228,15 @@ export class UserController {
     if (!isValid) return res.status(400).json({ errors });
 
     try {
-      const userRepository = getRepository(User);
-
       const { email: emailDecoded } = await Token.decode(invitationToken);
 
-      const user = await userRepository.findOne({ email: emailDecoded });
+      const user = await this.userRepository.findOne({ email: emailDecoded });
 
       if (isEmpty(user)) return res.status(404).json({ errors: { email: emailErrors.notExist } });
 
       const hashedPassword = await hash(password, 10);
 
-      await userRepository.save({
+      await this.userRepository.save({
         ...user,
         password: hashedPassword,
         invitationToken: null,
@@ -264,9 +258,7 @@ export class UserController {
     const { email: emailDecoded } = await Token.decode(token);
 
     try {
-      const userRepository = getRepository(User);
-
-      const user = await userRepository.findOne({ email: emailDecoded });
+      const user = await this.userRepository.findOne({ email: emailDecoded });
 
       const { id: userId, email, isFamilyHead, hasFamily, firstName, lastName, age, gender } = user;
 

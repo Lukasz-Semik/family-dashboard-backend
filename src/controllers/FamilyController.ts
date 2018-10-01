@@ -19,8 +19,11 @@ import { Token } from '.';
 
 @JsonController()
 export class FamilyController {
-  familyWithUserQuery = (id, familyRepository) =>
-    familyRepository
+  familyRepository = getRepository(Family);
+  userRepository = getRepository(User);
+
+  familyWithUserQuery = id =>
+    this.familyRepository
       .createQueryBuilder('family')
       .leftJoin('family.users', 'users')
       .select([
@@ -43,12 +46,9 @@ export class FamilyController {
   @Authorized()
   async createFamily(@Req() req: any, @Res() res: any) {
     try {
-      const userRepository = getRepository(User);
-      const familyRepository = getRepository(Family);
-
       const { email } = await Token.decode(req.headers.authorization);
 
-      const user = await userRepository.findOne({ email });
+      const user = await this.userRepository.findOne({ email });
 
       if (user.hasFamily) return res.status(400).json({ errors: { email: emailErrors.hasFamily } });
 
@@ -58,19 +58,19 @@ export class FamilyController {
 
       const name = isEmpty(familyName) ? user.lastName : familyName;
 
-      const createdFamily = await familyRepository.save({
+      const createdFamily = await this.familyRepository.save({
         ...newFamily,
         users: [user],
         name,
       });
 
-      await userRepository.save({
+      await this.userRepository.save({
         ...user,
         isFamilyHead: true,
         hasFamily: true,
       });
 
-      const family = await this.familyWithUserQuery(createdFamily.id, familyRepository);
+      const family = await this.familyWithUserQuery(createdFamily.id);
 
       return res.status(200).json({ family });
     } catch (err) {
@@ -86,17 +86,14 @@ export class FamilyController {
   @Authorized()
   async getFamily(@HeaderParam('authorization') token: string, @Res() res: any) {
     try {
-      const familyRepository = getRepository(Family);
-      const userRepository = getRepository(User);
-
       const { email } = await Token.decode(token);
 
-      const user = await userRepository.findOne({ email }, { relations: ['family'] });
+      const user = await this.userRepository.findOne({ email }, { relations: ['family'] });
 
       if (!user.hasFamily || isEmpty(user.family))
         return res.status(400).json({ errors: { email: emailErrors.hasNoFamily } });
 
-      const family = await this.familyWithUserQuery(user.family.id, familyRepository);
+      const family = await this.familyWithUserQuery(user.family.id);
 
       return res.status(200).json({ family });
     } catch (err) {

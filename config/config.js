@@ -35,7 +35,7 @@ if (NODE_ENV !== 'production') {
 }
 
 if (NODE_ENV === 'production' || NODE_ENV === 'development') {
-  if (!(SENDGRID_API_KEY in process.env)) {
+  if (!SENDGRID_API_KEY) {
     throw new Error(`Missing required config key: ${SENDGRID_API_KEY}`);
   }
 }
