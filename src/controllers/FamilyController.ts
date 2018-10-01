@@ -22,8 +22,8 @@ export class FamilyController {
   familyRepository = getRepository(Family);
   userRepository = getRepository(User);
 
-  familyWithUserQuery = id =>
-    this.familyRepository
+  familyWithUserQuery = (id, familyRepository) =>
+    familyRepository
       .createQueryBuilder('family')
       .leftJoin('family.users', 'users')
       .select([
@@ -46,9 +46,11 @@ export class FamilyController {
   @Authorized()
   async createFamily(@Req() req: any, @Res() res: any) {
     try {
+      const userRepository = getRepository(User);
+
       const { email } = await Token.decode(req.headers.authorization);
 
-      const user = await this.userRepository.findOne({ email });
+      const user = await userRepository.findOne({ email });
 
       if (user.hasFamily) return res.status(400).json({ errors: { email: emailErrors.hasFamily } });
 
@@ -64,13 +66,13 @@ export class FamilyController {
         name,
       });
 
-      await this.userRepository.save({
+      await userRepository.save({
         ...user,
         isFamilyHead: true,
         hasFamily: true,
       });
 
-      const family = await this.familyWithUserQuery(createdFamily.id);
+      const family = await this.familyWithUserQuery(createdFamily.id, this.familyRepository);
 
       return res.status(200).json({ family });
     } catch (err) {
@@ -93,7 +95,7 @@ export class FamilyController {
       if (!user.hasFamily || isEmpty(user.family))
         return res.status(400).json({ errors: { email: emailErrors.hasNoFamily } });
 
-      const family = await this.familyWithUserQuery(user.family.id);
+      const family = await this.familyWithUserQuery(user.family.id, this.familyRepository);
 
       return res.status(200).json({ family });
     } catch (err) {
