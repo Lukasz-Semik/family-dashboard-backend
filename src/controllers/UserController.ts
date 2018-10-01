@@ -83,7 +83,8 @@ export class UserController {
         age,
       });
 
-      sendAccountConfirmationEmail(email, firstName, token);
+      // TODO: allow e-mails
+      // sendAccountConfirmationEmail(email, firstName, token);
 
       return res.status(200).json({ account: accountSuccesses.created });
     } catch (err) {
@@ -212,7 +213,8 @@ export class UserController {
 
       await this.familyRepository.save(family);
 
-      sendInvitationEmail(email, firstName, currentUser.firstName, family.name, token);
+      // TODO: allow e-mails
+      // sendInvitationEmail(email, firstName, currentUser.firstName, family.name, token);
 
       return res.status(200).json({ account: accountSuccesses.invited });
     } catch (err) {
