@@ -42,8 +42,10 @@ export const passwordErrors: PasswordErrors = {
 
 interface DefaultErrorsTypes {
   isRequired: string;
+  notAllowedValue: string;
 }
 
 export const defaultErrors = {
   isRequired: 'is-required',
+  notAllowedValue: 'not-allowed-value',
 };

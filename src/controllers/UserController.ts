@@ -52,8 +52,8 @@ export class UserController {
   @Post(API_SIGN_UP)
   @UseBefore(urlencodedParser)
   async createUser(@Body() body: any, @Res() res: any) {
-    const { email, password, firstName, lastName } = body;
-    const { isValid, errors } = validateSignUp(email, password, firstName, lastName);
+    const { email, password, firstName, lastName, gender, age } = body;
+    const { isValid, errors } = validateSignUp(email, password, firstName, lastName, gender, age);
 
     if (!isValid) return res.status(400).json({ errors });
 
@@ -79,6 +79,8 @@ export class UserController {
         firstName,
         lastName,
         email,
+        gender,
+        age,
       });
 
       sendAccountConfirmationEmail(email, firstName, token);
@@ -173,8 +175,8 @@ export class UserController {
           },
         });
 
-      const { email, firstName, lastName } = req.body;
-      const { isValid, errors } = validateInvite(email, firstName, lastName);
+      const { email, firstName, lastName, gender, age } = req.body;
+      const { isValid, errors } = validateInvite(email, firstName, lastName, gender, age);
 
       const foundUser = await this.userRepository.findOne({ email });
 
@@ -196,6 +198,8 @@ export class UserController {
         firstName,
         lastName,
         email,
+        gender,
+        age,
       });
 
       const { id: familyId } = currentUser.family;

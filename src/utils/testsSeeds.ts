@@ -28,7 +28,6 @@ export const dbSeedTests: any = async () => {
   await userRepository.save({
     ...userOne,
     ...users[1],
-    isVerified: true,
     password: hashedPassword,
   });
 
@@ -42,7 +41,6 @@ export const dbSeedTests: any = async () => {
     ...users[2],
     password: hashedPassword,
     token: generatedToken,
-    isVerified: true,
   });
 
   const userThree = new User();
@@ -52,7 +50,6 @@ export const dbSeedTests: any = async () => {
     ...userThree,
     ...users[3],
     password: hashedPassword,
-    isVerified: false,
   });
 
   const userFour = new User();
@@ -64,7 +61,6 @@ export const dbSeedTests: any = async () => {
     ...users[4],
     password: hashedPassword,
     token: familyCreatorGeneratedToken,
-    isVerified: true,
   });
 
   const userFive = new User();
@@ -75,7 +71,6 @@ export const dbSeedTests: any = async () => {
     ...userFive,
     ...users[5],
     token: familyOwnerGeneratedToken,
-    isVerified: true,
   });
 
   const newFamily = new Family();
