@@ -6,8 +6,6 @@ const baseUrl: string = 'http://localhost:8080';
 
 const setApiKey = () => {
   const { SENDGRID_API_KEY } = process.env;
-  // tslint:disable-next-line
-  console.log(SENDGRID_API_KEY);
   sgMail.setApiKey(SENDGRID_API_KEY);
 };
 
