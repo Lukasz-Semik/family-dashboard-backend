@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 
 import { Family } from './Family';
+import { GENDERS } from '../constants/columnTypes';
 
 @Entity()
 export class User {
@@ -69,14 +70,13 @@ export class User {
 
   @Column({
     type: 'integer',
-    nullable: true,
   })
   age: number;
 
   @Column({
     type: 'varchar',
     length: 64,
-    nullable: true,
+    enum: GENDERS,
   })
   gender: string;
 
