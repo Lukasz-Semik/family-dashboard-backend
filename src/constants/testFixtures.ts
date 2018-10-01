@@ -31,7 +31,7 @@ export const users: UsersTypes[] = [
     password: 'Password123',
     isFamilyHead: false,
     hasFamily: false,
-    isVerified: false,
+    isVerified: true,
   },
   {
     firstName: 'George',
@@ -42,7 +42,7 @@ export const users: UsersTypes[] = [
     password: 'Password123',
     isFamilyHead: false,
     hasFamily: false,
-    isVerified: false,
+    isVerified: true,
   },
   {
     firstName: 'Kate',
@@ -64,7 +64,7 @@ export const users: UsersTypes[] = [
     password: 'Password123',
     isFamilyHead: false,
     hasFamily: false,
-    isVerified: false,
+    isVerified: true,
   },
   {
     firstName: 'Marry',
@@ -75,7 +75,7 @@ export const users: UsersTypes[] = [
     password: 'Password123',
     isFamilyHead: true,
     hasFamily: true,
-    isVerified: false,
+    isVerified: true,
   },
   {
     firstName: 'Tony',
@@ -103,4 +103,4 @@ export const users: UsersTypes[] = [
 
 export const wrongToken: string =
   // tslint:disable-next-line max-line-length
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imdlb3JnZUBzZWVkLTItc2lnbmVkLWluLW5vdC12YWxpZC1tb2NrZWQuY29tIiwiaWF0IjoxNTM3MjEwNDAzLCJleHAiOjE1Mzg0MjAwMDN9.NqtSZcqzGkByKJJY-DjqUfFIUqmNYrKgsne1eqHVQMQ';
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImRqcGx1a2ktMUBnbWFpbC5jb20iLCJpYXQiOjE1MzgyMTMwMDksImV4cCI6MTUzOTQyMjYwOX0.V7JLVP6RSe0ULix4viQo4RyHX931UutaP9HXgfKXIX8';

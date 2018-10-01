@@ -3,6 +3,7 @@ import { isEmpty } from 'lodash';
 
 import { isBlank, isEmail, hasProperLength } from '../helpers/validators';
 import { emailErrors, passwordErrors, defaultErrors } from '../constants/errors';
+import { GENDERS } from '../constants/columnTypes';
 
 export const validateEmail: (email: string) => string = email => {
   if (isBlank(email)) return emailErrors.isRequired;
@@ -53,6 +54,8 @@ interface SignUpErrorsTypes {
   password?: string;
   firstName?: string;
   lastName?: string;
+  gender?: string;
+  age?: string;
 }
 
 interface SignUpValidatorTypes {
@@ -64,8 +67,10 @@ export const validateSignUp: (
   email: string,
   password: string,
   firstName: string,
-  lastName: string
-) => SignUpValidatorTypes = (email, password, firstName, lastName) => {
+  lastName: string,
+  gender: string,
+  age: number
+) => SignUpValidatorTypes = (email, password, firstName, lastName, gender, age) => {
   const errors: SignUpErrorsTypes = {};
 
   const signInValidated: SignInValidatorTypes = validateSignIn(email, password);
@@ -77,6 +82,8 @@ export const validateSignUp: (
 
   if (isBlank(firstName)) errors.firstName = defaultErrors.isRequired;
   if (isBlank(lastName)) errors.lastName = defaultErrors.isRequired;
+  if (!GENDERS.includes(gender)) errors.gender = defaultErrors.notAllowedValue;
+  if (!age && age !== 0) errors.age = defaultErrors.isRequired;
 
   return {
     isValid: isEmpty(errors),
@@ -88,6 +95,8 @@ interface InviteErrorsTypes {
   email?: string;
   firstName?: string;
   lastName?: string;
+  gender?: string;
+  age?: string;
 }
 
 interface InviteValidatorTypes {
@@ -98,14 +107,18 @@ interface InviteValidatorTypes {
 export const validateInvite: (
   email: string,
   firstName: string,
-  lastName: string
-) => InviteValidatorTypes = (email, firstName, lastName) => {
+  lastName: string,
+  gender: string,
+  age: number
+) => InviteValidatorTypes = (email, firstName, lastName, gender, age) => {
   const errors: InviteErrorsTypes = {};
 
   const emailError: string = validateEmail(email);
   if (!isBlank(emailError)) errors.email = emailError;
   if (isBlank(firstName)) errors.firstName = defaultErrors.isRequired;
   if (isBlank(lastName)) errors.lastName = defaultErrors.isRequired;
+  if (!GENDERS.includes(gender)) errors.gender = defaultErrors.notAllowedValue;
+  if (!age && age !== 0) errors.age = defaultErrors.isRequired;
 
   return {
     isValid: isEmpty(errors),

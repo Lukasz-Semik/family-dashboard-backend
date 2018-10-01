@@ -26,7 +26,7 @@ before(() => dbSeedTests());
 describe('User Controller', () => {
   describe(`Route ${generateFullApi(API_SIGN_UP)}`, () => {
     it('should create not verified account', done => {
-      const { email, password, firstName, lastName } = users[0];
+      const { email, password, firstName, lastName, gender, age } = users[0];
 
       request(APP)
         .post(generateFullApi(API_SIGN_UP))
@@ -35,6 +35,8 @@ describe('User Controller', () => {
           password,
           firstName,
           lastName,
+          gender,
+          age,
         })
         .expect(200)
         .expect(res => {
@@ -57,6 +59,8 @@ describe('User Controller', () => {
             password: passwordErrors.isRequired,
             firstName: defaultErrors.isRequired,
             lastName: defaultErrors.isRequired,
+            gender: defaultErrors.notAllowedValue,
+            age: defaultErrors.isRequired,
           });
         })
         .end(err => {
@@ -71,6 +75,7 @@ describe('User Controller', () => {
         .send({
           email: 'ddd',
           password: 'ddd',
+          gender: 'bleble',
         })
         .expect(400)
         .expect(res => {
@@ -79,6 +84,8 @@ describe('User Controller', () => {
             password: passwordErrors.wrongFormat,
             firstName: defaultErrors.isRequired,
             lastName: defaultErrors.isRequired,
+            gender: defaultErrors.notAllowedValue,
+            age: defaultErrors.isRequired,
           });
         })
         .end(err => {
@@ -88,7 +95,7 @@ describe('User Controller', () => {
     });
 
     it('should return proper error message for existing user', done => {
-      const { email, password, firstName, lastName } = users[1];
+      const { email, password, firstName, lastName, age, gender } = users[1];
 
       request(APP)
         .post(generateFullApi(API_SIGN_UP))
@@ -97,6 +104,8 @@ describe('User Controller', () => {
           password,
           firstName,
           lastName,
+          age,
+          gender,
         })
         .expect(400)
         .expect(res => {
@@ -265,13 +274,13 @@ describe('User Controller', () => {
 
   describe(`Route ${API_INVITE_USER}`, () => {
     it('should invite user', done => {
-      const { email, firstName, lastName } = users[6];
+      const { email, firstName, lastName, age, gender } = users[6];
 
       request(APP)
         .post(generateFullApi(API_INVITE_USER))
         .set('authorization', familyOwnerGeneratedToken)
         .type('form')
-        .send({ email, firstName, lastName })
+        .send({ email, firstName, lastName, age, gender })
         .expect(200)
         .expect(res => {
           expect(res.body).to.include({
@@ -296,6 +305,8 @@ describe('User Controller', () => {
             email: emailErrors.isRequired,
             firstName: defaultErrors.isRequired,
             lastName: defaultErrors.isRequired,
+            age: defaultErrors.isRequired,
+            gender: defaultErrors.notAllowedValue,
           });
         })
         .end(err => {
@@ -321,13 +332,13 @@ describe('User Controller', () => {
     });
 
     it('should return proper error for existing user', done => {
-      const { email, firstName, lastName } = users[2];
+      const { email, firstName, lastName, age, gender } = users[2];
 
       request(APP)
         .post(generateFullApi(API_INVITE_USER))
         .set('authorization', familyOwnerGeneratedToken)
         .type('form')
-        .send({ email, firstName, lastName })
+        .send({ email, firstName, lastName, age, gender })
         .expect(400)
         .expect(res => {
           expect(res.body.errors.email).to.equal(emailErrors.emailTaken);

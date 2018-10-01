@@ -52,8 +52,8 @@ export class UserController {
   @Post(API_SIGN_UP)
   @UseBefore(urlencodedParser)
   async createUser(@Body() body: any, @Res() res: any) {
-    const { email, password, firstName, lastName } = body;
-    const { isValid, errors } = validateSignUp(email, password, firstName, lastName);
+    const { email, password, firstName, lastName, gender, age } = body;
+    const { isValid, errors } = validateSignUp(email, password, firstName, lastName, gender, age);
 
     if (!isValid) return res.status(400).json({ errors });
 
@@ -79,9 +79,12 @@ export class UserController {
         firstName,
         lastName,
         email,
+        gender,
+        age,
       });
 
-      sendAccountConfirmationEmail(email, firstName, token);
+      // TODO: allow e-mails
+      // sendAccountConfirmationEmail(email, firstName, token);
 
       return res.status(200).json({ account: accountSuccesses.created });
     } catch (err) {
@@ -173,8 +176,8 @@ export class UserController {
           },
         });
 
-      const { email, firstName, lastName } = req.body;
-      const { isValid, errors } = validateInvite(email, firstName, lastName);
+      const { email, firstName, lastName, gender, age } = req.body;
+      const { isValid, errors } = validateInvite(email, firstName, lastName, gender, age);
 
       const foundUser = await this.userRepository.findOne({ email });
 
@@ -196,6 +199,8 @@ export class UserController {
         firstName,
         lastName,
         email,
+        gender,
+        age,
       });
 
       const { id: familyId } = currentUser.family;
@@ -208,7 +213,8 @@ export class UserController {
 
       await this.familyRepository.save(family);
 
-      sendInvitationEmail(email, firstName, currentUser.firstName, family.name, token);
+      // TODO: allow e-mails
+      // sendInvitationEmail(email, firstName, currentUser.firstName, family.name, token);
 
       return res.status(200).json({ account: accountSuccesses.invited });
     } catch (err) {
