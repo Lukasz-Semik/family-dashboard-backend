@@ -8,6 +8,7 @@ import {
   Authorized,
   HeaderParam,
   Req,
+  Patch,
 } from 'routing-controllers';
 import { getRepository } from 'typeorm';
 import { isEmpty } from 'lodash';
@@ -26,6 +27,7 @@ import {
 import {
   API_SIGN_UP,
   API_SIGN_IN,
+  API_USER_UPDATE,
   API_IS_AUTHORIZED,
   API_CONFIRM_ACCOUNT,
   API_GET_CURRENT_USER,
@@ -149,6 +151,35 @@ export class UserController {
       await this.userRepository.save(user);
 
       return res.status(200).json({ isAuthorized: true, token });
+    } catch (err) {
+      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+    }
+  }
+
+  // @description edit/update user
+  // @full route /api/user/update
+  // @access private
+  @Authorized()
+  @Patch(API_USER_UPDATE)
+  @UseBefore(urlencodedParser)
+  async editUser(@Req() req: any, @Res() res: any) {
+    try {
+      if (isEmpty(req.body))
+        return res.status(400).json({ errors: { payload: defaultErrors.emptyPayload } });
+
+      const { email: emailDecoded } = await Token.decode(req.headers.authorization);
+
+      if (!isEmpty(req.body.password) || !isEmpty(req.body.email))
+        return res.status(400).json({ errors: { payload: defaultErrors.notAllowedValue } });
+
+      const currentUser = await this.userRepository.findOne({ email: emailDecoded });
+
+      const updatedUser = await this.userRepository.save({
+        ...currentUser,
+        ...req.body,
+      });
+
+      return res.status(200).json({ user: updatedUser });
     } catch (err) {
       return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
     }

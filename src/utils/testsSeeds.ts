@@ -11,6 +11,7 @@ export let generatedToken: string = '';
 export let familyCreatorGeneratedToken: string = '';
 export let familyOwnerGeneratedToken: string = '';
 export let invitationGeneratedToken: string = '';
+export let editGeneratedToken: string = '';
 
 export const dbSeedTests: any = async () => {
   await createConnection();
@@ -81,13 +82,22 @@ export const dbSeedTests: any = async () => {
     users: [createdUserFive],
   });
 
-  const userSix = new User();
-  invitationGeneratedToken = await Token.create({ email: users[6].email });
-
   // hermiona@7-invited-to-confirm.com
-  return await userRepository.save({
-    ...userSix,
+  const userSeven = new User();
+  invitationGeneratedToken = await Token.create({ email: users[7].email });
+
+  await userRepository.save({
+    ...userSeven,
     ...users[7],
     invitationToken: invitationGeneratedToken,
+  });
+
+  const userEight = new User();
+  editGeneratedToken = await Token.create({ email: users[8].email });
+
+  return await userRepository.save({
+    ...userEight,
+    ...users[8],
+    invitationToken: editGeneratedToken,
   });
 };
