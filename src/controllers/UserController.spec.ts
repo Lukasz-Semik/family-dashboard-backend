@@ -7,6 +7,7 @@ import {
   generatedToken,
   familyOwnerGeneratedToken,
   invitationGeneratedToken,
+  editGeneratedToken,
 } from '../utils/testsSeeds';
 import { users, wrongToken } from '../constants/testFixtures';
 import {
@@ -17,6 +18,7 @@ import {
   API_GET_CURRENT_USER,
   API_INVITE_USER,
   API_CONFIRM_INVITED_USER,
+  API_USER_UPDATE,
 } from '../constants/routes';
 import { emailErrors, passwordErrors, defaultErrors } from '../constants/errors';
 import { accountSuccesses } from '../constants/successes';
@@ -112,6 +114,67 @@ describe('User Controller', () => {
           expect(res.body.errors).to.deep.equal({
             email: emailErrors.emailTaken,
           });
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+  });
+
+  describe(`Route ${generateFullApi(API_USER_UPDATE)}`, () => {
+    it('should return updated user', done => {
+      const firstName = 'Harry Junior';
+      const { lastName, gender, age, isFamilyHead, hasFamily, isVerified } = users[8];
+
+      request(APP)
+        .patch(generateFullApi(API_USER_UPDATE))
+        .set('authorization', editGeneratedToken)
+        .type('form')
+        .send({ firstName })
+        .expect(200)
+        .expect(res => {
+          expect(res.body.user).to.include({
+            firstName,
+            lastName,
+            gender,
+            age,
+            isFamilyHead,
+            hasFamily,
+            isVerified,
+          });
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+
+    it('should return proper error for empty data', done => {
+      request(APP)
+        .patch(generateFullApi(API_USER_UPDATE))
+        .set('authorization', editGeneratedToken)
+        .type('form')
+        .send()
+        .expect(400)
+        .expect(res => {
+          expect(res.body.errors.payload).to.equal(defaultErrors.emptyPayload);
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+
+    it('should return proper error for not allowed data', done => {
+      request(APP)
+        .patch(generateFullApi(API_USER_UPDATE))
+        .set('authorization', editGeneratedToken)
+        .type('form')
+        .send({ password: 'some-fake-password' })
+        .expect(400)
+        .expect(res => {
+          expect(res.body.errors.payload).to.equal(defaultErrors.notAllowedValue);
         })
         .end(err => {
           if (err) return done(err);
