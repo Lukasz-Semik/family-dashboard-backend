@@ -14,8 +14,9 @@ interface EmailErrors {
   isRequired: string;
   hasFamily: string;
   hasNoFamily: string;
+  familyHeadNotRemovable: string;
 }
-
+// TODO: create user errors
 export const emailErrors: EmailErrors = {
   emailTaken: 'email-already-registered',
   wrongFormat: 'email-wrong-format',
@@ -24,6 +25,7 @@ export const emailErrors: EmailErrors = {
   isRequired: 'email-required',
   hasFamily: 'email-is-assigned-to-family',
   hasNoFamily: 'email-is-not-assigned-to-family',
+  familyHeadNotRemovable: 'email-family-head-not-removable',
 };
 
 interface PasswordErrors {

@@ -38,9 +38,9 @@ export class FamilyController {
       // tslint:disable-next-line semicolon
       .getOne();
 
-  // @description create family
+  // @description: create family
   // @full route: /api/family/create
-  // @access private
+  // @access: private
   @Post(API_CREATE_FAMILY)
   @UseBefore(urlencodedParser)
   @Authorized()
@@ -78,9 +78,9 @@ export class FamilyController {
     }
   }
 
-  // @description get family
+  // @description: get family
   // @full route: /api/family/current
-  // @access private
+  // @access: private
   @Get(API_GET_FAMILY)
   @UseBefore(urlencodedParser)
   @Authorized()

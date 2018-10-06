@@ -9,13 +9,14 @@ import {
   HeaderParam,
   Req,
   Patch,
+  Delete,
 } from 'routing-controllers';
 import { getRepository } from 'typeorm';
-import { isEmpty } from 'lodash';
+import { isEmpty, get } from 'lodash';
 import { hash, compare } from 'bcryptjs';
 
 import { Token } from '.';
-import { User, Family } from '../entity';
+import { User, Family, ArchivedUser } from '../entity';
 import urlencodedParser from '../utils/bodyParser';
 import { sendAccountConfirmationEmail, sendInvitationEmail } from '../services/mailers';
 import {
@@ -28,6 +29,7 @@ import {
   API_SIGN_UP,
   API_SIGN_IN,
   API_USER_UPDATE,
+  API_USER_DELETE,
   API_IS_AUTHORIZED,
   API_CONFIRM_ACCOUNT,
   API_GET_CURRENT_USER,
@@ -48,9 +50,9 @@ export class UserController {
   userRepository = getRepository(User);
   familyRepository = getRepository(Family);
 
-  // @description create user
+  // @description: create user
   // @full route: /api/user/sign-up
-  // @access public
+  // @access: public
   @Post(API_SIGN_UP)
   @UseBefore(urlencodedParser)
   async createUser(@Body() body: any, @Res() res: any) {
@@ -95,9 +97,9 @@ export class UserController {
   }
 
   // TODO: THINK ABOUT AND EVENTUALLY MOVE TOKEN TO HEADERS!
-  // @description confirm user account
+  // @description: confirm user account
   // @full route: /api/user/confirm
-  // @access public
+  // @access: public
   @Post(API_CONFIRM_ACCOUNT)
   @UseBefore(urlencodedParser)
   async confirmAccount(@Body() body: any, @Res() res: any) {
@@ -121,9 +123,9 @@ export class UserController {
     }
   }
 
-  // @description create user
+  // @description: create user
   // @full route: /api/user/sign-in
-  // @access public
+  // @access: public
   @Post(API_SIGN_IN)
   @UseBefore(urlencodedParser)
   async signInUser(@Body() body: any, @Res() res: any) {
@@ -156,9 +158,9 @@ export class UserController {
     }
   }
 
-  // @description edit/update user
+  // @description: edit/update user
   // @full route /api/user/update
-  // @access private
+  // @access: private
   @Authorized()
   @Patch(API_USER_UPDATE)
   @UseBefore(urlencodedParser)
@@ -185,9 +187,77 @@ export class UserController {
     }
   }
 
-  // @description invite user
+  // @description: delete user
+  // @full route: /api/usere/delete
+  // @access: private
+  @Authorized()
+  @Delete(API_USER_DELETE)
+  async archiveUser(@HeaderParam('authorization') token: string, @Res() res: any) {
+    try {
+      const { email: emailDecoded } = await Token.decode(token);
+
+      const user = await this.userRepository.findOne(
+        { email: emailDecoded },
+        { relations: ['family'] }
+      );
+
+      const {
+        id: deletingUserId,
+        email,
+        firstName,
+        lastName,
+        age,
+        gender,
+        isFamilyHead,
+        family,
+      } = user;
+
+      const archivedUserRepository = getRepository(ArchivedUser);
+
+      if (!isEmpty(family)) {
+        const foundFamily = await this.familyRepository
+          .createQueryBuilder('family')
+          .leftJoinAndSelect('family.users', 'users')
+          .where('family.id = :id', { id: family.id })
+          // tslint:disable-next-line semicolon
+          .getOne();
+
+        if (get(foundFamily, 'users.length') === 1) {
+          const newArchivedUser = new ArchivedUser();
+
+          await archivedUserRepository.save({
+            ...newArchivedUser,
+            email,
+            firstName,
+            lastName,
+            age,
+            gender,
+            isFamilyHead,
+          });
+
+          await this.userRepository.remove(user);
+
+          await this.familyRepository.remove(foundFamily);
+
+          return res.status(200).json({
+            removedUser: user.email,
+            removedFamily: foundFamily.name,
+          });
+        }
+
+        if (user.isFamilyHead)
+          return res.status(400).json({ errors: { email: emailErrors.familyHeadNotRemovable } });
+      }
+
+      return res.status(200).json({ user: 'found' });
+    } catch (err) {
+      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+    }
+  }
+
+  // @description: invite user
   // @full route: /api/user/invite
-  // @access private
+  // @access: private
   @Authorized()
   @Post(API_INVITE_USER)
   @UseBefore(urlencodedParser)
@@ -253,9 +323,9 @@ export class UserController {
     }
   }
 
-  // @description confirm invite user
+  // @description: confirm invite user
   // @full route: /api/user/confirm-invited
-  // @access public
+  // @access: public
   @Post(API_CONFIRM_INVITED_USER)
   @UseBefore(urlencodedParser)
   async confirmInvitedUser(@Body() body: any, @Res() res: any) {
@@ -286,9 +356,9 @@ export class UserController {
     }
   }
 
-  // @description get current user
+  // @description: get current user
   // @full route: /api/user/current
-  // @access private
+  // @access: private
   @Authorized()
   @Get(API_GET_CURRENT_USER)
   async getCurrentUser(@HeaderParam('authorization') token: string, @Res() res: any) {
@@ -316,9 +386,9 @@ export class UserController {
     }
   }
 
-  // @description check if user is authorize
+  // @description: check if user is authorize
   // @full route: /api/user/is-authorized
-  // @access private
+  // @access: private
   @Authorized()
   @Get(API_IS_AUTHORIZED)
   isAuthorized(@Body() body: any, @Res() res: any) {
