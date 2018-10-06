@@ -8,7 +8,6 @@ export class ArchivedUser {
   id: number;
 
   @Column({
-    unique: true,
     type: 'varchar',
     length: 255,
   })

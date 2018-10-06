@@ -48,7 +48,29 @@ import { EXPIRE_24_H } from '../constants/expirations';
 @JsonController()
 export class UserController {
   userRepository = getRepository(User);
+
   familyRepository = getRepository(Family);
+
+  archiveUser: (user: User) => Promise<ArchivedUser> = async user => {
+    const newArchivedUser = new ArchivedUser();
+
+    const { email, firstName, lastName, age, gender, isFamilyHead } = user;
+
+    const archivedUserRepository = getRepository(ArchivedUser);
+
+    await this.userRepository.remove(user);
+
+    return await archivedUserRepository.save({
+      ...newArchivedUser,
+      email,
+      firstName,
+      lastName,
+      age,
+      gender,
+      isFamilyHead,
+    });
+    // tslint:disable-next-line semicolon
+  };
 
   // @description: create user
   // @full route: /api/user/sign-up
@@ -192,7 +214,7 @@ export class UserController {
   // @access: private
   @Authorized()
   @Delete(API_USER_DELETE)
-  async archiveUser(@HeaderParam('authorization') token: string, @Res() res: any) {
+  async deleteUser(@HeaderParam('authorization') token: string, @Res() res: any) {
     try {
       const { email: emailDecoded } = await Token.decode(token);
 
@@ -201,18 +223,7 @@ export class UserController {
         { relations: ['family'] }
       );
 
-      const {
-        id: deletingUserId,
-        email,
-        firstName,
-        lastName,
-        age,
-        gender,
-        isFamilyHead,
-        family,
-      } = user;
-
-      const archivedUserRepository = getRepository(ArchivedUser);
+      const { family } = user;
 
       if (!isEmpty(family)) {
         const foundFamily = await this.familyRepository
@@ -223,19 +234,7 @@ export class UserController {
           .getOne();
 
         if (get(foundFamily, 'users.length') === 1) {
-          const newArchivedUser = new ArchivedUser();
-
-          await archivedUserRepository.save({
-            ...newArchivedUser,
-            email,
-            firstName,
-            lastName,
-            age,
-            gender,
-            isFamilyHead,
-          });
-
-          await this.userRepository.remove(user);
+          await this.archiveUser(user);
 
           await this.familyRepository.remove(foundFamily);
 
@@ -249,7 +248,11 @@ export class UserController {
           return res.status(400).json({ errors: { email: emailErrors.familyHeadNotRemovable } });
       }
 
-      return res.status(200).json({ user: 'found' });
+      await this.archiveUser(user);
+
+      return res.status(200).json({
+        removedUser: user.email,
+      });
     } catch (err) {
       return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
