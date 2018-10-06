@@ -16,7 +16,7 @@ import { isEmpty, get } from 'lodash';
 import { hash, compare } from 'bcryptjs';
 
 import { Token } from '.';
-import { User, Family, ArchivedUser } from '../entity';
+import { User, Family } from '../entity';
 import urlencodedParser from '../utils/bodyParser';
 import { sendAccountConfirmationEmail, sendInvitationEmail } from '../services/mailers';
 import {
@@ -48,29 +48,7 @@ import { EXPIRE_24_H } from '../constants/expirations';
 @JsonController()
 export class UserController {
   userRepository = getRepository(User);
-
   familyRepository = getRepository(Family);
-
-  archiveUser: (user: User) => Promise<ArchivedUser> = async user => {
-    const newArchivedUser = new ArchivedUser();
-
-    const { email, firstName, lastName, age, gender, isFamilyHead } = user;
-
-    const archivedUserRepository = getRepository(ArchivedUser);
-
-    await this.userRepository.remove(user);
-
-    return await archivedUserRepository.save({
-      ...newArchivedUser,
-      email,
-      firstName,
-      lastName,
-      age,
-      gender,
-      isFamilyHead,
-    });
-    // tslint:disable-next-line semicolon
-  };
 
   // @description: create user
   // @full route: /api/user/sign-up
@@ -234,7 +212,7 @@ export class UserController {
           .getOne();
 
         if (get(foundFamily, 'users.length') === 1) {
-          await this.archiveUser(user);
+          await this.userRepository.remove(user);
 
           await this.familyRepository.remove(foundFamily);
 
@@ -248,7 +226,7 @@ export class UserController {
           return res.status(400).json({ errors: { email: emailErrors.familyHeadNotRemovable } });
       }
 
-      await this.archiveUser(user);
+      await this.userRepository.remove(user);
 
       return res.status(200).json({
         removedUser: user.email,
