@@ -1,4 +1,4 @@
-// TODO: user isVerified from seedsinstead of setting it here
+// TODO: refactor this seeeds!
 import { getRepository } from 'typeorm';
 import { createConnection } from 'typeorm';
 import { hash } from 'bcryptjs';
@@ -92,12 +92,13 @@ export const dbSeedTests: any = async () => {
     invitationToken: invitationGeneratedToken,
   });
 
+  // harry@8-to-update.com
   const userEight = new User();
   editGeneratedToken = await Token.create({ email: users[8].email });
 
   return await userRepository.save({
     ...userEight,
     ...users[8],
-    invitationToken: editGeneratedToken,
+    token: editGeneratedToken,
   });
 };
