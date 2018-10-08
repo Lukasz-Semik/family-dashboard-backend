@@ -335,114 +335,114 @@
 //   //   });
 //   // });
 
-//   describe(`Route ${API_USER_INVITE}`, () => {
-//     it('should invite user', done => {
-//       const { email, firstName, lastName, age, gender } = users[6];
+//   // describe(`Route ${API_USER_INVITE}`, () => {
+//   //   it('should invite user', done => {
+//   //     const { email, firstName, lastName, age, gender } = users[6];
 
-//       request(APP)
-//         .post(generateFullApi(API_USER_INVITE))
-//         .set('authorization', familyOwnerGeneratedToken)
-//         .type('form')
-//         .send({ email, firstName, lastName, age, gender })
-//         .expect(200)
-//         .expect(res => {
-//           expect(res.body).to.include({
-//             account: accountSuccesses.invited,
-//           });
-//         })
-//         .end(err => {
-//           if (err) return done(err);
-//           done();
-//         });
-//     });
+//   //     request(APP)
+//   //       .post(generateFullApi(API_USER_INVITE))
+//   //       .set('authorization', familyOwnerGeneratedToken)
+//   //       .type('form')
+//   //       .send({ email, firstName, lastName, age, gender })
+//   //       .expect(200)
+//   //       .expect(res => {
+//   //         expect(res.body).to.include({
+//   //           account: accountSuccesses.invited,
+//   //         });
+//   //       })
+//   //       .end(err => {
+//   //         if (err) return done(err);
+//   //         done();
+//   //       });
+//   //   });
 
-//     it('should return proper messages for wrong data sent', done => {
-//       request(APP)
-//         .post(generateFullApi(API_USER_INVITE))
-//         .set('authorization', familyOwnerGeneratedToken)
-//         .type('form')
-//         .send()
-//         .expect(400)
-//         .expect(res => {
-//           expect(res.body.errors).to.include({
-//             email: emailErrors.isRequired,
-//             firstName: defaultErrors.isRequired,
-//             lastName: defaultErrors.isRequired,
-//             age: defaultErrors.isRequired,
-//             gender: defaultErrors.notAllowedValue,
-//           });
-//         })
-//         .end(err => {
-//           if (err) return done(err);
-//           done();
-//         });
-//     });
+//   //   it('should return proper messages for wrong data sent', done => {
+//   //     request(APP)
+//   //       .post(generateFullApi(API_USER_INVITE))
+//   //       .set('authorization', familyOwnerGeneratedToken)
+//   //       .type('form')
+//   //       .send()
+//   //       .expect(400)
+//   //       .expect(res => {
+//   //         expect(res.body.errors).to.include({
+//   //           email: emailErrors.isRequired,
+//   //           firstName: defaultErrors.isRequired,
+//   //           lastName: defaultErrors.isRequired,
+//   //           age: defaultErrors.isRequired,
+//   //           gender: defaultErrors.notAllowedValue,
+//   //         });
+//   //       })
+//   //       .end(err => {
+//   //         if (err) return done(err);
+//   //         done();
+//   //       });
+//   //   });
 
-//     it('should return proper error for user without family', done => {
-//       request(APP)
-//         .post(generateFullApi(API_USER_INVITE))
-//         .set('authorization', generatedToken)
-//         .type('form')
-//         .send()
-//         .expect(400)
-//         .expect(res => {
-//           expect(res.body.errors.email).to.equal(emailErrors.hasNoFamily);
-//         })
-//         .end(err => {
-//           if (err) return done(err);
-//           done();
-//         });
-//     });
+//   //   it('should return proper error for user without family', done => {
+//   //     request(APP)
+//   //       .post(generateFullApi(API_USER_INVITE))
+//   //       .set('authorization', generatedToken)
+//   //       .type('form')
+//   //       .send()
+//   //       .expect(400)
+//   //       .expect(res => {
+//   //         expect(res.body.errors.email).to.equal(emailErrors.hasNoFamily);
+//   //       })
+//   //       .end(err => {
+//   //         if (err) return done(err);
+//   //         done();
+//   //       });
+//   //   });
 
-//     it('should return proper error for existing user', done => {
-//       const { email, firstName, lastName, age, gender } = users[2];
+//   //   it('should return proper error for existing user', done => {
+//   //     const { email, firstName, lastName, age, gender } = users[2];
 
-//       request(APP)
-//         .post(generateFullApi(API_USER_INVITE))
-//         .set('authorization', familyOwnerGeneratedToken)
-//         .type('form')
-//         .send({ email, firstName, lastName, age, gender })
-//         .expect(400)
-//         .expect(res => {
-//           expect(res.body.errors.email).to.equal(emailErrors.emailTaken);
-//         })
-//         .end(err => {
-//           if (err) return done(err);
-//           done();
-//         });
-//     });
-//   });
+//   //     request(APP)
+//   //       .post(generateFullApi(API_USER_INVITE))
+//   //       .set('authorization', familyOwnerGeneratedToken)
+//   //       .type('form')
+//   //       .send({ email, firstName, lastName, age, gender })
+//   //       .expect(400)
+//   //       .expect(res => {
+//   //         expect(res.body.errors.email).to.equal(emailErrors.emailTaken);
+//   //       })
+//   //       .end(err => {
+//   //         if (err) return done(err);
+//   //         done();
+//   //       });
+//   //   });
+//   // });
 
-//   describe(`Route ${API_USER_CONFIRM_INVITED}`, () => {
-//     it('should confirm invited user', done => {
-//       request(APP)
-//         .post(generateFullApi(API_USER_CONFIRM_INVITED))
-//         .send({ password: 'Password123', invitationToken: invitationGeneratedToken })
-//         .expect(200)
-//         .expect(res => {
-//           expect(res.body.account).to.equal(accountSuccesses.confirmed);
-//         })
-//         .end(err => {
-//           if (err) return done(err);
-//           done();
-//         });
-//     });
+//   // describe(`Route ${API_USER_CONFIRM_INVITED}`, () => {
+//   //   it('should confirm invited user', done => {
+//   //     request(APP)
+//   //       .post(generateFullApi(API_USER_CONFIRM_INVITED))
+//   //       .send({ password: 'Password123', invitationToken: invitationGeneratedToken })
+//   //       .expect(200)
+//   //       .expect(res => {
+//   //         expect(res.body.account).to.equal(accountSuccesses.confirmed);
+//   //       })
+//   //       .end(err => {
+//   //         if (err) return done(err);
+//   //         done();
+//   //       });
+//   //   });
 
-//     it('should return proper errors for wrong data', done => {
-//       request(APP)
-//         .post(generateFullApi(API_USER_CONFIRM_INVITED))
-//         .send()
-//         .expect(400)
-//         .expect(res => {
-//           expect(res.body.errors).to.include({
-//             password: passwordErrors.isRequired,
-//             invitationToken: defaultErrors.isRequired,
-//           });
-//         })
-//         .end(err => {
-//           if (err) return done(err);
-//           done();
-//         });
-//     });
-//   });
+//   //   it('should return proper errors for wrong data', done => {
+//   //     request(APP)
+//   //       .post(generateFullApi(API_USER_CONFIRM_INVITED))
+//   //       .send()
+//   //       .expect(400)
+//   //       .expect(res => {
+//   //         expect(res.body.errors).to.include({
+//   //           password: passwordErrors.isRequired,
+//   //           invitationToken: defaultErrors.isRequired,
+//   //         });
+//   //       })
+//   //       .end(err => {
+//   //         if (err) return done(err);
+//   //         done();
+//   //       });
+//   //   });
+//   // });
 // });

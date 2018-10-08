@@ -7,6 +7,9 @@ import {
   confirmationAccountTokenGenerated,
   notExistingUserTokenGenerated,
   signedInTokenGenerated,
+  toDeleteWithFamilyTokenGenerated,
+  toFailDeleteWithFamilyTokenGenerated,
+  invitationTokenGenerated,
   generatedToken,
   familyOwnerGeneratedToken,
   invitationGeneratedToken,
@@ -23,6 +26,7 @@ import {
   API_USER_INVITE,
   API_USER_CONFIRM_INVITED,
   API_USER_UPDATE,
+  API_USER_DELETE,
 } from '../constants/routes';
 import { emailErrors, passwordErrors, defaultErrors } from '../constants/errors';
 import { accountSuccesses } from '../constants/successes';
@@ -256,6 +260,117 @@ describe('User Controller', () => {
     });
   });
 
+  describe(`Route ${generateFullApi(API_USER_INVITE)}`, () => {
+    it('should invite user', done => {
+      const { email, firstName, lastName, age, gender } = notSeededUsers[2];
+
+      request(APP)
+        .post(generateFullApi(API_USER_INVITE))
+        .set('authorization', toFailDeleteWithFamilyTokenGenerated)
+        .type('form')
+        .send({ email, firstName, lastName, age, gender })
+        .expect(200)
+        .expect(res => {
+          expect(res.body).to.include({
+            account: accountSuccesses.invited,
+          });
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+
+    it('should return proper messages for wrong data sent', done => {
+      request(APP)
+        .post(generateFullApi(API_USER_INVITE))
+        .set('authorization', toFailDeleteWithFamilyTokenGenerated)
+        .type('form')
+        .send()
+        .expect(400)
+        .expect(res => {
+          expect(res.body.errors).to.include({
+            email: emailErrors.isRequired,
+            firstName: defaultErrors.isRequired,
+            lastName: defaultErrors.isRequired,
+            age: defaultErrors.isRequired,
+            gender: defaultErrors.notAllowedValue,
+          });
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+
+    it('should return proper error for user without family', done => {
+      request(APP)
+        .post(generateFullApi(API_USER_INVITE))
+        .set('authorization', signedInTokenGenerated)
+        .type('form')
+        .send()
+        .expect(400)
+        .expect(res => {
+          expect(res.body.errors.email).to.equal(emailErrors.hasNoFamily);
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+
+    it('should return proper error for existing user', done => {
+      const { email, firstName, lastName, age, gender } = notSeededUsers[0];
+
+      request(APP)
+        .post(generateFullApi(API_USER_INVITE))
+        .set('authorization', toFailDeleteWithFamilyTokenGenerated)
+        .type('form')
+        .send({ email, firstName, lastName, age, gender })
+        .expect(400)
+        .expect(res => {
+          expect(res.body.errors.email).to.equal(emailErrors.emailTaken);
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+  });
+
+  describe(`Route ${API_USER_CONFIRM_INVITED}`, () => {
+    it('should confirm invited user', done => {
+      request(APP)
+        .post(generateFullApi(API_USER_CONFIRM_INVITED))
+        .send({ password: 'Password123', invitationToken: invitationTokenGenerated })
+        .expect(200)
+        .expect(res => {
+          expect(res.body.account).to.equal(accountSuccesses.confirmed);
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+
+    it('should return proper errors for wrong data', done => {
+      request(APP)
+        .post(generateFullApi(API_USER_CONFIRM_INVITED))
+        .send()
+        .expect(400)
+        .expect(res => {
+          expect(res.body.errors).to.include({
+            password: passwordErrors.isRequired,
+            invitationToken: defaultErrors.isRequired,
+          });
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+  });
+
   describe(`Route ${generateFullApi(API_USER_GET_CURRENT)}`, () => {
     it('should return proper data for current user', done => {
       const { email, isFamilyHead, hasFamily, firstName, lastName, age, gender } = seededUsers[2];
@@ -330,7 +445,7 @@ describe('User Controller', () => {
 
   describe(`Route ${generateFullApi(API_USER_UPDATE)}`, () => {
     it('should return updated user', done => {
-      const firstName = 'Harry Junior';
+      const firstName = 'Minerva The Cat';
       const { lastName, gender, age, isFamilyHead, hasFamily, isVerified } = seededUsers[2];
 
       request(APP)
@@ -381,6 +496,54 @@ describe('User Controller', () => {
         .expect(400)
         .expect(res => {
           expect(res.body.errors.payload).to.equal(defaultErrors.notAllowedValue);
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+  });
+
+  describe(`Route ${generateFullApi(API_USER_DELETE)}`, () => {
+    it('should delete user seededUser[2] without family', done => {
+      request(APP)
+        .delete(generateFullApi(API_USER_DELETE))
+        .set('authorization', signedInTokenGenerated)
+        .expect(200)
+        .expect(res => {
+          expect(res.body.removedEmail).to.equal(seededUsers[2].email);
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+
+    it('should delete user seededUser[4] with family and without members', done => {
+      request(APP)
+        .delete(generateFullApi(API_USER_DELETE))
+        .set('authorization', toDeleteWithFamilyTokenGenerated)
+        .expect(200)
+        .expect(res => {
+          const { removedEmail, removedFamily } = res.body;
+
+          expect(removedEmail).to.equal(seededUsers[4].email);
+          expect(removedFamily).to.equal(seededUsers[4].lastName);
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+
+    it(`should return proper errors message after trial of delete user
+        seededUser[3] with family and with members`, done => {
+      request(APP)
+        .delete(generateFullApi(API_USER_DELETE))
+        .set('authorization', toFailDeleteWithFamilyTokenGenerated)
+        .expect(400)
+        .expect(res => {
+          expect(res.body.errors.email).to.equal(emailErrors.familyHeadNotRemovable);
         })
         .end(err => {
           if (err) return done(err);

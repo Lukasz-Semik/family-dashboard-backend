@@ -3,7 +3,7 @@ import { getRepository } from 'typeorm';
 import { createConnection } from 'typeorm';
 import { hash } from 'bcryptjs';
 
-import { seededUsers } from '../constants/testFixtures';
+import { seededUsers, notSeededUsers } from '../constants/testFixtures';
 import { User, Family } from '../entity';
 import { Token } from '../controllers';
 
@@ -16,6 +16,9 @@ export let editGeneratedToken: string = '';
 export let confirmationAccountTokenGenerated: string = '';
 export let notExistingUserTokenGenerated: string = '';
 export let signedInTokenGenerated: string = '';
+export let toDeleteWithFamilyTokenGenerated: string = '';
+export let toFailDeleteWithFamilyTokenGenerated: string = '';
+export let invitationTokenGenerated: string = '';
 
 interface UserTypes {
   firstName: string;
@@ -27,18 +30,19 @@ interface UserTypes {
   isFamilyHead: boolean;
   hasFamily: boolean;
   isVerified: boolean;
-  confirmationAccountToken?: string;
   token?: string;
+  confirmationAccountToken?: string;
+  invitationToken?: string;
 }
 
 export const dbSeedTests: any = async () => {
   await createConnection();
 
   const userRepository = getRepository(User);
-  // const familyRepository = getRepository(Family);
+  const familyRepository = getRepository(Family);
 
   await userRepository.clear();
-  // await familyRepository.query('DELETE FROM family;');
+  await familyRepository.query('DELETE FROM family;');
 
   // All users have the same password `Password123`
   const hashedPassword = await hash(seededUsers[0].password, 10);
@@ -59,6 +63,9 @@ export const dbSeedTests: any = async () => {
       isVerified,
       isUserToConfirm,
       isUserToDelete,
+      isUserToDeleteWithFamily,
+      isUserToFailDeleteWithFamily,
+      isUserToConfirmInvite,
     } = seededUser;
 
     const user: UserTypes = {
@@ -83,11 +90,48 @@ export const dbSeedTests: any = async () => {
       user.token = signedInTokenGenerated;
     }
 
-    await userRepository.save({
+    if (isUserToDeleteWithFamily) {
+      toDeleteWithFamilyTokenGenerated = Token.create({ email });
+      user.token = toDeleteWithFamilyTokenGenerated;
+    }
+
+    if (isUserToFailDeleteWithFamily) {
+      toFailDeleteWithFamilyTokenGenerated = Token.create({ email });
+      user.token = toFailDeleteWithFamilyTokenGenerated;
+    }
+
+    if (isUserToConfirmInvite) {
+      invitationTokenGenerated = Token.create({ email });
+      user.invitationToken = invitationTokenGenerated;
+    }
+
+    const createdUser = await userRepository.save({
       ...newUser,
       ...user,
       password: hashedPassword,
     });
+
+    if (isUserToDeleteWithFamily || isUserToFailDeleteWithFamily) {
+      const newFamily = new Family();
+      const users = [createdUser];
+
+      if (isUserToFailDeleteWithFamily) {
+        const newUserTwo = new User();
+
+        const mockedFamilyMemberUser = await userRepository.save({
+          ...newUserTwo,
+          ...notSeededUsers[1],
+        });
+
+        users.push(mockedFamilyMemberUser);
+      }
+
+      await familyRepository.save({
+        ...newFamily,
+        name: createdUser.lastName,
+        users,
+      });
+    }
   });
 
   // const userOne = new User();

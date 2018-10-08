@@ -10,6 +10,9 @@ interface UsersTypes {
   isVerified: boolean;
   isUserToConfirm?: boolean;
   isUserToDelete?: boolean;
+  isUserToDeleteWithFamily?: boolean;
+  isUserToFailDeleteWithFamily?: boolean;
+  isUserToConfirmInvite?: boolean;
 }
 
 export const notSeededUsers: UsersTypes[] = [
@@ -20,6 +23,30 @@ export const notSeededUsers: UsersTypes[] = [
     age: 23,
     gender: 'male',
     email: 'harry@potter.com',
+    password: 'Password123',
+    isFamilyHead: false,
+    hasFamily: false,
+    isVerified: false,
+  },
+  {
+    // descr: user to be a mocked one
+    firstName: 'Syriusz',
+    lastName: 'Black',
+    age: 50,
+    gender: 'male',
+    email: 'syriusz@black.com',
+    password: 'Password123',
+    isFamilyHead: false,
+    hasFamily: true,
+    isVerified: false,
+  },
+  {
+    // descr: user to be invited
+    firstName: 'Draco',
+    lastName: 'Malfoy',
+    age: 12,
+    gender: 'male',
+    email: 'draco@malfoy.com',
     password: 'Password123',
     isFamilyHead: false,
     hasFamily: false,
@@ -63,8 +90,47 @@ export const seededUsers: UsersTypes[] = [
     password: 'Password123',
     isFamilyHead: false,
     hasFamily: false,
-    isVerified: false,
+    isVerified: true,
     isUserToDelete: true,
+  },
+  {
+    // descr: user to update, check authorization, delete
+    firstName: 'Alastor',
+    lastName: 'Moody',
+    age: 40,
+    gender: 'male',
+    email: 'alastor@moody.com',
+    password: 'Password123',
+    isFamilyHead: false,
+    hasFamily: false,
+    isVerified: false,
+    isUserToConfirmInvite: true,
+  },
+  // descr: user to delete with created family, but without more members
+  {
+    firstName: 'Albus',
+    lastName: 'Dumbledore',
+    age: 183,
+    gender: 'male',
+    email: 'albus@dumbledore.com',
+    password: 'Password123',
+    isFamilyHead: true,
+    hasFamily: true,
+    isVerified: true,
+    isUserToDeleteWithFamily: true,
+  },
+  {
+    // descr: user to fail delete due to member in family and beeing familyHead,
+    firstName: 'Giny',
+    lastName: 'Weasley',
+    age: 10,
+    gender: 'female',
+    email: 'giny@weasley.com',
+    password: 'Password123',
+    isFamilyHead: true,
+    hasFamily: true,
+    isVerified: true,
+    isUserToFailDeleteWithFamily: true,
   },
 ];
 

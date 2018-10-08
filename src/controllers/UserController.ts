@@ -217,7 +217,7 @@ export class UserController {
           await this.familyRepository.remove(foundFamily);
 
           return res.status(200).json({
-            removedUser: user.email,
+            removedEmail: user.email,
             removedFamily: foundFamily.name,
           });
         }
@@ -229,7 +229,7 @@ export class UserController {
       await this.userRepository.remove(user);
 
       return res.status(200).json({
-        removedUser: user.email,
+        removedEmail: user.email,
       });
     } catch (err) {
       return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
