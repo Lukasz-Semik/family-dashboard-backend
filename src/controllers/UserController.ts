@@ -92,7 +92,7 @@ export class UserController {
 
       return res.status(200).json({ account: accountSuccesses.created });
     } catch (err) {
-      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
@@ -119,7 +119,7 @@ export class UserController {
 
       return res.status(200).json({ account: accountSuccesses.confirmed });
     } catch (err) {
-      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
@@ -154,7 +154,7 @@ export class UserController {
 
       return res.status(200).json({ isAuthorized: true, token });
     } catch (err) {
-      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
@@ -183,7 +183,7 @@ export class UserController {
 
       return res.status(200).json({ user: updatedUser });
     } catch (err) {
-      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
@@ -232,7 +232,7 @@ export class UserController {
         removedEmail: user.email,
       });
     } catch (err) {
-      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
@@ -300,7 +300,7 @@ export class UserController {
 
       return res.status(200).json({ account: accountSuccesses.invited });
     } catch (err) {
-      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
@@ -333,7 +333,7 @@ export class UserController {
 
       return res.status(200).json({ account: accountSuccesses.confirmed });
     } catch (err) {
-      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
@@ -363,7 +363,7 @@ export class UserController {
         },
       });
     } catch (err) {
-      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 

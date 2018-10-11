@@ -11,7 +11,7 @@
     "rimraf": "rimraf",
     "dev": "nodemon --watch 'src/**/*.ts' --ignore 'src/**/*.spec.ts' --exec 'ts-node' src/server.ts",
     "lint": "tslint -p . -c tslint.json 'src/**/*.ts'",
-    "test": "export NODE_ENV=test || SET NODE_ENV=test && yarn tsc && nyc mocha build/**/*.spec.js --exit && yarn rimraf build",
+    "test": "yarn rimraf build && export NODE_ENV=test || SET NODE_ENV=test && yarn tsc && nyc mocha build/**/*.spec.js --exit",
     "start": "node build/src/server.js",
     "build:prod": "yarn tsc --project \"./tsconfig.prod.json\"",
     "heroku-postbuild": "yarn build:prod",

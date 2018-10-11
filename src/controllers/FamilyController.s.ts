@@ -3,11 +3,11 @@
 
 // import { APP } from '../server';
 // import {
-//   familyCreatorGeneratedToken,
-//   generatedToken,
-//   familyOwnerGeneratedToken,
+//   familyCreatorTokenGenerated,
+//   toFailDeleteWithFamilyTokenGenerated,
+//   notDeletedSignedInTokenGenerated,
 // } from '../utils/testsSeeds';
-// import { users } from '../constants/testFixtures';
+// import { seededUsers } from '../constants/testFixtures';
 // import { generateFullApi, API_FAMILY_GET, API_FAMILY_CREATE } from '../constants/routes';
 // import { emailErrors } from '../constants/errors';
 
@@ -16,12 +16,12 @@
 //     it('should create and return family for signed in user[4]', done => {
 //       request(APP)
 //         .post(generateFullApi(API_FAMILY_CREATE))
-//         .set('authorization', familyCreatorGeneratedToken)
+//         .set('authorization', familyCreatorTokenGenerated)
 //         .expect(200)
 //         .expect(res => {
 //           const { name, id, createdAt, updatedAt, users: familyUsers } = res.body.family;
 
-//           expect(name).to.equal(users[4].lastName);
+//           expect(name).to.equal(seededUsers[6].lastName);
 //           expect(id).to.be.a('number');
 //           expect(createdAt).to.be.a('string');
 //           expect(createdAt).to.equal(updatedAt);
@@ -29,8 +29,8 @@
 //           expect(familyUsers.length).to.equal(1);
 //           expect(familyUsers[0]).to.include({
 //             isFamilyHead: true,
-//             firstName: users[4].firstName,
-//             lastName: users[4].lastName,
+//             firstName: seededUsers[6].firstName,
+//             lastName: seededUsers[6].lastName,
 //           });
 //         })
 //         .end(err => {
@@ -42,7 +42,7 @@
 //     it('should return proper error message if user has family', done => {
 //       request(APP)
 //         .post(generateFullApi(API_FAMILY_CREATE))
-//         .set('authorization', familyCreatorGeneratedToken)
+//         .set('authorization', toFailDeleteWithFamilyTokenGenerated)
 //         .expect(400)
 //         .expect(res => {
 //           expect(res.body.errors.email).to.equal(emailErrors.hasFamily);
@@ -55,15 +55,15 @@
 //   });
 
 //   describe(`Route ${generateFullApi(API_FAMILY_GET)}`, () => {
-//     it('should return family for signed in user[5]', done => {
+//     it('should return family', done => {
 //       request(APP)
 //         .get(generateFullApi(API_FAMILY_GET))
-//         .set('authorization', familyOwnerGeneratedToken)
+//         .set('authorization', familyCreatorTokenGenerated)
 //         .expect(200)
 //         .expect(res => {
 //           const { name, id, createdAt, updatedAt, users: familyUsers } = res.body.family;
 
-//           expect(name).to.equal(users[5].lastName);
+//           expect(name).to.equal(seededUsers[6].lastName);
 //           expect(id).to.be.a('number');
 //           expect(createdAt).to.be.a('string');
 //           expect(createdAt).to.equal(updatedAt);
@@ -72,8 +72,8 @@
 //           expect(familyUsers[0]).to.include({
 //             isFamilyHead: true,
 //             isVerified: true,
-//             firstName: users[5].firstName,
-//             lastName: users[5].lastName,
+//             firstName: seededUsers[6].firstName,
+//             lastName: seededUsers[6].lastName,
 //           });
 //         })
 //         .end(err => {
@@ -85,7 +85,7 @@
 //     it('should return proper error for signed in user[0], without family', done => {
 //       request(APP)
 //         .get(generateFullApi(API_FAMILY_GET))
-//         .set('authorization', generatedToken)
+//         .set('authorization', notDeletedSignedInTokenGenerated)
 //         .expect(400)
 //         .expect(res => {
 //           expect(res.body.errors.email).to.equal(emailErrors.hasNoFamily);

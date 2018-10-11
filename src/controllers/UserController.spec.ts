@@ -2,20 +2,8 @@ import { expect } from 'chai';
 import * as request from 'supertest';
 
 import { APP } from '../server';
-import {
-  dbSeedTests,
-  confirmationAccountTokenGenerated,
-  notExistingUserTokenGenerated,
-  signedInTokenGenerated,
-  toDeleteWithFamilyTokenGenerated,
-  toFailDeleteWithFamilyTokenGenerated,
-  invitationTokenGenerated,
-  generatedToken,
-  familyOwnerGeneratedToken,
-  invitationGeneratedToken,
-  editGeneratedToken,
-} from '../utils/testsSeeds';
-import { notSeededUsers, seededUsers, wrongToken } from '../constants/testFixtures';
+import { dbSeedUserControllerSpec } from '../utils/testsSeeds';
+import { notSeededUsers, seededUsers } from '../constants/testFixtures';
 import {
   generateFullApi,
   API_USER_SIGN_UP,
@@ -30,10 +18,20 @@ import {
 } from '../constants/routes';
 import { emailErrors, passwordErrors, defaultErrors } from '../constants/errors';
 import { accountSuccesses } from '../constants/successes';
+import { Token } from '../controllers';
 
-before(() => dbSeedTests());
+before(() => dbSeedUserControllerSpec());
 
 describe('User Controller', () => {
+  const confirmationAccountTokenGenerated: string = Token.create({
+    email: notSeededUsers[0].email,
+  });
+  const invitedTokenGenerarted: string = Token.create({ email: notSeededUsers[1].email });
+  const notExistingUserTokenGenerated: string = Token.create({ email: 'not-existing-user' });
+  const withoutFamilyTokenGenerated: string = Token.create({ email: seededUsers[0].email });
+  const withFamilyTokenGenerated: string = Token.create({ email: seededUsers[1].email });
+  const withBigFamilyTokenGenerated: string = Token.create({ email: seededUsers[2].email });
+
   describe(`Route ${generateFullApi(API_USER_SIGN_UP)}`, () => {
     it('should create not verified account', done => {
       const { email, password, firstName, lastName, gender, age } = notSeededUsers[0];
@@ -262,11 +260,11 @@ describe('User Controller', () => {
 
   describe(`Route ${generateFullApi(API_USER_INVITE)}`, () => {
     it('should invite user', done => {
-      const { email, firstName, lastName, age, gender } = notSeededUsers[2];
+      const { email, firstName, lastName, age, gender } = notSeededUsers[1];
 
       request(APP)
         .post(generateFullApi(API_USER_INVITE))
-        .set('authorization', toFailDeleteWithFamilyTokenGenerated)
+        .set('authorization', withFamilyTokenGenerated)
         .type('form')
         .send({ email, firstName, lastName, age, gender })
         .expect(200)
@@ -284,7 +282,7 @@ describe('User Controller', () => {
     it('should return proper messages for wrong data sent', done => {
       request(APP)
         .post(generateFullApi(API_USER_INVITE))
-        .set('authorization', toFailDeleteWithFamilyTokenGenerated)
+        .set('authorization', withFamilyTokenGenerated)
         .type('form')
         .send()
         .expect(400)
@@ -306,7 +304,7 @@ describe('User Controller', () => {
     it('should return proper error for user without family', done => {
       request(APP)
         .post(generateFullApi(API_USER_INVITE))
-        .set('authorization', signedInTokenGenerated)
+        .set('authorization', withoutFamilyTokenGenerated)
         .type('form')
         .send()
         .expect(400)
@@ -324,7 +322,7 @@ describe('User Controller', () => {
 
       request(APP)
         .post(generateFullApi(API_USER_INVITE))
-        .set('authorization', toFailDeleteWithFamilyTokenGenerated)
+        .set('authorization', withFamilyTokenGenerated)
         .type('form')
         .send({ email, firstName, lastName, age, gender })
         .expect(400)
@@ -342,7 +340,7 @@ describe('User Controller', () => {
     it('should confirm invited user', done => {
       request(APP)
         .post(generateFullApi(API_USER_CONFIRM_INVITED))
-        .send({ password: 'Password123', invitationToken: invitationTokenGenerated })
+        .send({ password: 'Password123', invitationToken: invitedTokenGenerarted })
         .expect(200)
         .expect(res => {
           expect(res.body.account).to.equal(accountSuccesses.confirmed);
@@ -373,11 +371,11 @@ describe('User Controller', () => {
 
   describe(`Route ${generateFullApi(API_USER_GET_CURRENT)}`, () => {
     it('should return proper data for current user', done => {
-      const { email, isFamilyHead, hasFamily, firstName, lastName, age, gender } = seededUsers[2];
+      const { email, isFamilyHead, hasFamily, firstName, lastName, age, gender } = seededUsers[1];
 
       request(APP)
         .get(generateFullApi(API_USER_GET_CURRENT))
-        .set('authorization', signedInTokenGenerated)
+        .set('authorization', withFamilyTokenGenerated)
         .expect(200)
         .expect(res => {
           expect(res.body.currentUser).to.include({
@@ -417,7 +415,7 @@ describe('User Controller', () => {
     it('should return isAuthorized info', done => {
       request(APP)
         .get(generateFullApi(API_USER_IS_AUTHORIZED))
-        .set('authorization', signedInTokenGenerated)
+        .set('authorization', withFamilyTokenGenerated)
         .expect(200)
         .expect(res => {
           expect(res.body.isAuthorized).to.equal(true);
@@ -446,11 +444,11 @@ describe('User Controller', () => {
   describe(`Route ${generateFullApi(API_USER_UPDATE)}`, () => {
     it('should return updated user', done => {
       const firstName = 'Minerva The Cat';
-      const { lastName, gender, age, isFamilyHead, hasFamily, isVerified } = seededUsers[2];
+      const { lastName, gender, age, isFamilyHead, hasFamily, isVerified } = seededUsers[1];
 
       request(APP)
         .patch(generateFullApi(API_USER_UPDATE))
-        .set('authorization', signedInTokenGenerated)
+        .set('authorization', withFamilyTokenGenerated)
         .type('form')
         .send({ firstName })
         .expect(200)
@@ -474,7 +472,7 @@ describe('User Controller', () => {
     it('should return proper error message for empty data', done => {
       request(APP)
         .patch(generateFullApi(API_USER_UPDATE))
-        .set('authorization', signedInTokenGenerated)
+        .set('authorization', withFamilyTokenGenerated)
         .type('form')
         .send()
         .expect(400)
@@ -490,7 +488,7 @@ describe('User Controller', () => {
     it('should return proper error message for not allowed data', done => {
       request(APP)
         .patch(generateFullApi(API_USER_UPDATE))
-        .set('authorization', signedInTokenGenerated)
+        .set('authorization', withFamilyTokenGenerated)
         .type('form')
         .send({ password: 'some-fake-password' })
         .expect(400)
@@ -505,13 +503,13 @@ describe('User Controller', () => {
   });
 
   describe(`Route ${generateFullApi(API_USER_DELETE)}`, () => {
-    it('should delete user seededUser[2] without family', done => {
+    it('should delete user without family', done => {
       request(APP)
         .delete(generateFullApi(API_USER_DELETE))
-        .set('authorization', signedInTokenGenerated)
+        .set('authorization', withoutFamilyTokenGenerated)
         .expect(200)
         .expect(res => {
-          expect(res.body.removedEmail).to.equal(seededUsers[2].email);
+          expect(res.body.removedEmail).to.equal(seededUsers[0].email);
         })
         .end(err => {
           if (err) return done(err);
@@ -519,16 +517,16 @@ describe('User Controller', () => {
         });
     });
 
-    it('should delete user seededUser[4] with family and without members', done => {
+    it('should delete user with family and without members', done => {
       request(APP)
         .delete(generateFullApi(API_USER_DELETE))
-        .set('authorization', toDeleteWithFamilyTokenGenerated)
+        .set('authorization', withFamilyTokenGenerated)
         .expect(200)
         .expect(res => {
           const { removedEmail, removedFamily } = res.body;
 
-          expect(removedEmail).to.equal(seededUsers[4].email);
-          expect(removedFamily).to.equal(seededUsers[4].lastName);
+          expect(removedEmail).to.equal(seededUsers[1].email);
+          expect(removedFamily).to.equal(seededUsers[1].lastName);
         })
         .end(err => {
           if (err) return done(err);
@@ -537,10 +535,10 @@ describe('User Controller', () => {
     });
 
     it(`should return proper errors message after trial of delete user
-        seededUser[3] with family and with members`, done => {
+      with family and with members`, done => {
       request(APP)
         .delete(generateFullApi(API_USER_DELETE))
-        .set('authorization', toFailDeleteWithFamilyTokenGenerated)
+        .set('authorization', withBigFamilyTokenGenerated)
         .expect(400)
         .expect(res => {
           expect(res.body.errors.email).to.equal(emailErrors.familyHeadNotRemovable);
