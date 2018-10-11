@@ -26,15 +26,15 @@ import {
   validateConfirmationInvited,
 } from '../validators/user';
 import {
-  API_SIGN_UP,
-  API_SIGN_IN,
+  API_USER_SIGN_UP,
+  API_USER_SIGN_IN,
   API_USER_UPDATE,
   API_USER_DELETE,
-  API_IS_AUTHORIZED,
-  API_CONFIRM_ACCOUNT,
-  API_GET_CURRENT_USER,
-  API_INVITE_USER,
-  API_CONFIRM_INVITED_USER,
+  API_USER_IS_AUTHORIZED,
+  API_USER_CONFIRM,
+  API_USER_GET_CURRENT,
+  API_USER_INVITE,
+  API_USER_CONFIRM_INVITED,
 } from '../constants/routes';
 import {
   internalServerErrors,
@@ -53,7 +53,7 @@ export class UserController {
   // @description: create user
   // @full route: /api/user/sign-up
   // @access: public
-  @Post(API_SIGN_UP)
+  @Post(API_USER_SIGN_UP)
   @UseBefore(urlencodedParser)
   async createUser(@Body() body: any, @Res() res: any) {
     const { email, password, firstName, lastName, gender, age } = body;
@@ -92,7 +92,7 @@ export class UserController {
 
       return res.status(200).json({ account: accountSuccesses.created });
     } catch (err) {
-      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
@@ -100,7 +100,7 @@ export class UserController {
   // @description: confirm user account
   // @full route: /api/user/confirm
   // @access: public
-  @Post(API_CONFIRM_ACCOUNT)
+  @Post(API_USER_CONFIRM)
   @UseBefore(urlencodedParser)
   async confirmAccount(@Body() body: any, @Res() res: any) {
     const { confirmationAccountToken } = body;
@@ -119,14 +119,14 @@ export class UserController {
 
       return res.status(200).json({ account: accountSuccesses.confirmed });
     } catch (err) {
-      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
   // @description: create user
   // @full route: /api/user/sign-in
   // @access: public
-  @Post(API_SIGN_IN)
+  @Post(API_USER_SIGN_IN)
   @UseBefore(urlencodedParser)
   async signInUser(@Body() body: any, @Res() res: any) {
     const { email, password } = body;
@@ -154,7 +154,7 @@ export class UserController {
 
       return res.status(200).json({ isAuthorized: true, token });
     } catch (err) {
-      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
@@ -183,7 +183,7 @@ export class UserController {
 
       return res.status(200).json({ user: updatedUser });
     } catch (err) {
-      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
@@ -217,7 +217,7 @@ export class UserController {
           await this.familyRepository.remove(foundFamily);
 
           return res.status(200).json({
-            removedUser: user.email,
+            removedEmail: user.email,
             removedFamily: foundFamily.name,
           });
         }
@@ -229,10 +229,10 @@ export class UserController {
       await this.userRepository.remove(user);
 
       return res.status(200).json({
-        removedUser: user.email,
+        removedEmail: user.email,
       });
     } catch (err) {
-      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
@@ -240,7 +240,7 @@ export class UserController {
   // @full route: /api/user/invite
   // @access: private
   @Authorized()
-  @Post(API_INVITE_USER)
+  @Post(API_USER_INVITE)
   @UseBefore(urlencodedParser)
   async inviteUser(@Req() req: any, @Res() res: any) {
     try {
@@ -300,14 +300,14 @@ export class UserController {
 
       return res.status(200).json({ account: accountSuccesses.invited });
     } catch (err) {
-      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
   // @description: confirm invite user
   // @full route: /api/user/confirm-invited
   // @access: public
-  @Post(API_CONFIRM_INVITED_USER)
+  @Post(API_USER_CONFIRM_INVITED)
   @UseBefore(urlencodedParser)
   async confirmInvitedUser(@Body() body: any, @Res() res: any) {
     const { password, invitationToken } = body;
@@ -333,7 +333,7 @@ export class UserController {
 
       return res.status(200).json({ account: accountSuccesses.confirmed });
     } catch (err) {
-      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
@@ -341,7 +341,7 @@ export class UserController {
   // @full route: /api/user/current
   // @access: private
   @Authorized()
-  @Get(API_GET_CURRENT_USER)
+  @Get(API_USER_GET_CURRENT)
   async getCurrentUser(@HeaderParam('authorization') token: string, @Res() res: any) {
     const { email: emailDecoded } = await Token.decode(token);
 
@@ -363,7 +363,7 @@ export class UserController {
         },
       });
     } catch (err) {
-      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
@@ -371,7 +371,7 @@ export class UserController {
   // @full route: /api/user/is-authorized
   // @access: private
   @Authorized()
-  @Get(API_IS_AUTHORIZED)
+  @Get(API_USER_IS_AUTHORIZED)
   isAuthorized(@Body() body: any, @Res() res: any) {
     return res.status(200).json({ isAuthorized: true });
   }

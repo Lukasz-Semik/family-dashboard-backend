@@ -12,7 +12,7 @@ import { getRepository } from 'typeorm';
 import { isEmpty } from 'lodash';
 
 import { internalServerErrors, emailErrors } from '../constants/errors';
-import { API_CREATE_FAMILY, API_GET_FAMILY } from '../constants/routes';
+import { API_FAMILY_CREATE, API_FAMILY_GET } from '../constants/routes';
 import urlencodedParser from '../utils/bodyParser';
 import { Family, User } from '../entity';
 import { Token } from '.';
@@ -41,7 +41,7 @@ export class FamilyController {
   // @description: create family
   // @full route: /api/family/create
   // @access: private
-  @Post(API_CREATE_FAMILY)
+  @Post(API_FAMILY_CREATE)
   @UseBefore(urlencodedParser)
   @Authorized()
   async createFamily(@Req() req: any, @Res() res: any) {
@@ -74,14 +74,14 @@ export class FamilyController {
 
       return res.status(200).json({ family });
     } catch (err) {
-      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
   // @description: get family
   // @full route: /api/family/current
   // @access: private
-  @Get(API_GET_FAMILY)
+  @Get(API_FAMILY_GET)
   @UseBefore(urlencodedParser)
   @Authorized()
   async getFamily(@HeaderParam('authorization') token: string, @Res() res: any) {
@@ -97,7 +97,7 @@ export class FamilyController {
 
       return res.status(200).json({ family });
     } catch (err) {
-      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 }
