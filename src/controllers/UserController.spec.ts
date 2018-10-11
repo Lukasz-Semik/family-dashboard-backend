@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import * as request from 'supertest';
 
 import { APP } from '../server';
-import { dbSeedUserControllerSpec } from '../utils/testsSeeds';
+import { dbSeedUsers } from '../utils/testsSeeds';
 import { notSeededUsers, seededUsers } from '../constants/testFixtures';
 import {
   generateFullApi,
@@ -20,7 +20,7 @@ import { emailErrors, passwordErrors, defaultErrors } from '../constants/errors'
 import { accountSuccesses } from '../constants/successes';
 import { Token } from '../controllers';
 
-before(() => dbSeedUserControllerSpec());
+before(() => dbSeedUsers());
 
 describe('User Controller', () => {
   const confirmationAccountTokenGenerated: string = Token.create({
@@ -31,6 +31,7 @@ describe('User Controller', () => {
   const withoutFamilyTokenGenerated: string = Token.create({ email: seededUsers[0].email });
   const withFamilyTokenGenerated: string = Token.create({ email: seededUsers[1].email });
   const withBigFamilyTokenGenerated: string = Token.create({ email: seededUsers[2].email });
+  const withFamilyToRemoveTokenGenerated: string = Token.create({ email: seededUsers[3].email });
 
   describe(`Route ${generateFullApi(API_USER_SIGN_UP)}`, () => {
     it('should create not verified account', done => {
@@ -520,13 +521,13 @@ describe('User Controller', () => {
     it('should delete user with family and without members', done => {
       request(APP)
         .delete(generateFullApi(API_USER_DELETE))
-        .set('authorization', withFamilyTokenGenerated)
+        .set('authorization', withFamilyToRemoveTokenGenerated)
         .expect(200)
         .expect(res => {
           const { removedEmail, removedFamily } = res.body;
 
-          expect(removedEmail).to.equal(seededUsers[1].email);
-          expect(removedFamily).to.equal(seededUsers[1].lastName);
+          expect(removedEmail).to.equal(seededUsers[3].email);
+          expect(removedFamily).to.equal(seededUsers[3].lastName);
         })
         .end(err => {
           if (err) return done(err);

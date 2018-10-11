@@ -8,7 +8,7 @@ import { User, Family } from '../entity';
 import { Token } from '../controllers';
 import { defaultPassword } from '../constants/testFixtures';
 
-export const dbSeedUserControllerSpec: any = async () => {
+export const dbSeedUsers: any = async () => {
   await createConnection();
 
   const userRepository = getRepository(User);
