@@ -74,7 +74,7 @@ export class FamilyController {
 
       return res.status(200).json({ family });
     } catch (err) {
-      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
@@ -97,7 +97,7 @@ export class FamilyController {
 
       return res.status(200).json({ family });
     } catch (err) {
-      return res.status(400).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 }
