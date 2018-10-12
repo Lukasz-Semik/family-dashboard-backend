@@ -76,7 +76,6 @@ export class UserController {
       await this.userRepository.save({
         ...newUser,
         password: hashedPassword,
-        confirmationAccountToken: token,
         isVerified: false,
         isFamilyHead: false,
         hasFamily: false,
@@ -88,7 +87,7 @@ export class UserController {
       });
 
       // TODO: allow e-mails
-      // sendAccountConfirmationEmail(email, firstName, token);
+      sendAccountConfirmationEmail(email, firstName, token);
 
       return res.status(200).json({ account: accountSuccesses.created });
     } catch (err) {
@@ -96,7 +95,6 @@ export class UserController {
     }
   }
 
-  // TODO: THINK ABOUT AND EVENTUALLY MOVE TOKEN TO HEADERS!
   // @description: confirm user account
   // @full route: /api/user/confirm
   // @access: public
@@ -115,7 +113,7 @@ export class UserController {
 
       if (isEmpty(user)) return res.status(400).json({ errors: { email: emailErrors.notExist } });
 
-      await this.userRepository.save({ ...user, isVerified: true, confirmationAccountToken: null });
+      await this.userRepository.save({ ...user, isVerified: true });
 
       return res.status(200).json({ account: accountSuccesses.confirmed });
     } catch (err) {
@@ -147,10 +145,6 @@ export class UserController {
       if (!isMatch) return res.status(400).json({ errors: { password: passwordErrors.notValid } });
 
       const token = Token.create({ email: user.email });
-
-      user.token = token;
-
-      await this.userRepository.save(user);
 
       return res.status(200).json({ isAuthorized: true, token });
     } catch (err) {
@@ -274,7 +268,6 @@ export class UserController {
 
       const createdUser = await this.userRepository.save({
         ...newUser,
-        invitationToken: token,
         isVerified: false,
         isFamilyHead: false,
         hasFamily: true,
@@ -296,7 +289,7 @@ export class UserController {
       await this.familyRepository.save(family);
 
       // TODO: allow e-mails
-      // sendInvitationEmail(email, firstName, currentUser.firstName, family.name, token);
+      sendInvitationEmail(email, firstName, currentUser.firstName, family.name, token);
 
       return res.status(200).json({ account: accountSuccesses.invited });
     } catch (err) {
@@ -327,7 +320,6 @@ export class UserController {
       await this.userRepository.save({
         ...user,
         password: hashedPassword,
-        invitationToken: null,
         isVerified: true,
       });
 
