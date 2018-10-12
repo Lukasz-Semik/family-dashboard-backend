@@ -16,21 +16,6 @@ export class User {
   id: number;
 
   @Column({
-    nullable: true,
-  })
-  token: string;
-
-  @Column({
-    nullable: true,
-  })
-  confirmationAccountToken: string;
-
-  @Column({
-    nullable: true,
-  })
-  invitationToken: string;
-
-  @Column({
     unique: true,
     type: 'varchar',
     length: 255,
