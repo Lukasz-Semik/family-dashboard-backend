@@ -24,6 +24,7 @@ import {
   validateSignIn,
   validateInvite,
   validateConfirmationInvited,
+  checkIsProperUpdateUserPayload,
 } from '../validators/user';
 import {
   API_USER_SIGN_UP,
@@ -165,7 +166,7 @@ export class UserController {
 
       const { email: emailDecoded } = await Token.decode(req.headers.authorization);
 
-      if (!isEmpty(req.body.password) || !isEmpty(req.body.email))
+      if (!checkIsProperUpdateUserPayload(req.body))
         return res.status(400).json({ errors: { payload: defaultErrors.notAllowedValue } });
 
       const currentUser = await this.userRepository.findOne({ email: emailDecoded });
