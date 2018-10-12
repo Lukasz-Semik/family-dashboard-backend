@@ -7,10 +7,10 @@ import { generateFullApi, API_FAMILY_GET, API_FAMILY_CREATE } from '../constants
 import { emailErrors } from '../constants/errors';
 import { Token } from '../controllers';
 
-describe('Family Controller', () => {
-  const familyCreatorTokenGenerated: string = Token.create({ email: seededUsers[4].email });
-  const familyOwnerTokenGenerated: string = Token.create({ email: seededUsers[2].email });
-  const withoutFamilyTokenGenerated: string = Token.create({ email: seededUsers[5].email });
+describe('Family Controller', async () => {
+  const familyCreatorTokenGenerated: string = await Token.create({ email: seededUsers[4].email });
+  const familyOwnerTokenGenerated: string = await Token.create({ email: seededUsers[2].email });
+  const withoutFamilyTokenGenerated: string = await Token.create({ email: seededUsers[5].email });
 
   describe(`Route ${generateFullApi(API_FAMILY_CREATE)}`, () => {
     it('should create and return family for signed in user', done => {
