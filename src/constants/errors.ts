@@ -1,3 +1,4 @@
+// TODO: refactor errors
 interface InternalServeErrorsTypes {
   sthWrong: string;
 }
@@ -52,4 +53,12 @@ export const defaultErrors: DefaultErrorsTypes = {
   isRequired: 'is-required',
   notAllowedValue: 'not-allowed-value',
   emptyPayload: 'empty-payload',
+};
+
+interface FamilyErrorsTypes {
+  tooSmall: string;
+}
+
+export const familyErrors: FamilyErrorsTypes = {
+  tooSmall: 'family-too-small',
 };

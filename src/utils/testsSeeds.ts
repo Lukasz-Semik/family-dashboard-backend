@@ -12,20 +12,21 @@ export const dbSeedUsers: any = async () => {
   await createConnection();
 
   const userRepository = getRepository(User);
-  await userRepository.clear();
+  await userRepository.query('TRUNCATE TABLE "user" RESTART IDENTITY;');
 
   const familyRepository = getRepository(Family);
   await familyRepository.query('DELETE FROM family;');
 
   const hashedPassword = await hash(defaultPassword, 10);
 
-  seededUsers.forEach(async seededUser => {
+  seededUsers.forEach(async (seededUser, i) => {
     const newUser = new User();
 
     const createdUser = await userRepository.save({
       ...newUser,
       ...seededUser,
       password: hashedPassword,
+      id: i + 1,
     });
 
     if (seededUser.hasFamily) {
