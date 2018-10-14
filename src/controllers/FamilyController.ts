@@ -117,13 +117,19 @@ export class FamilyController {
     try {
       const { email } = await Token.decode(req.headers.token);
 
-      const user = await this.userRepository.findOne({ email }, { relations: ['family'] });
+      const userCurrentHead = await this.userRepository.findOne(
+        { email },
+        { relations: ['family'] }
+      );
 
-      if (!user.hasFamily || isEmpty(user.family))
+      if (!userCurrentHead.isFamilyHead)
+        return res.status(400).json({ errors: { email: emailErrors.isNoFamilyHead } });
+
+      if (!userCurrentHead.hasFamily || isEmpty(userCurrentHead.family))
         return res.status(400).json({ errors: { email: emailErrors.hasNoFamily } });
 
-      const { users } = await this.familyWithUserQuery(user.family.id);
-      // if empty users!!
+      const { users } = await this.familyWithUserQuery(userCurrentHead.family.id);
+
       if (users.length < this.minFamilySizeToAssignHead)
         return res.status(400).json({ errors: { family: familyErrors.tooSmall } });
 
@@ -131,7 +137,12 @@ export class FamilyController {
 
       if (isEmpty(userToAssignId))
         return res.status(400).json({
-          error: { payload: defaultErrors.isRequired },
+          error: { userToAssignId: defaultErrors.isRequired },
+        });
+
+      if (users.map(u => u.id).includes(userToAssignId))
+        return res.status(400).json({
+          error: { family: familyErrors.noSuchUser },
         });
     } catch (err) {
       return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
