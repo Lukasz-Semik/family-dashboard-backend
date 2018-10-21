@@ -7,8 +7,13 @@ import {
   validateUserAssigningFamilyHead,
   validateUserToAssignFamilyHead,
 } from './user';
-import { emailErrors, passwordErrors, defaultErrors, familyErrors } from '../constants/errors';
-import { equal } from 'assert';
+import {
+  emailErrors,
+  userErrors,
+  passwordErrors,
+  defaultErrors,
+  familyErrors,
+} from '../constants/errors';
 
 describe('user validators', () => {
   describe('validateEmail()', () => {
@@ -93,7 +98,7 @@ describe('user validators', () => {
     it('should return proper validator object if assigning id is equal to id to assigned', () => {
       expect(validateUserAssigningFamilyHead(defaultUser, 1)).to.deep.equal({
         isValid: false,
-        errors: { email: emailErrors.assignItself },
+        errors: { email: userErrors.assignItself },
       });
     });
 
@@ -112,7 +117,7 @@ describe('user validators', () => {
         )
       ).to.deep.equal({
         isValid: false,
-        errors: { email: emailErrors.isNoFamilyHead },
+        errors: { email: userErrors.isNoFamilyHead },
       });
     });
 
@@ -124,7 +129,7 @@ describe('user validators', () => {
         )
       ).to.deep.equal({
         isValid: false,
-        errors: { email: emailErrors.hasNoFamily },
+        errors: { email: userErrors.hasNoFamily },
       });
     });
 

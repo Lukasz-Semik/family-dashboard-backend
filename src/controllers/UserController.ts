@@ -40,6 +40,7 @@ import {
 import {
   internalServerErrors,
   emailErrors,
+  userErrors,
   passwordErrors,
   defaultErrors,
 } from '../constants/errors';
@@ -218,7 +219,7 @@ export class UserController {
         }
 
         if (user.isFamilyHead)
-          return res.status(400).json({ errors: { email: emailErrors.familyHeadNotRemovable } });
+          return res.status(400).json({ errors: { email: userErrors.familyHeadNotRemovable } });
       }
 
       await this.userRepository.remove(user);
@@ -249,7 +250,7 @@ export class UserController {
       if (!currentUser.hasFamily)
         return res.status(400).json({
           errors: {
-            email: emailErrors.hasNoFamily,
+            email: userErrors.hasNoFamily,
           },
         });
 

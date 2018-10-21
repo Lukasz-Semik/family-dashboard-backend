@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { APP } from '../server';
 import { seededUsers } from '../constants/testFixtures';
 import { generateFullApi, API_FAMILY_GET, API_FAMILY_CREATE } from '../constants/routes';
-import { emailErrors } from '../constants/errors';
+import { userErrors } from '../constants/errors';
 import { Token } from '../controllers';
 
 describe('Family Controller', async () => {
@@ -43,7 +43,7 @@ describe('Family Controller', async () => {
         .set('authorization', familyOwnerTokenGenerated)
         .expect(400)
         .expect(res => {
-          expect(res.body.errors.email).to.equal(emailErrors.hasFamily);
+          expect(res.body.errors.email).to.equal(userErrors.hasFamily);
         })
         .end(err => {
           if (err) return done(err);
@@ -86,7 +86,7 @@ describe('Family Controller', async () => {
         .set('authorization', withoutFamilyTokenGenerated)
         .expect(400)
         .expect(res => {
-          expect(res.body.errors.email).to.equal(emailErrors.hasNoFamily);
+          expect(res.body.errors.email).to.equal(userErrors.hasNoFamily);
         })
         .end(err => {
           if (err) return done(err);

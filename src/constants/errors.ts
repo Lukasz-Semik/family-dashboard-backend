@@ -1,4 +1,3 @@
-// TODO: refactor errors
 interface InternalServeErrorsTypes {
   sthWrong: string;
 }
@@ -7,25 +6,31 @@ export const internalServerErrors: InternalServeErrorsTypes = {
   sthWrong: 'something-went-wrong-server-side',
 };
 
-interface EmailErrors {
+interface EmailErrorsTypes {
   emailTaken: string;
   wrongFormat: string;
   notExist: string;
   notVerified: string;
   isRequired: string;
+}
+
+export const emailErrors: EmailErrorsTypes = {
+  emailTaken: 'email-already-registered',
+  wrongFormat: 'email-wrong-format',
+  notExist: 'email-not-exist',
+  notVerified: 'email-not-verified',
+  isRequired: 'email-required',
+};
+
+interface UserErrorsTypes {
   hasFamily: string;
   hasNoFamily: string;
   familyHeadNotRemovable: string;
   isNoFamilyHead: string;
   assignItself: string;
 }
-// TODO: create user errors
-export const emailErrors: EmailErrors = {
-  emailTaken: 'email-already-registered',
-  wrongFormat: 'email-wrong-format',
-  notExist: 'email-not-exist',
-  notVerified: 'email-not-verified',
-  isRequired: 'email-required',
+
+export const userErrors: UserErrorsTypes = {
   hasFamily: 'email-is-assigned-to-family',
   hasNoFamily: 'email-is-not-assigned-to-family',
   familyHeadNotRemovable: 'email-family-head-not-removable',
@@ -33,14 +38,14 @@ export const emailErrors: EmailErrors = {
   assignItself: 'email-assign-itself',
 };
 
-interface PasswordErrors {
+interface PasswordErrorsTypes {
   wrongFormat: string;
   notEqual: string;
   notValid: string;
   isRequired: string;
 }
 
-export const passwordErrors: PasswordErrors = {
+export const passwordErrors: PasswordErrorsTypes = {
   wrongFormat: 'password-wrong-format',
   notEqual: 'passwords-not-equal',
   notValid: 'password-not-valid',
