@@ -17,7 +17,7 @@ export const dbSeedUsers: any = async () => {
 
   const hashedPassword = await hash(defaultPassword, 10);
 
-  seededUsers.forEach(async (seededUser, i) => {
+  seededUsers.forEach(async seededUser => {
     const newUser = new User();
 
     const createdUser = await userRepository.save({
