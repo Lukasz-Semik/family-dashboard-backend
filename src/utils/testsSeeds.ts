@@ -5,7 +5,6 @@ import { hash } from 'bcryptjs';
 
 import { seededUsers, notSeededUsers, UsersTypes } from '../constants/testFixtures';
 import { User, Family } from '../entity';
-import { Token } from '../controllers';
 import { defaultPassword } from '../constants/testFixtures';
 
 export const dbSeedUsers: any = async () => {

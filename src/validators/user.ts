@@ -2,7 +2,7 @@
 import { isEmpty } from 'lodash';
 
 import { isBlank, isEmail, hasProperLength } from '../helpers/validators';
-import { emailErrors, passwordErrors, defaultErrors } from '../constants/errors';
+import { emailErrors, passwordErrors, defaultErrors, familyErrors } from '../constants/errors';
 import { GENDERS } from '../constants/columnTypes';
 import allowedUpdateUserDataKeys from '../constants/updateUserDataKeys';
 
@@ -164,4 +164,78 @@ export const checkIsProperUpdateUserPayload: (payload: object) => boolean = payl
   });
 
   return isPayloadValid;
+};
+
+interface UserAssigningFamilyHeadErrorsTypes {
+  email?: string;
+  userToAssignId?: string;
+}
+
+interface UserAssingFamilyHeadValidatorErrrorsTypes {
+  isValid: boolean;
+  errors: UserAssigningFamilyHeadErrorsTypes;
+}
+
+interface UserRequiredFieldTypes {
+  isFamilyHead: boolean;
+  hasFamily: boolean;
+  family?: object;
+  id: number;
+}
+
+export const validateUserAssigningFamilyHead: (
+  user: UserRequiredFieldTypes,
+  userToAssignId: number
+) => UserAssingFamilyHeadValidatorErrrorsTypes = (user, userToAssignId) => {
+  const errors: UserAssigningFamilyHeadErrorsTypes = {};
+
+  if (!userToAssignId)
+    return {
+      errors: { userToAssignId: defaultErrors.isRequired },
+      isValid: false,
+    };
+
+  if (Number(user.id) === Number(userToAssignId)) errors.email = emailErrors.assignItself;
+
+  if (!user.isFamilyHead) errors.email = emailErrors.isNoFamilyHead;
+
+  if (!user.hasFamily || isEmpty(user.family)) errors.email = emailErrors.hasNoFamily;
+
+  return {
+    errors,
+    isValid: isEmpty(errors),
+  };
+};
+
+interface UserToAssignFamilyHeadErrorTypes {
+  userToAssignId?: string;
+  family?: string;
+}
+
+interface UserToAssignFamilyHeadValidatorErrorTypes {
+  isValid: boolean;
+  errors: UserToAssignFamilyHeadErrorTypes;
+}
+
+interface FamilyUsersRequiredFields {
+  id: number;
+}
+
+export const validateUserToAssignFamilyHead: (
+  id: number,
+  familyUsers: FamilyUsersRequiredFields[]
+) => UserToAssignFamilyHeadValidatorErrorTypes = (id, familyUsers) => {
+  const errors: UserToAssignFamilyHeadErrorTypes = {};
+
+  if (!id) errors.userToAssignId = defaultErrors.isRequired;
+
+  if (familyUsers.length < 2) errors.family = familyErrors.tooSmall;
+
+  if (isEmpty(errors.family) && !familyUsers.map(u => u.id).includes(id))
+    errors.family = familyErrors.noSuchUser;
+
+  return {
+    errors,
+    isValid: isEmpty(errors),
+  };
 };

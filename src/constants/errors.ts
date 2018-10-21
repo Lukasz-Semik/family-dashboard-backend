@@ -17,6 +17,7 @@ interface EmailErrors {
   hasNoFamily: string;
   familyHeadNotRemovable: string;
   isNoFamilyHead: string;
+  assignItself: string;
 }
 // TODO: create user errors
 export const emailErrors: EmailErrors = {
@@ -29,6 +30,7 @@ export const emailErrors: EmailErrors = {
   hasNoFamily: 'email-is-not-assigned-to-family',
   familyHeadNotRemovable: 'email-family-head-not-removable',
   isNoFamilyHead: 'email-is-no-family-head',
+  assignItself: 'email-assign-itself',
 };
 
 interface PasswordErrors {

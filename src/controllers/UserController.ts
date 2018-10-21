@@ -136,6 +136,7 @@ export class UserController {
     try {
       const user = await this.userRepository.findOne({ email });
 
+      // TODO: extract validation and tests
       if (isEmpty(user)) return res.status(400).json({ errors: { email: emailErrors.notExist } });
 
       if (!user.isVerified)
