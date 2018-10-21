@@ -2,6 +2,7 @@ import {
   JsonController,
   Get,
   Post,
+  Patch,
   Res,
   UseBefore,
   Authorized,
@@ -11,9 +12,14 @@ import {
 import { getRepository } from 'typeorm';
 import { isEmpty } from 'lodash';
 
-import { internalServerErrors, emailErrors } from '../constants/errors';
-import { API_FAMILY_CREATE, API_FAMILY_GET } from '../constants/routes';
+import { internalServerErrors, emailErrors, familyErrors } from '../constants/errors';
+import { accountSuccesses } from '../constants/successes';
+import { API_FAMILY_CREATE, API_FAMILY_GET, API_FAMILY_ASSIGN_HEAD } from '../constants/routes';
 import urlencodedParser from '../utils/bodyParser';
+import {
+  validateUserAssigningFamilyHead,
+  validateUserToAssignFamilyHead,
+} from '../validators/user';
 import { Family, User } from '../entity';
 import { Token } from '.';
 
@@ -21,6 +27,7 @@ import { Token } from '.';
 export class FamilyController {
   familyRepository = getRepository(Family);
   userRepository = getRepository(User);
+  minFamilySizeToAssignHead = 2;
 
   familyWithUserQuery = id =>
     this.familyRepository
@@ -96,6 +103,61 @@ export class FamilyController {
       const family = await this.familyWithUserQuery(user.family.id);
 
       return res.status(200).json({ family });
+    } catch (err) {
+      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
+    }
+  }
+
+  // @description: post family
+  // @full route: /api/family/head-assign
+  // @access: private
+  @Patch(API_FAMILY_ASSIGN_HEAD)
+  @UseBefore(urlencodedParser)
+  @Authorized()
+  async assignFamilyHead(@Req() req: any, @Res() res: any) {
+    try {
+      const { email } = await Token.decode(req.headers.authorization);
+
+      const userCurrentHead = await this.userRepository.findOne(
+        { email },
+        { relations: ['family'] }
+      );
+
+      const { userToAssignId } = req.body;
+
+      const {
+        errors: assigningUserErrors,
+        isValid: assigningUserIsValid,
+      } = validateUserAssigningFamilyHead(userCurrentHead, userToAssignId);
+
+      if (!assigningUserIsValid) return res.status(400).json({ errors: assigningUserErrors });
+
+      const { users } = await this.familyWithUserQuery(userCurrentHead.family.id);
+
+      if (users.length < this.minFamilySizeToAssignHead)
+        return res.status(400).json({ errors: { family: familyErrors.tooSmall } });
+
+      const {
+        errors: userToAssignErrors,
+        isValid: userToAssignIsValid,
+      } = validateUserToAssignFamilyHead(userToAssignId, users);
+
+      if (!userToAssignIsValid) return res.status(400).json({ errors: userToAssignErrors });
+
+      const userNewHead = await this.userRepository.findOne({ id: userToAssignId });
+
+      await this.userRepository.save({
+        ...userCurrentHead,
+        isFamilyHead: false,
+      });
+
+      await this.userRepository.save({
+        ...userNewHead,
+        isFamilyHead: true,
+      });
+
+      // TODO: find a way to look for id and test success for this secnario.
+      return res.status(200).json({ family: accountSuccesses.familyHeadAssigned });
     } catch (err) {
       return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
     }

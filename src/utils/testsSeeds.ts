@@ -5,17 +5,15 @@ import { hash } from 'bcryptjs';
 
 import { seededUsers, notSeededUsers, UsersTypes } from '../constants/testFixtures';
 import { User, Family } from '../entity';
-import { Token } from '../controllers';
 import { defaultPassword } from '../constants/testFixtures';
 
 export const dbSeedUsers: any = async () => {
-  await createConnection();
+  const connection = await createConnection();
 
+  await connection.query('TRUNCATE TABLE "user", "family" RESTART IDENTITY;');
   const userRepository = getRepository(User);
-  await userRepository.clear();
 
   const familyRepository = getRepository(Family);
-  await familyRepository.query('DELETE FROM family;');
 
   const hashedPassword = await hash(defaultPassword, 10);
 
