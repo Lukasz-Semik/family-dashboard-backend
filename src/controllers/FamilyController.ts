@@ -12,7 +12,7 @@ import {
 import { getRepository } from 'typeorm';
 import { isEmpty } from 'lodash';
 
-import { internalServerErrors, emailErrors, familyErrors } from '../constants/errors';
+import { internalServerErrors, userErrors, familyErrors } from '../constants/errors';
 import { accountSuccesses } from '../constants/successes';
 import { API_FAMILY_CREATE, API_FAMILY_GET, API_FAMILY_ASSIGN_HEAD } from '../constants/routes';
 import urlencodedParser from '../utils/bodyParser';
@@ -57,7 +57,7 @@ export class FamilyController {
 
       const user = await this.userRepository.findOne({ email });
 
-      if (user.hasFamily) return res.status(400).json({ errors: { email: emailErrors.hasFamily } });
+      if (user.hasFamily) return res.status(400).json({ errors: { email: userErrors.hasFamily } });
 
       const newFamily = new Family();
 
@@ -98,7 +98,7 @@ export class FamilyController {
       const user = await this.userRepository.findOne({ email }, { relations: ['family'] });
 
       if (!user.hasFamily || isEmpty(user.family))
-        return res.status(400).json({ errors: { email: emailErrors.hasNoFamily } });
+        return res.status(400).json({ errors: { email: userErrors.hasNoFamily } });
 
       const family = await this.familyWithUserQuery(user.family.id);
 

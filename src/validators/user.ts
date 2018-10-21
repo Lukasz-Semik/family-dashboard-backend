@@ -2,7 +2,13 @@
 import { isEmpty } from 'lodash';
 
 import { isBlank, isEmail, hasProperLength } from '../helpers/validators';
-import { emailErrors, passwordErrors, defaultErrors, familyErrors } from '../constants/errors';
+import {
+  emailErrors,
+  userErrors,
+  passwordErrors,
+  defaultErrors,
+  familyErrors,
+} from '../constants/errors';
 import { GENDERS } from '../constants/columnTypes';
 import allowedUpdateUserDataKeys from '../constants/updateUserDataKeys';
 
@@ -195,11 +201,11 @@ export const validateUserAssigningFamilyHead: (
       isValid: false,
     };
 
-  if (Number(user.id) === Number(userToAssignId)) errors.email = emailErrors.assignItself;
+  if (Number(user.id) === Number(userToAssignId)) errors.email = userErrors.assignItself;
 
-  if (!user.isFamilyHead) errors.email = emailErrors.isNoFamilyHead;
+  if (!user.isFamilyHead) errors.email = userErrors.isNoFamilyHead;
 
-  if (!user.hasFamily || isEmpty(user.family)) errors.email = emailErrors.hasNoFamily;
+  if (!user.hasFamily || isEmpty(user.family)) errors.email = userErrors.hasNoFamily;
 
   return {
     errors,

@@ -16,7 +16,7 @@ import {
   API_USER_UPDATE,
   API_USER_DELETE,
 } from '../constants/routes';
-import { emailErrors, passwordErrors, defaultErrors } from '../constants/errors';
+import { emailErrors, userErrors, passwordErrors, defaultErrors } from '../constants/errors';
 import { accountSuccesses } from '../constants/successes';
 import { Token } from '../controllers';
 
@@ -310,7 +310,7 @@ describe('User Controller', () => {
         .send()
         .expect(400)
         .expect(res => {
-          expect(res.body.errors.email).to.equal(emailErrors.hasNoFamily);
+          expect(res.body.errors.email).to.equal(userErrors.hasNoFamily);
         })
         .end(err => {
           if (err) return done(err);
@@ -542,7 +542,7 @@ describe('User Controller', () => {
         .set('authorization', withBigFamilyTokenGenerated)
         .expect(400)
         .expect(res => {
-          expect(res.body.errors.email).to.equal(emailErrors.familyHeadNotRemovable);
+          expect(res.body.errors.email).to.equal(userErrors.familyHeadNotRemovable);
         })
         .end(err => {
           if (err) return done(err);
