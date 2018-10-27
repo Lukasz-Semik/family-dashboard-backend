@@ -5,24 +5,30 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  ManyToOne,
 } from 'typeorm';
 
-import { User } from './User';
-import { TodoList } from './TodoList';
+import { Family } from './Family';
 
 @Entity()
-export class Family {
+export class TodoList {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  name: string;
+  @Column({
+    type: 'varchar',
+    length: 255,
+  })
+  title: string;
 
-  @OneToMany(type => User, user => user.family)
-  users: User[];
+  @Column({
+    nullable: true,
+    type: 'text',
+  })
+  description: string;
 
-  @OneToMany(type => TodoList, todoList => todoList.family)
-  todoLists: TodoList[];
+  @ManyToOne(type => Family, family => family.users)
+  family: Family;
 
   @CreateDateColumn({
     type: 'timestamp',
