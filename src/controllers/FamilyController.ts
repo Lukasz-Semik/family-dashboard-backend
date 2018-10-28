@@ -53,9 +53,9 @@ export class FamilyController {
   @Authorized()
   async createFamily(@Req() req: any, @Res() res: any) {
     try {
-      const { email } = await Token.decode(req.headers.authorization);
+      const { id } = await Token.decode(req.headers.authorization);
 
-      const user = await this.userRepository.findOne({ email });
+      const user = await this.userRepository.findOne({ id });
 
       if (user.hasFamily) return res.status(400).json({ errors: { email: userErrors.hasFamily } });
 
@@ -93,9 +93,9 @@ export class FamilyController {
   @Authorized()
   async getFamily(@HeaderParam('authorization') token: string, @Res() res: any) {
     try {
-      const { email } = await Token.decode(token);
+      const { id } = await Token.decode(token);
 
-      const user = await this.userRepository.findOne({ email }, { relations: ['family'] });
+      const user = await this.userRepository.findOne({ id }, { relations: ['family'] });
 
       if (!user.hasFamily || isEmpty(user.family))
         return res.status(400).json({ errors: { email: userErrors.hasNoFamily } });
@@ -116,12 +116,9 @@ export class FamilyController {
   @Authorized()
   async assignFamilyHead(@Req() req: any, @Res() res: any) {
     try {
-      const { email } = await Token.decode(req.headers.authorization);
+      const { id } = await Token.decode(req.headers.authorization);
 
-      const userCurrentHead = await this.userRepository.findOne(
-        { email },
-        { relations: ['family'] }
-      );
+      const userCurrentHead = await this.userRepository.findOne({ id }, { relations: ['family'] });
 
       const { userToAssignId } = req.body;
 

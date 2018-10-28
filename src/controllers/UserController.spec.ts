@@ -296,6 +296,7 @@ describe('User Controller', () => {
     let withFamilyTokenGenerated: string;
     const withFamilyEmail: string = 'with-family-user@email.com';
 
+    let withoutFamilyUser: any;
     let withoutFamilyTokenGenerated: string;
     const withoutFamilyEmail: string = 'without-family-user@email.com';
 
@@ -307,13 +308,19 @@ describe('User Controller', () => {
         isVerified: true,
       });
 
-      withFamilyTokenGenerated = await Token.create({ email: withFamilyEmail });
+      withFamilyTokenGenerated = await Token.create({
+        email: withFamilyEmail,
+        id: family.familyHead.id,
+      });
 
-      await dbSeedUser({
+      withoutFamilyUser = await dbSeedUser({
         email: withoutFamilyEmail,
       });
 
-      withoutFamilyTokenGenerated = await Token.create({ email: withoutFamilyEmail });
+      withoutFamilyTokenGenerated = await Token.create({
+        email: withoutFamilyEmail,
+        id: withoutFamilyUser.id,
+      });
     });
 
     after(async () => await dbClear(connection));
@@ -456,9 +463,15 @@ describe('User Controller', () => {
     before(async () => {
       existingUser = await dbSeedUser({ email: existingUserEmal });
 
-      existingUserTokenGenerated = await Token.create({ email: existingUserEmal });
+      existingUserTokenGenerated = await Token.create({
+        email: existingUserEmal,
+        id: existingUser.id,
+      });
 
-      notExistingUserTokenGenerated = await Token.create({ email: 'not-existing-user@email.com' });
+      notExistingUserTokenGenerated = await Token.create({
+        email: 'not-existing-user@email.com',
+        id: 999,
+      });
     });
 
     after(async () => await dbClear(connection));
@@ -544,7 +557,10 @@ describe('User Controller', () => {
     before(async () => {
       existingUser = await dbSeedUser({ email: existingUserEmal });
 
-      existingUserTokenGenerated = await Token.create({ email: existingUserEmal });
+      existingUserTokenGenerated = await Token.create({
+        email: existingUserEmal,
+        id: existingUser.id,
+      });
     });
 
     after(async () => await dbClear(connection));
@@ -618,13 +634,17 @@ describe('User Controller', () => {
     let withFamilyTokenGenerated: string;
     const withFamilyEmail: string = 'with-family-user@email.com';
 
+    let bigFamily: any;
     let withBigFamilyTokenGenerated: string;
     const withBigFamilyEmail: string = 'with-big-family-user@email.com';
 
     before(async () => {
       existingUser = await dbSeedUser({ email: existingUserEmal });
 
-      existingUserTokenGenerated = await Token.create({ email: existingUserEmal });
+      existingUserTokenGenerated = await Token.create({
+        email: existingUserEmal,
+        id: existingUser.id,
+      });
 
       family = await dbSeedUser({
         email: withFamilyEmail,
@@ -632,16 +652,22 @@ describe('User Controller', () => {
         isFamilyHead: true,
       });
 
-      withFamilyTokenGenerated = await Token.create({ email: withFamilyEmail });
+      withFamilyTokenGenerated = await Token.create({
+        email: withFamilyEmail,
+        id: family.familyHead.id,
+      });
 
-      await dbSeedUser({
+      bigFamily = await dbSeedUser({
         email: withBigFamilyEmail,
         hasFamily: true,
         isFamilyHead: true,
         hasBigFamily: true,
       });
 
-      withBigFamilyTokenGenerated = await Token.create({ email: withBigFamilyEmail });
+      withBigFamilyTokenGenerated = await Token.create({
+        email: withBigFamilyEmail,
+        id: bigFamily.familyHead.id,
+      });
     });
 
     after(async () => await dbClear(connection));
