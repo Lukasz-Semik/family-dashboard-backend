@@ -237,7 +237,7 @@ export const validateUserToAssignFamilyHead: (
 
   if (familyUsers.length < 2) errors.family = familyErrors.tooSmall;
 
-  if (isEmpty(errors.family) && !familyUsers.map(u => u.id).includes(id))
+  if (isEmpty(errors) && !familyUsers.map(u => u.id).includes(Number(id)))
     errors.family = familyErrors.noSuchUser;
 
   return {

@@ -1,53 +1,60 @@
-// TODO: refactor this seeeds!
 import { getRepository } from 'typeorm';
-import { createConnection } from 'typeorm';
 import { hash } from 'bcryptjs';
 
-import { seededUsers, notSeededUsers, UsersTypes } from '../constants/testFixtures';
+import { generateUser, defaultPassword } from '../constants/testFixtures';
 import { User, Family } from '../entity';
-import { defaultPassword } from '../constants/testFixtures';
 
-export const dbSeedUsers: any = async () => {
-  const connection = await createConnection();
-
+export const dbClear: any = async connection =>
   await connection.query('TRUNCATE TABLE "user", "family" RESTART IDENTITY;');
-  const userRepository = getRepository(User);
 
+export const dbSeedUser: any = async ({
+  email,
+  isVerified,
+  isFamilyHead,
+  hasFamily,
+  hasBigFamily,
+}) => {
+  const userRepository = getRepository(User);
   const familyRepository = getRepository(Family);
 
   const hashedPassword = await hash(defaultPassword, 10);
 
-  seededUsers.forEach(async seededUser => {
-    const newUser = new User();
+  const newUser = new User();
 
-    const createdUser = await userRepository.save({
-      ...newUser,
-      ...seededUser,
+  const createdUser = await userRepository.save({
+    ...newUser,
+    ...generateUser({ email, isVerified, isFamilyHead, hasFamily }),
+    password: hashedPassword,
+  });
+
+  if (!hasFamily) return createdUser;
+
+  const newFamily = new Family();
+
+  const users = [createdUser];
+
+  let familyMemberUser: any;
+
+  if (hasBigFamily) {
+    const newFamilyMember = new User();
+
+    familyMemberUser = await userRepository.save({
+      ...newFamilyMember,
+      ...generateUser({ email: 'family-member-user@emailcom', isVerified, hasFamily }),
       password: hashedPassword,
     });
 
-    if (seededUser.hasFamily) {
-      const newFamily = new Family();
+    users.push(familyMemberUser);
+  }
 
-      const users: UsersTypes[] = [createdUser];
-
-      if (seededUser.hasBigFamily) {
-        const newFamilyMemberUser = new User();
-
-        const familyMemberUser = await userRepository.save({
-          ...newFamilyMemberUser,
-          ...notSeededUsers[2],
-          password: hashedPassword,
-        });
-
-        users.push(familyMemberUser);
-      }
-
-      await familyRepository.save({
-        ...newFamily,
-        name: createdUser.lastName,
-        users,
-      });
-    }
+  await familyRepository.save({
+    ...newFamily,
+    name: createdUser.lastName,
+    users,
   });
+
+  return {
+    familyHead: createdUser,
+    familyMember: familyMemberUser,
+  };
 };
