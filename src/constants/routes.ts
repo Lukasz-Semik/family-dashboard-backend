@@ -17,3 +17,6 @@ export const API_USER_CONFIRM_INVITED: string = '/user/confirm-invited';
 export const API_FAMILY_CREATE: string = '/family/create';
 export const API_FAMILY_GET: string = '/family/current';
 export const API_FAMILY_ASSIGN_HEAD: string = '/family/head-assign';
+
+// TodoList routes
+export const API_TODOLIST_CREATE: string = '/todolist/create';
