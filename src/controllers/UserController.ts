@@ -165,12 +165,12 @@ export class UserController {
       if (isEmpty(req.body))
         return res.status(400).json({ errors: { payload: defaultErrors.emptyPayload } });
 
-      const { email: emailDecoded } = await Token.decode(req.headers.authorization);
+      const { id: idDecoded } = await Token.decode(req.headers.authorization);
 
       if (!checkIsProperUpdateUserPayload(req.body))
         return res.status(400).json({ errors: { payload: defaultErrors.notAllowedValue } });
 
-      const currentUser = await this.userRepository.findOne({ email: emailDecoded });
+      const currentUser = await this.userRepository.findOne({ id: idDecoded });
 
       const updatedUser = await this.userRepository.save({
         ...currentUser,
@@ -190,12 +190,9 @@ export class UserController {
   @Delete(API_USER_DELETE)
   async deleteUser(@HeaderParam('authorization') token: string, @Res() res: any) {
     try {
-      const { email: emailDecoded } = await Token.decode(token);
+      const { id: idDecoded } = await Token.decode(token);
 
-      const user = await this.userRepository.findOne(
-        { email: emailDecoded },
-        { relations: ['family'] }
-      );
+      const user = await this.userRepository.findOne({ id: idDecoded }, { relations: ['family'] });
 
       const { family } = user;
 
@@ -240,10 +237,10 @@ export class UserController {
   @UseBefore(urlencodedParser)
   async inviteUser(@Req() req: any, @Res() res: any) {
     try {
-      const { email: emailDecoded } = await Token.decode(req.headers.authorization);
+      const { id: idDecoded } = await Token.decode(req.headers.authorization);
 
       const currentUser = await this.userRepository.findOne(
-        { email: emailDecoded },
+        { id: idDecoded },
         { relations: ['family'] }
       );
 
@@ -337,10 +334,10 @@ export class UserController {
   @Authorized()
   @Get(API_USER_GET_CURRENT)
   async getCurrentUser(@HeaderParam('authorization') token: string, @Res() res: any) {
-    const { email: emailDecoded } = await Token.decode(token);
+    const { id: idDecoded } = await Token.decode(token);
 
     try {
-      const user = await this.userRepository.findOne({ email: emailDecoded });
+      const user = await this.userRepository.findOne({ id: idDecoded });
 
       const { id: userId, email, isFamilyHead, hasFamily, firstName, lastName, age, gender } = user;
 
