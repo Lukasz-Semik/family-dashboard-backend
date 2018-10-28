@@ -146,7 +146,7 @@ export class UserController {
 
       if (!isMatch) return res.status(400).json({ errors: { password: passwordErrors.notValid } });
 
-      const token = Token.create({ email: user.email });
+      const token = Token.create({ email: user.email, id: user.id });
 
       return res.status(200).json({ isAuthorized: true, token });
     } catch (err) {

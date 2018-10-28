@@ -6,9 +6,11 @@ import {
   UpdateDateColumn,
   OneToMany,
   ManyToOne,
+  OneToOne,
 } from 'typeorm';
 
 import { Family } from './Family';
+import { User } from './User';
 
 @Entity()
 export class TodoList {
@@ -27,7 +29,19 @@ export class TodoList {
   })
   description: string;
 
-  @ManyToOne(type => Family, family => family.users)
+  @Column()
+  isDone: boolean;
+
+  @Column({
+    nullable: true,
+    type: 'timestamp',
+  })
+  deadline: string;
+
+  @ManyToOne(type => User, user => user.todoLists)
+  author: User;
+
+  @ManyToOne(type => Family, family => family.todoLists)
   family: Family;
 
   @CreateDateColumn({

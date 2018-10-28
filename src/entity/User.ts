@@ -5,9 +5,11 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  OneToMany,
 } from 'typeorm';
 
 import { Family } from './Family';
+import { TodoList } from './TodoList';
 import { GENDERS } from '../constants/columnTypes';
 
 @Entity()
@@ -40,6 +42,9 @@ export class User {
 
   @ManyToOne(type => Family, family => family.users)
   family: Family;
+
+  @OneToMany(type => TodoList, todoList => todoList.author)
+  todoLists: TodoList[];
 
   @Column({
     type: 'varchar',
