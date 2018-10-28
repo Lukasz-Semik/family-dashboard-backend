@@ -180,22 +180,6 @@ describe('Family Controller', async () => {
 
     after(async () => await dbClear(connection));
 
-    it('should return error if family', done => {
-      request(APP)
-        .patch(generateFullApi(API_FAMILY_ASSIGN_HEAD))
-        .set('authorization', familyOwnerTokenGenerated)
-        .type('form')
-        .send({ userToAssignId: family.familyMember.id })
-        .expect(200)
-        .expect(res => {
-          expect(res.body.family).to.equal(accountSuccesses.familyHeadAssigned);
-        })
-        .end(err => {
-          if (err) return done(err);
-          done();
-        });
-    });
-
     it('should reassign family head', done => {
       request(APP)
         .patch(generateFullApi(API_FAMILY_ASSIGN_HEAD))
