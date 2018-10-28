@@ -156,7 +156,6 @@ export class FamilyController {
         isFamilyHead: true,
       });
 
-      // TODO: find a way to look for id and test success for this secnario.
       return res.status(200).json({ family: accountSuccesses.familyHeadAssigned });
     } catch (err) {
       return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
