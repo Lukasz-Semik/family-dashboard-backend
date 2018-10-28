@@ -30,6 +30,7 @@ describe('Family Controller', async () => {
     let familyCreatorTokenGenerated: string;
     const familyCreatorEmail: string = 'family-creator@email.com';
 
+    let seededFamily: any;
     let familyOwnerTokenGenerated: string;
     const familyOwnerEmail: string = 'family-owner-user@email.com';
 
@@ -38,15 +39,21 @@ describe('Family Controller', async () => {
 
       fmailyCreatorUser = await dbSeedUser({ email: familyCreatorEmail });
 
-      familyCreatorTokenGenerated = await Token.create({ email: familyCreatorEmail });
+      familyCreatorTokenGenerated = await Token.create({
+        email: familyCreatorEmail,
+        id: fmailyCreatorUser.id,
+      });
 
-      await dbSeedUser({
+      seededFamily = await dbSeedUser({
         email: familyOwnerEmail,
         hasFamily: true,
         isFamilyHead: true,
       });
 
-      familyOwnerTokenGenerated = await Token.create({ email: familyOwnerEmail });
+      familyOwnerTokenGenerated = await Token.create({
+        email: familyOwnerEmail,
+        id: seededFamily.familyHead.id,
+      });
     });
 
     after(async () => await dbClear(connection));
@@ -58,6 +65,7 @@ describe('Family Controller', async () => {
         .expect(200)
         .expect(res => {
           const { name, id, createdAt, updatedAt, users: familyUsers } = res.body.family;
+
           expect(name).to.equal(fmailyCreatorUser.lastName);
           expect(id).to.be.a('number');
           expect(createdAt).to.be.a('string');
@@ -91,6 +99,7 @@ describe('Family Controller', async () => {
   });
 
   describe(`Route ${generateFullApi(API_FAMILY_GET)}`, () => {
+    let withoutFamilyUser: any;
     let withoutFamilyTokenGenerated: string;
     const withoutFamilyEmail: string = 'without-family-user@email.com';
 
@@ -108,13 +117,19 @@ describe('Family Controller', async () => {
         isVerified: true,
       });
 
-      familyOwnerTokenGenerated = await Token.create({ email: familyOwnerEmail });
+      familyOwnerTokenGenerated = await Token.create({
+        email: familyOwnerEmail,
+        id: family.familyHead.id,
+      });
 
-      await dbSeedUser({
+      withoutFamilyUser = await dbSeedUser({
         email: withoutFamilyEmail,
       });
 
-      withoutFamilyTokenGenerated = await Token.create({ email: withoutFamilyEmail });
+      withoutFamilyTokenGenerated = await Token.create({
+        email: withoutFamilyEmail,
+        id: withoutFamilyUser.id,
+      });
     });
 
     after(async () => await dbClear(connection));
@@ -175,7 +190,10 @@ describe('Family Controller', async () => {
         hasBigFamily: true,
       });
 
-      familyOwnerTokenGenerated = await Token.create({ email: familyOwnerEmail });
+      familyOwnerTokenGenerated = await Token.create({
+        email: familyOwnerEmail,
+        id: family.familyHead.id,
+      });
     });
 
     after(async () => await dbClear(connection));
