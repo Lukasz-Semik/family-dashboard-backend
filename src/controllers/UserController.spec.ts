@@ -3,7 +3,7 @@ import * as request from 'supertest';
 import { createConnection } from 'typeorm';
 
 import { APP } from '../server';
-import { dbSeedUser, dbClear } from '../utils/testsSeeds';
+import { dbSeedUsers, dbClear } from '../utils/testsSeeds';
 import { generateUser, defaultPassword } from '../constants/testFixtures';
 import {
   generateFullApi,
@@ -33,12 +33,12 @@ describe('User Controller', () => {
   });
 
   describe(`Route ${generateFullApi(API_USER_SIGN_UP)}`, () => {
-    let existingUser: any;
+    let existingUsers: any;
 
     before(async () => {
       await dbClear(connection);
 
-      existingUser = await dbSeedUser({ email: 'existing-user@email.com' });
+      existingUsers = await dbSeedUsers({ email: 'existing-user@email.com' });
     });
 
     after(async () => await dbClear(connection));
@@ -113,7 +113,7 @@ describe('User Controller', () => {
     });
 
     it('should return proper error message for existing user', done => {
-      const { email, firstName, lastName, age, gender } = existingUser;
+      const { email, firstName, lastName, age, gender } = existingUsers.firstUser;
 
       request(APP)
         .post(generateFullApi(API_USER_SIGN_UP))
@@ -139,18 +139,18 @@ describe('User Controller', () => {
   });
 
   describe(`Route ${generateFullApi(API_USER_SIGN_IN)}`, () => {
-    let verifiedUser: any;
-    let notVerifiedUser: any;
+    let verified: any;
+    let notVerified: any;
 
     before(async () => {
-      verifiedUser = await dbSeedUser({ email: 'verified-user@email.com', isVerified: true });
-      notVerifiedUser = await dbSeedUser({ email: 'not-verified-user@email.com' });
+      verified = await dbSeedUsers({ email: 'verified-user@email.com', isVerified: true });
+      notVerified = await dbSeedUsers({ email: 'not-verified-user@email.com' });
     });
 
     after(async () => await dbClear(connection));
 
     it('should return user data for proper sign in', done => {
-      const { email } = verifiedUser;
+      const { email } = verified.firstUser;
 
       request(APP)
         .post(generateFullApi(API_USER_SIGN_IN))
@@ -198,7 +198,7 @@ describe('User Controller', () => {
     });
 
     it('should return proper error message for not not proper password', done => {
-      const { email } = verifiedUser;
+      const { email } = verified.firstUser;
 
       request(APP)
         .post(generateFullApi(API_USER_SIGN_IN))
@@ -216,7 +216,7 @@ describe('User Controller', () => {
     });
 
     it('should return proper error message for not verified user', done => {
-      const { email } = notVerifiedUser;
+      const { email } = notVerified.firstUser;
 
       request(APP)
         .post(generateFullApi(API_USER_SIGN_IN))
@@ -241,7 +241,7 @@ describe('User Controller', () => {
     const notVerifiedEmail: string = 'not-verified-user@email.com';
 
     before(async () => {
-      await dbSeedUser({ email: notVerifiedEmail });
+      await dbSeedUsers({ email: notVerifiedEmail });
       confirmationAccountTokenGenerated = await Token.create({ email: notVerifiedEmail });
       notExistingUserTokenGenerated = await Token.create({ email: 'not-existing-user@email.com' });
     });
@@ -296,12 +296,12 @@ describe('User Controller', () => {
     let withFamilyTokenGenerated: string;
     const withFamilyEmail: string = 'with-family-user@email.com';
 
-    let withoutFamilyUser: any;
+    let withoutFamilyUsers: any;
     let withoutFamilyTokenGenerated: string;
     const withoutFamilyEmail: string = 'without-family-user@email.com';
 
     before(async () => {
-      family = await dbSeedUser({
+      family = await dbSeedUsers({
         email: withFamilyEmail,
         hasFamily: true,
         isFamilyHead: true,
@@ -310,16 +310,16 @@ describe('User Controller', () => {
 
       withFamilyTokenGenerated = await Token.create({
         email: withFamilyEmail,
-        id: family.familyHead.id,
+        id: family.firstUser.id,
       });
 
-      withoutFamilyUser = await dbSeedUser({
+      withoutFamilyUsers = await dbSeedUsers({
         email: withoutFamilyEmail,
       });
 
       withoutFamilyTokenGenerated = await Token.create({
         email: withoutFamilyEmail,
-        id: withoutFamilyUser.id,
+        id: withoutFamilyUsers.firstUser.id,
       });
     });
 
@@ -386,7 +386,7 @@ describe('User Controller', () => {
     });
 
     it('should return proper error for existing user', done => {
-      const { email, firstName, lastName, age, gender } = family.familyHead;
+      const { email, firstName, lastName, age, gender } = family.firstUser;
 
       request(APP)
         .post(generateFullApi(API_USER_INVITE))
@@ -409,7 +409,7 @@ describe('User Controller', () => {
     const invitedEmail: string = 'invited-user@email.com';
 
     before(async () => {
-      await dbSeedUser({
+      await dbSeedUsers({
         email: invitedEmail,
         hasFamily: true,
         isFamilyHead: true,
@@ -424,7 +424,7 @@ describe('User Controller', () => {
     it('should confirm invited user', done => {
       request(APP)
         .post(generateFullApi(API_USER_CONFIRM_INVITED))
-        .send({ password: 'Password123', invitationToken: invitedTokenGenerarted })
+        .send({ password: defaultPassword, invitationToken: invitedTokenGenerarted })
         .expect(200)
         .expect(res => {
           expect(res.body.account).to.equal(accountSuccesses.confirmed);
@@ -454,18 +454,18 @@ describe('User Controller', () => {
   });
 
   describe('Current user routes', () => {
-    let existingUser: any;
+    let existingUsers: any;
     let existingUserTokenGenerated: string;
     const existingUserEmal: string = 'existing-user@email.com';
 
     let notExistingUserTokenGenerated: string;
 
     before(async () => {
-      existingUser = await dbSeedUser({ email: existingUserEmal });
+      existingUsers = await dbSeedUsers({ email: existingUserEmal });
 
       existingUserTokenGenerated = await Token.create({
         email: existingUserEmal,
-        id: existingUser.id,
+        id: existingUsers.firstUser.id,
       });
 
       notExistingUserTokenGenerated = await Token.create({
@@ -478,7 +478,15 @@ describe('User Controller', () => {
 
     describe(`Route ${generateFullApi(API_USER_GET_CURRENT)}`, () => {
       it('should return proper data for current user', done => {
-        const { email, isFamilyHead, hasFamily, firstName, lastName, age, gender } = existingUser;
+        const {
+          email,
+          isFamilyHead,
+          hasFamily,
+          firstName,
+          lastName,
+          age,
+          gender,
+        } = existingUsers.firstUser;
 
         request(APP)
           .get(generateFullApi(API_USER_GET_CURRENT))
@@ -550,16 +558,16 @@ describe('User Controller', () => {
   });
 
   describe(`Route ${generateFullApi(API_USER_UPDATE)}`, () => {
-    let existingUser: any;
+    let existingUsers: any;
     let existingUserTokenGenerated: string;
     const existingUserEmal: string = 'existing-user@email.com';
 
     before(async () => {
-      existingUser = await dbSeedUser({ email: existingUserEmal });
+      existingUsers = await dbSeedUsers({ email: existingUserEmal });
 
       existingUserTokenGenerated = await Token.create({
         email: existingUserEmal,
-        id: existingUser.id,
+        id: existingUsers.firstUser.id,
       });
     });
 
@@ -567,7 +575,14 @@ describe('User Controller', () => {
 
     it('should return updated user', done => {
       const firstName = 'George';
-      const { lastName, gender, age, isFamilyHead, hasFamily, isVerified } = existingUser;
+      const {
+        lastName,
+        gender,
+        age,
+        isFamilyHead,
+        hasFamily,
+        isVerified,
+      } = existingUsers.firstUser;
 
       request(APP)
         .patch(generateFullApi(API_USER_UPDATE))
@@ -626,7 +641,7 @@ describe('User Controller', () => {
   });
 
   describe(`Route ${generateFullApi(API_USER_DELETE)}`, () => {
-    let existingUser: any;
+    let existingUsers: any;
     let existingUserTokenGenerated: string;
     const existingUserEmal: string = 'existing-user@email.com';
 
@@ -639,14 +654,14 @@ describe('User Controller', () => {
     const withBigFamilyEmail: string = 'with-big-family-user@email.com';
 
     before(async () => {
-      existingUser = await dbSeedUser({ email: existingUserEmal });
+      existingUsers = await dbSeedUsers({ email: existingUserEmal });
 
       existingUserTokenGenerated = await Token.create({
         email: existingUserEmal,
-        id: existingUser.id,
+        id: existingUsers.firstUser.id,
       });
 
-      family = await dbSeedUser({
+      family = await dbSeedUsers({
         email: withFamilyEmail,
         hasFamily: true,
         isFamilyHead: true,
@@ -654,10 +669,10 @@ describe('User Controller', () => {
 
       withFamilyTokenGenerated = await Token.create({
         email: withFamilyEmail,
-        id: family.familyHead.id,
+        id: family.firstUser.id,
       });
 
-      bigFamily = await dbSeedUser({
+      bigFamily = await dbSeedUsers({
         email: withBigFamilyEmail,
         hasFamily: true,
         isFamilyHead: true,
@@ -666,7 +681,7 @@ describe('User Controller', () => {
 
       withBigFamilyTokenGenerated = await Token.create({
         email: withBigFamilyEmail,
-        id: bigFamily.familyHead.id,
+        id: bigFamily.firstUser.id,
       });
     });
 
@@ -678,7 +693,7 @@ describe('User Controller', () => {
         .set('authorization', existingUserTokenGenerated)
         .expect(200)
         .expect(res => {
-          expect(res.body.removedEmail).to.equal(existingUser.email);
+          expect(res.body.removedEmail).to.equal(existingUsers.firstUser.email);
         })
         .end(err => {
           if (err) return done(err);
@@ -694,8 +709,8 @@ describe('User Controller', () => {
         .expect(res => {
           const { removedEmail, removedFamily } = res.body;
 
-          expect(removedEmail).to.equal(family.familyHead.email);
-          expect(removedFamily).to.equal(family.familyHead.lastName);
+          expect(removedEmail).to.equal(family.firstUser.email);
+          expect(removedFamily).to.equal(family.firstUser.lastName);
         })
         .end(err => {
           if (err) return done(err);

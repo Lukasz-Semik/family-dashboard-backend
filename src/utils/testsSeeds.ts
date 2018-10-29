@@ -5,9 +5,9 @@ import { generateUser, defaultPassword } from '../constants/testFixtures';
 import { User, Family } from '../entity';
 
 export const dbClear: any = async connection =>
-  await connection.query('TRUNCATE TABLE "user", "family" RESTART IDENTITY;');
+  await connection.query('TRUNCATE TABLE "user", "family", "todo_list" RESTART IDENTITY;');
 
-export const dbSeedUser: any = async ({
+export const dbSeedUsers: any = async ({
   email,
   isVerified,
   isFamilyHead,
@@ -27,7 +27,10 @@ export const dbSeedUser: any = async ({
     password: hashedPassword,
   });
 
-  if (!hasFamily) return createdUser;
+  if (!hasFamily)
+    return {
+      firstUser: createdUser,
+    };
 
   const newFamily = new Family();
 
@@ -54,7 +57,7 @@ export const dbSeedUser: any = async ({
   });
 
   return {
-    familyHead: createdUser,
-    familyMember: familyMemberUser,
+    firstUser: createdUser,
+    secondUser: familyMemberUser,
   };
 };
