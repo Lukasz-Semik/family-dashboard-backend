@@ -4,7 +4,7 @@ import { useExpressServer } from 'routing-controllers';
 import { createConnection } from 'typeorm';
 
 import authenticate from './services/authenticate';
-import { UserController, FamilyController, TodoListController } from './controllers';
+import { UserController, FamilyController, TodoController } from './controllers';
 
 export const APP: express.Application = express();
 
@@ -17,7 +17,7 @@ export const DbConnection = createConnection()
 
 useExpressServer(APP, {
   routePrefix: '/api',
-  controllers: [UserController, FamilyController, TodoListController],
+  controllers: [UserController, FamilyController, TodoController],
   authorizationChecker: authenticate,
 });
 

@@ -32,7 +32,7 @@ export const generateUser = ({
   isVerified,
 });
 
-export const generateTodoList = () => ({
-  title: 'some-todo-list-title',
-  description: 'some-todo-list-description',
+export const generateTodo = () => ({
+  title: 'some-todos-title',
+  description: 'some-todos-description',
 });

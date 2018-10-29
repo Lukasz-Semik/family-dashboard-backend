@@ -1,3 +1,3 @@
 export { User } from './User';
 export { Family } from './Family';
-export { TodoList } from './TodoList';
+export { Todo } from './Todo';

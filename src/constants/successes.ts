@@ -12,10 +12,10 @@ export const accountSuccesses: AccountSuccessesTypes = {
   familyHeadAssigned: 'account-family-head-assigned',
 };
 
-interface TodoListSuccessesTypes {
-  todoListCreated: string;
+interface TodosSuccessesTypes {
+  todoCreated: string;
 }
 
-export const todoListSuccesses: TodoListSuccessesTypes = {
-  todoListCreated: 'todo-list-created',
+export const todosSuccesses: TodosSuccessesTypes = {
+  todoCreated: 'todos-created',
 };

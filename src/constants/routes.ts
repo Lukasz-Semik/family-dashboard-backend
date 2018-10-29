@@ -24,10 +24,10 @@ export const API_FAMILY_GET: string = '/family/current';
 export const API_FAMILY_ASSIGN_HEAD: string = '/family/head-assign';
 
 // TodoList routes
-export const todoListsBase = '/todolists';
-export const API_TODOLISTS: string = todoListsBase;
+export const todosBase = '/todos';
+export const API_TODOS: string = todosBase;
 
-export const API_TODOLIST: (param?: number) => RouteFieldsTypes = param => ({
-  base: `${todoListsBase}/:todoId`,
-  fullRoute: `${generateFullApi(todoListsBase)}/${String(param)}`,
+export const API_TODO: (param?: number) => RouteFieldsTypes = param => ({
+  base: `${todosBase}/:todoId`,
+  fullRoute: `${generateFullApi(todosBase)}/${String(param)}`,
 });
