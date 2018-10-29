@@ -4,12 +4,12 @@ import { createConnection } from 'typeorm';
 
 import { APP } from '../server';
 import { dbSeedUser, dbSeedFamily, dbClear } from '../utils/testsSeeds';
-import { generateFullApi, API_TODOLISTS, API_TODOLIST } from '../constants/routes';
-import { todoListSuccesses } from '../constants/successes';
+import { generateFullApi, API_TODOS, API_TODO } from '../constants/routes';
+import { todosSuccesses } from '../constants/successes';
 import { userErrors, defaultErrors } from '../constants/errors';
 import { Token } from '../controllers';
 
-describe('TodoList Controller', async () => {
+describe('Todo Controller', async () => {
   let connection = null;
 
   before(async () => {
@@ -20,7 +20,7 @@ describe('TodoList Controller', async () => {
     connection.close();
   });
 
-  describe(`Route ${generateFullApi(API_TODOLISTS)}`, () => {
+  describe(`Route ${generateFullApi(API_TODOS)}`, () => {
     describe('POST method', () => {
       let family: any;
       let userTokenGenerated: string;
@@ -54,15 +54,15 @@ describe('TodoList Controller', async () => {
 
       after(async () => await dbClear(connection));
 
-      it('should create TodoList if only title is provided', done => {
+      it('should create Todo if only title is provided', done => {
         request(APP)
-          .post(generateFullApi(API_TODOLISTS))
+          .post(generateFullApi(API_TODOS))
           .set('authorization', userTokenGenerated)
           .type('form')
-          .send({ title: 'some-todo-list-title' })
+          .send({ title: 'some-todos-title' })
           .expect(200)
           .expect(res => {
-            expect(res.body.todoList).to.equal(todoListSuccesses.todoListCreated);
+            expect(res.body.todos).to.equal(todosSuccesses.todoCreated);
           })
           .end(err => {
             if (err) return done(err);
@@ -70,19 +70,19 @@ describe('TodoList Controller', async () => {
           });
       });
 
-      it('should create TodoList if full payload is provided', done => {
+      it('should create Todo if full payload is provided', done => {
         request(APP)
-          .post(generateFullApi(API_TODOLISTS))
+          .post(generateFullApi(API_TODOS))
           .set('authorization', userTokenGenerated)
           .type('form')
           .send({
-            title: 'some-todo-list-title',
+            title: 'some-todos-title',
             description: 'some-description',
             deadline: 'some-deadline',
           })
           .expect(200)
           .expect(res => {
-            expect(res.body.todoList).to.equal(todoListSuccesses.todoListCreated);
+            expect(res.body.todos).to.equal(todosSuccesses.todoCreated);
           })
           .end(err => {
             if (err) return done(err);
@@ -92,7 +92,7 @@ describe('TodoList Controller', async () => {
 
       it('should return proper error messages for not valid payload', done => {
         request(APP)
-          .post(generateFullApi(API_TODOLISTS))
+          .post(generateFullApi(API_TODOS))
           .set('authorization', userTokenGenerated)
           .type('form')
           .send()
@@ -108,10 +108,10 @@ describe('TodoList Controller', async () => {
 
       it('should return proper error messages for not verified user', done => {
         request(APP)
-          .post(generateFullApi(API_TODOLISTS))
+          .post(generateFullApi(API_TODOS))
           .set('authorization', notVerifiedUserTokenGenerated)
           .type('form')
-          .send({ title: 'some-todo-list-title' })
+          .send({ title: 'some-todos-title' })
           .expect(400)
           .expect(res => {
             expect(res.body.errors.user).to.equal(userErrors.hasNoPermissions);
@@ -126,7 +126,7 @@ describe('TodoList Controller', async () => {
     describe('GET method', () => {
       let family: any;
       let userTokenGenerated: string;
-      const userEmail: string = 'user-1@email.com';
+      const userEmail: string = 'user@email.com';
 
       let notVerifiedUser: any;
       let notVerifiedUserTokenGenerated: string;
@@ -137,7 +137,7 @@ describe('TodoList Controller', async () => {
 
         family = await dbSeedFamily({
           familyHeadEmail: userEmail,
-          hasTodoList: true,
+          hasTodos: true,
         });
 
         userTokenGenerated = await Token.create({
@@ -155,19 +155,19 @@ describe('TodoList Controller', async () => {
         });
       });
 
-      it('should return todoLists', done => {
+      it('should return todos', done => {
         request(APP)
-          .get(generateFullApi(API_TODOLISTS))
+          .get(generateFullApi(API_TODOS))
           .set('authorization', userTokenGenerated)
           .expect(200)
           .expect(res => {
-            const { todoLists } = res.body;
+            const { todos } = res.body;
 
-            expect(todoLists.length).to.equal(1);
-            expect(todoLists[0].title).to.equal('some-todo-list-title');
-            expect(todoLists[0].description).to.equal('some-todo-list-description');
-            expect(todoLists[0].createdAt).to.be.a('string');
-            expect(todoLists[0].author.id).to.equal(family.familyHead.id);
+            expect(todos.length).to.equal(1);
+            expect(todos[0].title).to.equal('some-todos-title');
+            expect(todos[0].description).to.equal('some-todos-description');
+            expect(todos[0].createdAt).to.be.a('string');
+            expect(todos[0].author.id).to.equal(family.familyHead.id);
           })
           .end(err => {
             if (err) return done(err);
@@ -177,7 +177,7 @@ describe('TodoList Controller', async () => {
 
       it('should return proper error messages for not verified user', done => {
         request(APP)
-          .get(generateFullApi(API_TODOLISTS))
+          .get(generateFullApi(API_TODOS))
           .set('authorization', notVerifiedUserTokenGenerated)
           .expect(400)
           .expect(res => {
@@ -191,7 +191,7 @@ describe('TodoList Controller', async () => {
     });
   });
 
-  describe(`Route ${API_TODOLIST().base}`, () => {
+  describe(`Route ${API_TODO().base}`, () => {
     let family: any;
     let userTokenGenerated: string;
     const userEmail: string = 'user@email.com';
@@ -206,7 +206,7 @@ describe('TodoList Controller', async () => {
       family = await dbSeedFamily({
         familyHead: userEmail,
         hasFamily: true,
-        hasTodoList: true,
+        hasTodos: true,
       });
 
       userTokenGenerated = await Token.create({
@@ -225,19 +225,19 @@ describe('TodoList Controller', async () => {
     });
 
     describe('GET method', () => {
-      it('should return specific todo-list', done => {
+      it('should return specific todo', done => {
         request(APP)
-          .get(API_TODOLIST(family.todoLists[0].id).fullRoute)
+          .get(API_TODO(family.todos[0].id).fullRoute)
           .set('authorization', userTokenGenerated)
           .expect(200)
           .expect(res => {
-            const { todoList } = res.body;
+            const { todos } = res.body;
 
-            expect(todoList.id).to.be.a('number');
-            expect(todoList.title).to.equal('some-todo-list-title');
-            expect(todoList.isDone).to.equal(false);
-            expect(todoList.createdAt).to.be.a('string');
-            expect(todoList.author.id).to.equal(family.familyHead.id);
+            expect(todos.id).to.be.a('number');
+            expect(todos.title).to.equal('some-todos-title');
+            expect(todos.isDone).to.equal(false);
+            expect(todos.createdAt).to.be.a('string');
+            expect(todos.author.id).to.equal(family.familyHead.id);
           })
           .end(err => {
             if (err) return done(err);
@@ -247,11 +247,11 @@ describe('TodoList Controller', async () => {
 
       it('should return 404 for not existing todo', done => {
         request(APP)
-          .get(API_TODOLIST(999).fullRoute)
+          .get(API_TODO(999).fullRoute)
           .set('authorization', userTokenGenerated)
           .expect(404)
           .expect(res => {
-            expect(res.body.errors.todoList).to.equal(defaultErrors.notFound);
+            expect(res.body.errors.todos).to.equal(defaultErrors.notFound);
           })
           .end(err => {
             if (err) return done(err);
@@ -261,7 +261,7 @@ describe('TodoList Controller', async () => {
 
       it('should return proper error messages for not verified user', done => {
         request(APP)
-          .get(generateFullApi(API_TODOLISTS))
+          .get(generateFullApi(API_TODOS))
           .set('authorization', notVerifiedUserTokenGenerated)
           .expect(400)
           .expect(res => {

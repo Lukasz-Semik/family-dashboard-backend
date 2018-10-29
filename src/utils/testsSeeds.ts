@@ -1,11 +1,11 @@
 import { getRepository } from 'typeorm';
 import { hash } from 'bcryptjs';
 
-import { generateUser, generateTodoList, defaultPassword } from '../constants/testFixtures';
-import { User, Family, TodoList } from '../entity';
+import { generateUser, generateTodo, defaultPassword } from '../constants/testFixtures';
+import { User, Family, Todo } from '../entity';
 
 export const dbClear: any = async connection =>
-  await connection.query('TRUNCATE TABLE "user", "family", "todo_list" RESTART IDENTITY;');
+  await connection.query('TRUNCATE TABLE "user", "family", "todo" RESTART IDENTITY;');
 
 export const dbSeedUser: any = async ({ email, isVerified, isFamilyHead, hasFamily }) => {
   const userRepository = getRepository(User);
@@ -23,9 +23,9 @@ export const dbSeedUser: any = async ({ email, isVerified, isFamilyHead, hasFami
   return createdUser;
 };
 
-export const dbSeedFamily: any = async ({ familyHeadEmail, hasBigFamily, hasTodoList }) => {
+export const dbSeedFamily: any = async ({ familyHeadEmail, hasBigFamily, hasTodos }) => {
   const familyRepository = getRepository(Family);
-  const todoListRepository = getRepository(TodoList);
+  const todoListRepository = getRepository(Todo);
 
   const familyHead = await dbSeedUser({
     email: familyHeadEmail,
@@ -34,7 +34,7 @@ export const dbSeedFamily: any = async ({ familyHeadEmail, hasBigFamily, hasTodo
     isFamilyHead: true,
   });
 
-  let todoList: any;
+  let todo: any;
 
   let familyMember: any;
 
@@ -52,17 +52,17 @@ export const dbSeedFamily: any = async ({ familyHeadEmail, hasBigFamily, hasTodo
     users.push(familyMember);
   }
 
-  if (hasTodoList) {
-    const newTodoList = new TodoList();
+  if (hasTodos) {
+    const newTodo = new Todo();
 
-    todoList = await todoListRepository.save({
-      ...newTodoList,
-      ...generateTodoList(),
+    todo = await todoListRepository.save({
+      ...newTodo,
+      ...generateTodo(),
       author: familyHead,
       isDone: false,
     });
 
-    newFamily.todoLists = [todoList];
+    newFamily.todos = [todo];
   }
 
   await familyRepository.save({
@@ -74,6 +74,6 @@ export const dbSeedFamily: any = async ({ familyHeadEmail, hasBigFamily, hasTodo
   return {
     familyHead,
     familyMember,
-    todoLists: newFamily.todoLists,
+    todos: newFamily.todos,
   };
 };

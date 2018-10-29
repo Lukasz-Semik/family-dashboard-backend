@@ -12,38 +12,38 @@ import { getRepository } from 'typeorm';
 import { isEmpty, find } from 'lodash';
 
 import { internalServerErrors, userErrors, defaultErrors } from '../constants/errors';
-import { todoListSuccesses } from '../constants/successes';
-import { API_TODOLISTS, API_TODOLIST } from '../constants/routes';
+import { todosSuccesses } from '../constants/successes';
+import { API_TODOS, API_TODO } from '../constants/routes';
 import urlencodedParser from '../utils/bodyParser';
-import { Family, User, TodoList } from '../entity';
+import { Family, User, Todo } from '../entity';
 import { Token } from '.';
 
-interface TodoListDataTypes {
+interface TodoDataTypes {
   title: string;
   description?: string;
   deadline?: string;
 }
 
 @JsonController()
-export class TodoListController {
+export class TodoController {
   userRepository = getRepository(User);
-  todoListRepository = getRepository(TodoList);
+  todoRepository = getRepository(Todo);
   familyRepository = getRepository(Family);
 
-  familyWithTodoListsQuery = id =>
+  familyWithTodosQuery = id =>
     this.familyRepository
       .createQueryBuilder('family')
-      .leftJoin('family.todoLists', 'todoLists')
-      .leftJoin('todoLists.author', 'author')
-      .select(['todoLists', 'family.name', 'author.firstName', 'author.lastName', 'author.id'])
+      .leftJoin('family.todos', 'todos')
+      .leftJoin('todos.author', 'author')
+      .select(['family', 'todos', 'author.firstName', 'author.lastName', 'author.id'])
       .where('family.id = :id', { id })
       // tslint:disable-next-line semicolon
       .getOne();
 
-  @Post(API_TODOLISTS)
+  @Post(API_TODOS)
   @UseBefore(urlencodedParser)
   @Authorized()
-  async createTodoList(@Req() req: any, @Res() res: any) {
+  async createTodo(@Req() req: any, @Res() res: any) {
     try {
       const { title, description, deadline } = req.body;
 
@@ -57,36 +57,36 @@ export class TodoListController {
       if (!user.isVerified || !user.hasFamily)
         return res.status(400).json({ errors: { user: userErrors.hasNoPermissions } });
 
-      const todoListData: TodoListDataTypes = {
+      const todoData: TodoDataTypes = {
         title,
       };
 
-      if (!isEmpty(description)) todoListData.description = description;
+      if (!isEmpty(description)) todoData.description = description;
 
-      if (!isEmpty(deadline)) todoListData.deadline = deadline;
+      if (!isEmpty(deadline)) todoData.deadline = deadline;
 
-      const newTodoList = new TodoList();
+      const newTodo = new Todo();
 
-      const todoList = await this.todoListRepository.save({
-        ...newTodoList,
-        ...todoListData,
+      const todo = await this.todoRepository.save({
+        ...newTodo,
+        ...todoData,
         author: user,
         isDone: false,
       });
 
-      const family = await this.familyWithTodoListsQuery(user.family.id);
+      const family = await this.familyWithTodosQuery(user.family.id);
 
-      family.todoLists.push(todoList);
+      family.todos.push(todo);
 
       await this.familyRepository.save(family);
 
-      return res.status(200).json({ todoList: todoListSuccesses.todoListCreated });
+      return res.status(200).json({ todos: todosSuccesses.todoCreated });
     } catch (err) {
       return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
-  @Get(API_TODOLISTS)
+  @Get(API_TODOS)
   @Authorized()
   async getTodoLists(@HeaderParam('authorization') token: string, @Res() res: any) {
     try {
@@ -97,15 +97,15 @@ export class TodoListController {
       if (!user.isVerified || !user.hasFamily)
         return res.status(400).json({ errors: { user: userErrors.hasNoPermissions } });
 
-      const family = await this.familyWithTodoListsQuery(user.family.id);
+      const family = await this.familyWithTodosQuery(user.family.id);
 
-      return res.status(200).json({ todoLists: family.todoLists });
+      return res.status(200).json({ todos: family.todos });
     } catch (err) {
       return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
-  @Get(API_TODOLIST().base)
+  @Get(API_TODO().base)
   @Authorized()
   async getTodoList(@Req() req: any, @Res() res: any) {
     const { id: idDecoded } = await Token.decode(req.headers.authorization);
@@ -115,15 +115,15 @@ export class TodoListController {
     if (!user.isVerified || !user.hasFamily)
       return res.status(400).json({ errors: { user: userErrors.hasNoPermissions } });
 
-    const { todoLists } = await this.familyWithTodoListsQuery(user.family.id);
+    const { todos } = await this.familyWithTodosQuery(user.family.id);
 
     const { todoId } = req.params;
 
-    const foundTodoList = find(todoLists, item => item.id === Number(todoId));
+    const foundTodos = find(todos, todo => todo.id === Number(todoId));
 
-    if (isEmpty(foundTodoList))
-      return res.status(404).json({ errors: { todoList: defaultErrors.notFound } });
+    if (isEmpty(foundTodos))
+      return res.status(404).json({ errors: { todos: defaultErrors.notFound } });
 
-    return res.status(200).json({ todoList: foundTodoList });
+    return res.status(200).json({ todos: foundTodos });
   }
 }

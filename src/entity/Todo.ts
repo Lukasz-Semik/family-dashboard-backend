@@ -4,16 +4,14 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany,
   ManyToOne,
-  OneToOne,
 } from 'typeorm';
 
 import { Family } from './Family';
 import { User } from './User';
 
 @Entity()
-export class TodoList {
+export class Todo {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -39,10 +37,10 @@ export class TodoList {
   })
   deadline: string;
 
-  @ManyToOne(type => User, user => user.todoLists)
+  @ManyToOne(type => User, user => user.todos)
   author: User;
 
-  @ManyToOne(type => Family, family => family.todoLists)
+  @ManyToOne(type => Family, family => family.todos)
   family: Family;
 
   @CreateDateColumn({

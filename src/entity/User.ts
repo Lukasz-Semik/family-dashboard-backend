@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 
 import { Family } from './Family';
-import { TodoList } from './TodoList';
+import { Todo } from './Todo';
 import { GENDERS } from '../constants/columnTypes';
 
 @Entity()
@@ -43,8 +43,8 @@ export class User {
   @ManyToOne(type => Family, family => family.users)
   family: Family;
 
-  @OneToMany(type => TodoList, todoList => todoList.author)
-  todoLists: TodoList[];
+  @OneToMany(type => Todo, todo => todo.author)
+  todos: Todo[];
 
   @Column({
     type: 'varchar',
