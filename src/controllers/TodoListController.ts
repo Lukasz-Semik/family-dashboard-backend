@@ -9,11 +9,11 @@ import {
   Req,
 } from 'routing-controllers';
 import { getRepository } from 'typeorm';
-import { isEmpty } from 'lodash';
+import { isEmpty, find } from 'lodash';
 
 import { internalServerErrors, userErrors, defaultErrors } from '../constants/errors';
 import { todoListSuccesses } from '../constants/successes';
-import { API_TODOLISTS } from '../constants/routes';
+import { API_TODOLISTS, API_TODOLIST } from '../constants/routes';
 import urlencodedParser from '../utils/bodyParser';
 import { Family, User, TodoList } from '../entity';
 import { Token } from '.';
@@ -103,5 +103,27 @@ export class TodoListController {
     } catch (err) {
       return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
+  }
+
+  @Get(API_TODOLIST().base)
+  @Authorized()
+  async getTodoList(@Req() req: any, @Res() res: any) {
+    const { id: idDecoded } = await Token.decode(req.headers.authorization);
+
+    const user = await this.userRepository.findOne({ id: idDecoded }, { relations: ['family'] });
+
+    if (!user.isVerified || !user.hasFamily)
+      return res.status(400).json({ errors: { user: userErrors.hasNoPermissions } });
+
+    const { todoLists } = await this.familyWithTodoListsQuery(user.family.id);
+
+    const { todoId } = req.params;
+
+    const foundTodoList = find(todoLists, item => item.id === Number(todoId));
+
+    if (isEmpty(foundTodoList))
+      return res.status(404).json({ errors: { todoList: defaultErrors.notFound } });
+
+    return res.status(200).json({ todoList: foundTodoList });
   }
 }

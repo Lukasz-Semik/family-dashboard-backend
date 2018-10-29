@@ -58,12 +58,14 @@ interface DefaultErrorsTypes {
   isRequired: string;
   notAllowedValue: string;
   emptyPayload: string;
+  notFound: string;
 }
 
 export const defaultErrors: DefaultErrorsTypes = {
   isRequired: 'is-required',
   notAllowedValue: 'not-allowed-value',
   emptyPayload: 'empty-payload',
+  notFound: 'not-found',
 };
 
 interface FamilyErrorsTypes {
