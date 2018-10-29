@@ -34,7 +34,8 @@ export class TodoList {
 
   @Column({
     nullable: true,
-    type: 'timestamp',
+    type: 'varchar',
+    length: 255,
   })
   deadline: string;
 

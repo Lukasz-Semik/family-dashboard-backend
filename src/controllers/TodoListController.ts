@@ -47,7 +47,6 @@ export class TodoListController {
     try {
       const { title, description, deadline } = req.body;
 
-      // TODO: create validator checking also the timestamp
       if (isEmpty(title))
         return res.status(400).json({ errors: { title: defaultErrors.isRequired } });
 
