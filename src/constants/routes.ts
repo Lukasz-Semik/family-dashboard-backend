@@ -2,6 +2,11 @@ export const api: string = '/api';
 
 export const generateFullApi: (suffix: string) => string = suffix => `${api}${suffix}`;
 
+interface RouteFieldsTypes {
+  base: string;
+  fullRoute: string;
+}
+
 // User routes
 export const API_USER_SIGN_UP: string = '/user/sign-up';
 export const API_USER_SIGN_IN: string = '/user/sign-in';
@@ -19,4 +24,10 @@ export const API_FAMILY_GET: string = '/family/current';
 export const API_FAMILY_ASSIGN_HEAD: string = '/family/head-assign';
 
 // TodoList routes
-export const API_TODOLISTS: string = '/todolists';
+export const todoListsBase = '/todolists';
+export const API_TODOLISTS: string = todoListsBase;
+
+export const API_TODOLIST: (param?: number) => RouteFieldsTypes = param => ({
+  base: `${todoListsBase}/:todoId`,
+  fullRoute: `${generateFullApi(todoListsBase)}/${String(param)}`,
+});
