@@ -7,17 +7,8 @@ import { User, Family, TodoList } from '../entity';
 export const dbClear: any = async connection =>
   await connection.query('TRUNCATE TABLE "user", "family", "todo_list" RESTART IDENTITY;');
 
-export const dbSeedUsers: any = async ({
-  email,
-  isVerified,
-  isFamilyHead,
-  hasFamily,
-  hasBigFamily,
-  hasTodoList,
-}) => {
+export const dbSeedUser: any = async ({ email, isVerified, isFamilyHead, hasFamily }) => {
   const userRepository = getRepository(User);
-  const familyRepository = getRepository(Family);
-  const todoListRepository = getRepository(TodoList);
 
   const hashedPassword = await hash(defaultPassword, 10);
 
@@ -29,29 +20,36 @@ export const dbSeedUsers: any = async ({
     password: hashedPassword,
   });
 
-  if (!hasFamily)
-    return {
-      firstUser: createdUser,
-    };
+  return createdUser;
+};
+
+export const dbSeedFamily: any = async ({ familyHeadEmail, hasBigFamily, hasTodoList }) => {
+  const familyRepository = getRepository(Family);
+  const todoListRepository = getRepository(TodoList);
+
+  const familyHead = await dbSeedUser({
+    email: familyHeadEmail,
+    isVerified: true,
+    hasFamily: true,
+    isFamilyHead: true,
+  });
 
   let todoList: any;
 
+  let familyMember: any;
+
   const newFamily = new Family();
 
-  const users = [createdUser];
-
-  let familyMemberUser: any;
+  const users = [familyHead];
 
   if (hasBigFamily) {
-    const newFamilyMember = new User();
-
-    familyMemberUser = await userRepository.save({
-      ...newFamilyMember,
-      ...generateUser({ email: 'family-member-user@emailcom', isVerified, hasFamily }),
-      password: hashedPassword,
+    familyMember = await dbSeedUser({
+      email: 'family-member-user@emailcom',
+      isVerified: true,
+      hasFamily: true,
     });
 
-    users.push(familyMemberUser);
+    users.push(familyMember);
   }
 
   if (hasTodoList) {
@@ -60,7 +58,7 @@ export const dbSeedUsers: any = async ({
     todoList = await todoListRepository.save({
       ...newTodoList,
       ...generateTodoList(),
-      author: createdUser,
+      author: familyHead,
       isDone: false,
     });
 
@@ -69,12 +67,13 @@ export const dbSeedUsers: any = async ({
 
   await familyRepository.save({
     ...newFamily,
-    name: createdUser.lastName,
+    name: familyHead.lastName,
     users,
   });
 
   return {
-    firstUser: createdUser,
-    secondUser: familyMemberUser,
+    familyHead,
+    familyMember,
+    todoLists: newFamily.todoLists,
   };
 };

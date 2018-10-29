@@ -3,7 +3,7 @@ import * as request from 'supertest';
 import { createConnection } from 'typeorm';
 
 import { APP } from '../server';
-import { dbSeedUsers, dbClear } from '../utils/testsSeeds';
+import { dbSeedUser, dbSeedFamily, dbClear } from '../utils/testsSeeds';
 import { generateFullApi, API_TODOLISTS, API_TODOLIST } from '../constants/routes';
 import { todoListSuccesses } from '../constants/successes';
 import { userErrors, defaultErrors } from '../constants/errors';
@@ -26,32 +26,29 @@ describe('TodoList Controller', async () => {
       let userTokenGenerated: string;
       const userEmail: string = 'user@email.com';
 
-      let notVerifiedUsers: any;
+      let notVerifiedUser: any;
       let notVerifiedUserTokenGenerated: string;
       const notVerifiedEmail: string = 'not-verified-user@email.com';
 
       before(async () => {
         await dbClear(connection);
 
-        family = await dbSeedUsers({
-          email: userEmail,
-          hasFamily: true,
-          isFamilyHead: true,
-          isVerified: true,
+        family = await dbSeedFamily({
+          familyHeadEmail: userEmail,
         });
 
         userTokenGenerated = await Token.create({
           email: userEmail,
-          id: family.firstUser.id,
+          id: family.familyHead.id,
         });
 
-        notVerifiedUsers = await dbSeedUsers({
+        notVerifiedUser = await dbSeedUser({
           email: notVerifiedEmail,
         });
 
         notVerifiedUserTokenGenerated = await Token.create({
           email: notVerifiedEmail,
-          id: notVerifiedUsers.firstUser.id,
+          id: notVerifiedUser.id,
         });
       });
 
@@ -129,35 +126,32 @@ describe('TodoList Controller', async () => {
     describe('GET method', () => {
       let family: any;
       let userTokenGenerated: string;
-      const userEmail: string = 'user@email.com';
+      const userEmail: string = 'user-1@email.com';
 
-      let notVerifiedUsers: any;
+      let notVerifiedUser: any;
       let notVerifiedUserTokenGenerated: string;
       const notVerifiedEmail: string = 'not-verified-user@email.com';
 
       before(async () => {
         await dbClear(connection);
 
-        family = await dbSeedUsers({
-          email: userEmail,
-          hasFamily: true,
-          isFamilyHead: true,
-          isVerified: true,
+        family = await dbSeedFamily({
+          familyHeadEmail: userEmail,
           hasTodoList: true,
         });
 
         userTokenGenerated = await Token.create({
           email: userEmail,
-          id: family.firstUser.id,
+          id: family.familyHead.id,
         });
 
-        notVerifiedUsers = await dbSeedUsers({
+        notVerifiedUser = await dbSeedUser({
           email: notVerifiedEmail,
         });
 
         notVerifiedUserTokenGenerated = await Token.create({
           email: notVerifiedEmail,
-          id: notVerifiedUsers.firstUser.id,
+          id: notVerifiedUser.id,
         });
       });
 
@@ -173,7 +167,7 @@ describe('TodoList Controller', async () => {
             expect(todoLists[0].title).to.equal('some-todo-list-title');
             expect(todoLists[0].description).to.equal('some-todo-list-description');
             expect(todoLists[0].createdAt).to.be.a('string');
-            expect(todoLists[0].author.id).to.equal(family.firstUser.id);
+            expect(todoLists[0].author.id).to.equal(family.familyHead.id);
           })
           .end(err => {
             if (err) return done(err);
@@ -209,7 +203,7 @@ describe('TodoList Controller', async () => {
   //   before(async () => {
   //     await dbClear(connection);
 
-  //     family = await dbSeedUsers({
+  //     family = await dbSeedUser({
   //       email: userEmail,
   //       hasFamily: true,
   //       isFamilyHead: true,
@@ -222,7 +216,7 @@ describe('TodoList Controller', async () => {
   //       id: family.firstUser.id,
   //     });
 
-  //     notVerifiedUsers = await dbSeedUsers({
+  //     notVerifiedUsers = await dbSeedUser({
   //       email: notVerifiedEmail,
   //     });
 

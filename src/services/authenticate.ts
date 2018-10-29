@@ -9,9 +9,9 @@ const authenticate = async (action: Action) => {
   const token = action.request.headers.authorization;
 
   const userRepository = getRepository(User);
-  const { email } = await Token.decode(token);
+  const { id } = await Token.decode(token);
 
-  const user = await userRepository.findOne({ email });
+  const user = await userRepository.findOne({ id });
 
   if (!isEmpty(user)) return true;
 
