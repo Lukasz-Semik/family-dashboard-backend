@@ -131,9 +131,6 @@ export class FamilyController {
 
       const { users } = await this.familyWithUserQuery(userCurrentHead.family.id);
 
-      if (users.length < this.minFamilySizeToAssignHead)
-        return res.status(400).json({ errors: { family: familyErrors.tooSmall } });
-
       const {
         errors: userToAssignErrors,
         isValid: userToAssignIsValid,

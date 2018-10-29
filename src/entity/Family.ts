@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 
 import { User } from './User';
+import { TodoList } from './TodoList';
 
 @Entity()
 export class Family {
@@ -19,6 +20,9 @@ export class Family {
 
   @OneToMany(type => User, user => user.family)
   users: User[];
+
+  @OneToMany(type => TodoList, todoList => todoList.family)
+  todoLists: TodoList[];
 
   @CreateDateColumn({
     type: 'timestamp',

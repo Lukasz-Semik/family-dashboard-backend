@@ -28,14 +28,16 @@ interface UserErrorsTypes {
   familyHeadNotRemovable: string;
   isNoFamilyHead: string;
   assignItself: string;
+  hasNoPermissions: string;
 }
 
 export const userErrors: UserErrorsTypes = {
-  hasFamily: 'email-is-assigned-to-family',
-  hasNoFamily: 'email-is-not-assigned-to-family',
-  familyHeadNotRemovable: 'email-family-head-not-removable',
-  isNoFamilyHead: 'email-is-no-family-head',
-  assignItself: 'email-assign-itself',
+  hasFamily: 'user-is-assigned-to-family',
+  hasNoFamily: 'user-is-not-assigned-to-family',
+  familyHeadNotRemovable: 'user-family-head-not-removable',
+  isNoFamilyHead: 'user-is-no-family-head',
+  assignItself: 'user-assign-itself',
+  hasNoPermissions: 'user-has-no-permissions',
 };
 
 interface PasswordErrorsTypes {

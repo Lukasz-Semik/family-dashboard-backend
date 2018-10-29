@@ -31,3 +31,8 @@ export const generateUser = ({
   hasFamily,
   isVerified,
 });
+
+export const generateTodoList = () => ({
+  title: 'some-todo-list-title',
+  description: 'some-todo-list-description',
+});

@@ -1,21 +1,23 @@
 import { getRepository } from 'typeorm';
 import { hash } from 'bcryptjs';
 
-import { generateUser, defaultPassword } from '../constants/testFixtures';
-import { User, Family } from '../entity';
+import { generateUser, generateTodoList, defaultPassword } from '../constants/testFixtures';
+import { User, Family, TodoList } from '../entity';
 
 export const dbClear: any = async connection =>
-  await connection.query('TRUNCATE TABLE "user", "family" RESTART IDENTITY;');
+  await connection.query('TRUNCATE TABLE "user", "family", "todo_list" RESTART IDENTITY;');
 
-export const dbSeedUser: any = async ({
+export const dbSeedUsers: any = async ({
   email,
   isVerified,
   isFamilyHead,
   hasFamily,
   hasBigFamily,
+  hasTodoList,
 }) => {
   const userRepository = getRepository(User);
   const familyRepository = getRepository(Family);
+  const todoListRepository = getRepository(TodoList);
 
   const hashedPassword = await hash(defaultPassword, 10);
 
@@ -27,7 +29,12 @@ export const dbSeedUser: any = async ({
     password: hashedPassword,
   });
 
-  if (!hasFamily) return createdUser;
+  if (!hasFamily)
+    return {
+      firstUser: createdUser,
+    };
+
+  let todoList: any;
 
   const newFamily = new Family();
 
@@ -47,6 +54,19 @@ export const dbSeedUser: any = async ({
     users.push(familyMemberUser);
   }
 
+  if (hasTodoList) {
+    const newTodoList = new TodoList();
+
+    todoList = await todoListRepository.save({
+      ...newTodoList,
+      ...generateTodoList(),
+      author: createdUser,
+      isDone: false,
+    });
+
+    newFamily.todoLists = [todoList];
+  }
+
   await familyRepository.save({
     ...newFamily,
     name: createdUser.lastName,
@@ -54,7 +74,7 @@ export const dbSeedUser: any = async ({
   });
 
   return {
-    familyHead: createdUser,
-    familyMember: familyMemberUser,
+    firstUser: createdUser,
+    secondUser: familyMemberUser,
   };
 };

@@ -3,7 +3,7 @@ import * as request from 'supertest';
 import { createConnection } from 'typeorm';
 
 import { APP } from '../server';
-import { dbSeedUser, dbClear } from '../utils/testsSeeds';
+import { dbSeedUsers, dbClear } from '../utils/testsSeeds';
 import {
   generateFullApi,
   API_FAMILY_GET,
@@ -26,7 +26,7 @@ describe('Family Controller', async () => {
   });
 
   describe(`Route ${generateFullApi(API_FAMILY_CREATE)}`, () => {
-    let fmailyCreatorUser: any;
+    let familyCreated: any;
     let familyCreatorTokenGenerated: string;
     const familyCreatorEmail: string = 'family-creator@email.com';
 
@@ -37,14 +37,14 @@ describe('Family Controller', async () => {
     before(async () => {
       await dbClear(connection);
 
-      fmailyCreatorUser = await dbSeedUser({ email: familyCreatorEmail });
+      familyCreated = await dbSeedUsers({ email: familyCreatorEmail });
 
       familyCreatorTokenGenerated = await Token.create({
         email: familyCreatorEmail,
-        id: fmailyCreatorUser.id,
+        id: familyCreated.firstUser.id,
       });
 
-      seededFamily = await dbSeedUser({
+      seededFamily = await dbSeedUsers({
         email: familyOwnerEmail,
         hasFamily: true,
         isFamilyHead: true,
@@ -52,7 +52,7 @@ describe('Family Controller', async () => {
 
       familyOwnerTokenGenerated = await Token.create({
         email: familyOwnerEmail,
-        id: seededFamily.familyHead.id,
+        id: seededFamily.firstUser.id,
       });
     });
 
@@ -66,15 +66,15 @@ describe('Family Controller', async () => {
         .expect(res => {
           const { name, id, createdAt, updatedAt, users: familyUsers } = res.body.family;
 
-          expect(name).to.equal(fmailyCreatorUser.lastName);
+          expect(name).to.equal(familyCreated.firstUser.lastName);
           expect(id).to.be.a('number');
           expect(createdAt).to.be.a('string');
           expect(createdAt).to.equal(updatedAt);
           expect(familyUsers.length).to.equal(1);
           expect(familyUsers[0]).to.include({
             isFamilyHead: true,
-            firstName: fmailyCreatorUser.firstName,
-            lastName: fmailyCreatorUser.lastName,
+            firstName: familyCreated.firstUser.firstName,
+            lastName: familyCreated.firstUser.lastName,
           });
         })
         .end(err => {
@@ -99,7 +99,7 @@ describe('Family Controller', async () => {
   });
 
   describe(`Route ${generateFullApi(API_FAMILY_GET)}`, () => {
-    let withoutFamilyUser: any;
+    let emptyFamily: any;
     let withoutFamilyTokenGenerated: string;
     const withoutFamilyEmail: string = 'without-family-user@email.com';
 
@@ -110,7 +110,7 @@ describe('Family Controller', async () => {
     before(async () => {
       await dbClear(connection);
 
-      family = await dbSeedUser({
+      family = await dbSeedUsers({
         email: familyOwnerEmail,
         hasFamily: true,
         isFamilyHead: true,
@@ -119,16 +119,16 @@ describe('Family Controller', async () => {
 
       familyOwnerTokenGenerated = await Token.create({
         email: familyOwnerEmail,
-        id: family.familyHead.id,
+        id: family.firstUser.id,
       });
 
-      withoutFamilyUser = await dbSeedUser({
+      emptyFamily = await dbSeedUsers({
         email: withoutFamilyEmail,
       });
 
       withoutFamilyTokenGenerated = await Token.create({
         email: withoutFamilyEmail,
-        id: withoutFamilyUser.id,
+        id: emptyFamily.firstUser.id,
       });
     });
 
@@ -142,7 +142,7 @@ describe('Family Controller', async () => {
         .expect(res => {
           const { name, id, createdAt, updatedAt, users: familyUsers } = res.body.family;
 
-          expect(name).to.equal(family.familyHead.lastName);
+          expect(name).to.equal(family.firstUser.lastName);
           expect(id).to.be.a('number');
           expect(createdAt).to.be.a('string');
           expect(createdAt).to.equal(updatedAt);
@@ -151,8 +151,8 @@ describe('Family Controller', async () => {
           expect(familyUsers[0]).to.include({
             isFamilyHead: true,
             isVerified: true,
-            firstName: family.familyHead.firstName,
-            lastName: family.familyHead.lastName,
+            firstName: family.firstUser.firstName,
+            lastName: family.firstUser.lastName,
           });
         })
         .end(err => {
@@ -182,7 +182,7 @@ describe('Family Controller', async () => {
     const familyOwnerEmail: string = 'family-owner-user@email.com';
 
     before(async () => {
-      family = await dbSeedUser({
+      family = await dbSeedUsers({
         email: familyOwnerEmail,
         hasFamily: true,
         isFamilyHead: true,
@@ -192,7 +192,7 @@ describe('Family Controller', async () => {
 
       familyOwnerTokenGenerated = await Token.create({
         email: familyOwnerEmail,
-        id: family.familyHead.id,
+        id: family.firstUser.id,
       });
     });
 
@@ -203,7 +203,7 @@ describe('Family Controller', async () => {
         .patch(generateFullApi(API_FAMILY_ASSIGN_HEAD))
         .set('authorization', familyOwnerTokenGenerated)
         .type('form')
-        .send({ userToAssignId: family.familyMember.id })
+        .send({ userToAssignId: family.secondUser.id })
         .expect(200)
         .expect(res => {
           expect(res.body.family).to.equal(accountSuccesses.familyHeadAssigned);
