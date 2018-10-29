@@ -191,56 +191,87 @@ describe('TodoList Controller', async () => {
     });
   });
 
-  // describe(`Route ${API_TODOLIST().base}`, () => {
-  //   let family: any;
-  //   let userTokenGenerated: string;
-  //   const userEmail: string = 'user@email.com';
+  describe(`Route ${API_TODOLIST().base}`, () => {
+    let family: any;
+    let userTokenGenerated: string;
+    const userEmail: string = 'user@email.com';
 
-  //   let notVerifiedUsers: any;
-  //   let notVerifiedUserTokenGenerated: string;
-  //   const notVerifiedEmail: string = 'not-verified-user@email.com';
+    let notVerifiedUser: any;
+    let notVerifiedUserTokenGenerated: string;
+    const notVerifiedEmail: string = 'not-verified-user@email.com';
 
-  //   before(async () => {
-  //     await dbClear(connection);
+    before(async () => {
+      await dbClear(connection);
 
-  //     family = await dbSeedUser({
-  //       email: userEmail,
-  //       hasFamily: true,
-  //       isFamilyHead: true,
-  //       isVerified: true,
-  //       hasTodoList: true,
-  //     });
+      family = await dbSeedFamily({
+        familyHead: userEmail,
+        hasFamily: true,
+        hasTodoList: true,
+      });
 
-  //     userTokenGenerated = await Token.create({
-  //       email: userEmail,
-  //       id: family.firstUser.id,
-  //     });
+      userTokenGenerated = await Token.create({
+        email: userEmail,
+        id: family.familyHead.id,
+      });
 
-  //     notVerifiedUsers = await dbSeedUser({
-  //       email: notVerifiedEmail,
-  //     });
+      notVerifiedUser = await dbSeedUser({
+        email: notVerifiedEmail,
+      });
 
-  //     notVerifiedUserTokenGenerated = await Token.create({
-  //       email: notVerifiedEmail,
-  //       id: notVerifiedUsers.firstUser.id,
-  //     });
-  //   });
+      notVerifiedUserTokenGenerated = await Token.create({
+        email: notVerifiedEmail,
+        id: notVerifiedUser.id,
+      });
+    });
 
-  //   describe('GET method', () => {
-  //     it('should return specific todo-list', done => {
-  //       request(APP)
-  //         .get(generateFullApi(API_TODOLIST(1).fullRoute))
-  //         .set('authorization', userTokenGenerated)
-  //         .expect(200)
-  //         .expect(res => {
-  //           // expect(res.body.errors.user).to.equal(userErrors.hasNoPermissions);
-  //           console.log(res.body);
-  //         })
-  //         .end(err => {
-  //           if (err) return done(err);
-  //           done();
-  //         });
-  //     });
-  //   });
-  // });
+    describe('GET method', () => {
+      it('should return specific todo-list', done => {
+        request(APP)
+          .get(API_TODOLIST(family.todoLists[0].id).fullRoute)
+          .set('authorization', userTokenGenerated)
+          .expect(200)
+          .expect(res => {
+            const { todoList } = res.body;
+
+            expect(todoList.id).to.be.a('number');
+            expect(todoList.title).to.equal('some-todo-list-title');
+            expect(todoList.isDone).to.equal(false);
+            expect(todoList.createdAt).to.be.a('string');
+            expect(todoList.author.id).to.equal(family.familyHead.id);
+          })
+          .end(err => {
+            if (err) return done(err);
+            done();
+          });
+      });
+
+      it('should return 404 for not existing todo', done => {
+        request(APP)
+          .get(API_TODOLIST(999).fullRoute)
+          .set('authorization', userTokenGenerated)
+          .expect(404)
+          .expect(res => {
+            expect(res.body.errors.todoList).to.equal(defaultErrors.notFound);
+          })
+          .end(err => {
+            if (err) return done(err);
+            done();
+          });
+      });
+
+      it('should return proper error messages for not verified user', done => {
+        request(APP)
+          .get(generateFullApi(API_TODOLISTS))
+          .set('authorization', notVerifiedUserTokenGenerated)
+          .expect(400)
+          .expect(res => {
+            expect(res.body.errors.user).to.equal(userErrors.hasNoPermissions);
+          })
+          .end(err => {
+            if (err) return done(err);
+            done();
+          });
+      });
+    });
+  });
 });
