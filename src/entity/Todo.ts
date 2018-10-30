@@ -40,6 +40,12 @@ export class Todo {
   @ManyToOne(type => User, user => user.todos)
   author: User;
 
+  @ManyToOne(type => User, user => user.finishedTodos)
+  executor: User;
+
+  @ManyToOne(type => User, user => user.updatedTodos)
+  updater: User;
+
   @ManyToOne(type => Family, family => family.todos)
   family: Family;
 

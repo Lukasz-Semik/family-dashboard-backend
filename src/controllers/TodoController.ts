@@ -35,7 +35,21 @@ export class TodoController {
       .createQueryBuilder('family')
       .leftJoin('family.todos', 'todos')
       .leftJoin('todos.author', 'author')
-      .select(['family', 'todos', 'author.firstName', 'author.lastName', 'author.id'])
+      .leftJoin('todos.executor', 'executor')
+      .leftJoin('todos.updater', 'updater')
+      .select([
+        'family',
+        'todos',
+        'author.firstName',
+        'author.lastName',
+        'author.id',
+        'executor.id',
+        'executor.firstName',
+        'executor.lastName',
+        'updater.id',
+        'updater.firstName',
+        'updater.lastName',
+      ])
       .where('family.id = :id', { id })
       // tslint:disable-next-line semicolon
       .getOne();

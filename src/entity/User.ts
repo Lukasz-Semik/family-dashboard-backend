@@ -46,6 +46,12 @@ export class User {
   @OneToMany(type => Todo, todo => todo.author)
   todos: Todo[];
 
+  @OneToMany(type => Todo, todo => todo.executor)
+  finishedTodos: Todo[];
+
+  @OneToMany(type => Todo, todo => todo.updater)
+  updatedTodos: Todo[];
+
   @Column({
     type: 'varchar',
     length: 255,
