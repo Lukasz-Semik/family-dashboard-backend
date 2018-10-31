@@ -3,7 +3,6 @@ import { expect } from 'chai';
 import {
   validateEmail,
   validatePassword,
-  checkIsProperUpdateUserPayload,
   validateUserAssigningFamilyHead,
   validateUserToAssignFamilyHead,
 } from './user';
@@ -49,36 +48,6 @@ describe('user validators', () => {
 
     it('should return empty string for proper email', () => {
       expect(validatePassword('some-name@gmail.com')).to.equal('');
-    });
-  });
-
-  describe('checkIsProperUpdateUserPayload()', () => {
-    it('should return true for proper payload data', () => {
-      expect(
-        checkIsProperUpdateUserPayload({
-          firstName: 'John',
-          lastName: 'Doe',
-        })
-      ).to.equal(true);
-    });
-
-    it('should return true for some empty value', () => {
-      expect(
-        checkIsProperUpdateUserPayload({
-          firstName: '',
-          lastName: 'Doe',
-        })
-      ).to.equal(false);
-    });
-
-    it('should return true for not allowed data', () => {
-      expect(
-        checkIsProperUpdateUserPayload({
-          firstName: 'John',
-          lastName: 'Doe',
-          notAllowedData: 'some-not-allowed-data',
-        })
-      ).to.equal(false);
     });
   });
 

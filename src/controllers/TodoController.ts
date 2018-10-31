@@ -2,6 +2,7 @@ import {
   JsonController,
   Get,
   Post,
+  Patch,
   Res,
   UseBefore,
   Authorized,
@@ -54,6 +55,17 @@ export class TodoController {
       // tslint:disable-next-line semicolon
       .getOne();
 
+  getCurrentUser = async (req, res) => {
+    const { id: idDecoded } = await Token.decode(req.headers.authorization);
+
+    const user = await this.userRepository.findOne({ id: idDecoded }, { relations: ['family'] });
+
+    if (!user.isVerified || !user.hasFamily) return null;
+
+    return user;
+    // tslint:disable-next-line semicolon
+  };
+
   @Post(API_TODOS)
   @UseBefore(urlencodedParser)
   @Authorized()
@@ -64,12 +76,9 @@ export class TodoController {
       if (isEmpty(title))
         return res.status(400).json({ errors: { title: defaultErrors.isRequired } });
 
-      const { id: idDecoded } = await Token.decode(req.headers.authorization);
+      const user = await this.getCurrentUser(req, res);
 
-      const user = await this.userRepository.findOne({ id: idDecoded }, { relations: ['family'] });
-
-      if (!user.isVerified || !user.hasFamily)
-        return res.status(400).json({ errors: { user: userErrors.hasNoPermissions } });
+      if (!user) return res.status(400).json({ errors: { user: userErrors.hasNoPermissions } });
 
       const todoData: TodoDataTypes = {
         title,
@@ -102,14 +111,11 @@ export class TodoController {
 
   @Get(API_TODOS)
   @Authorized()
-  async getTodoLists(@HeaderParam('authorization') token: string, @Res() res: any) {
+  async getTodos(@Req() req: any, @Res() res: any) {
     try {
-      const { id: idDecoded } = await Token.decode(token);
+      const user = await this.getCurrentUser(req, res);
 
-      const user = await this.userRepository.findOne({ id: idDecoded }, { relations: ['family'] });
-
-      if (!user.isVerified || !user.hasFamily)
-        return res.status(400).json({ errors: { user: userErrors.hasNoPermissions } });
+      if (!user) return res.status(400).json({ errors: { user: userErrors.hasNoPermissions } });
 
       const family = await this.familyWithTodosQuery(user.family.id);
 
@@ -121,13 +127,10 @@ export class TodoController {
 
   @Get(API_TODO().base)
   @Authorized()
-  async getTodoList(@Req() req: any, @Res() res: any) {
-    const { id: idDecoded } = await Token.decode(req.headers.authorization);
+  async getTodo(@Req() req: any, @Res() res: any) {
+    const user = await this.getCurrentUser(req, res);
 
-    const user = await this.userRepository.findOne({ id: idDecoded }, { relations: ['family'] });
-
-    if (!user.isVerified || !user.hasFamily)
-      return res.status(400).json({ errors: { user: userErrors.hasNoPermissions } });
+    if (!user) return res.status(400).json({ errors: { user: userErrors.hasNoPermissions } });
 
     const { todos } = await this.familyWithTodosQuery(user.family.id);
 
@@ -139,5 +142,18 @@ export class TodoController {
       return res.status(404).json({ errors: { todos: defaultErrors.notFound } });
 
     return res.status(200).json({ todos: foundTodos });
+  }
+
+  @Patch(API_TODO().base)
+  @Authorized()
+  async updateTodo(@Req() req: any, @Res() res: any) {
+    // TODO: check payload
+    const user = await this.getCurrentUser(req, res);
+
+    const { todos } = await this.familyWithTodosQuery(user.family.id);
+
+    const { todoId } = req.params;
+
+    const foundTodos = find(todos, todo => todo.id === Number(todoId));
   }
 }

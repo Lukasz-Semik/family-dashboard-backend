@@ -10,7 +10,6 @@ import {
   familyErrors,
 } from '../constants/errors';
 import { GENDERS } from '../constants/columnTypes';
-import allowedUpdateUserDataKeys from '../constants/updateUserDataKeys';
 
 export const validateEmail: (email: string) => string = email => {
   if (isBlank(email)) return emailErrors.isRequired;
@@ -158,18 +157,6 @@ export const validateConfirmationInvited: (
     isValid: isEmpty(errors),
     errors,
   };
-};
-
-export const checkIsProperUpdateUserPayload: (payload: object) => boolean = payload => {
-  const payloadKeys: string[] = Object.keys(payload);
-
-  let isPayloadValid: boolean = true;
-
-  payloadKeys.forEach(key => {
-    if (!allowedUpdateUserDataKeys.includes(key) || isEmpty(payload[key])) isPayloadValid = false;
-  });
-
-  return isPayloadValid;
 };
 
 interface UserAssigningFamilyHeadErrorsTypes {
