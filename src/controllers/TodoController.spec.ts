@@ -261,8 +261,115 @@ describe('Todo Controller', async () => {
 
       it('should return proper error messages for not verified user', done => {
         request(APP)
-          .get(generateFullApi(API_TODOS))
+          .get(API_TODO(family.todos[0].id).fullRoute)
           .set('authorization', notVerifiedUserTokenGenerated)
+          .expect(400)
+          .expect(res => {
+            expect(res.body.errors.user).to.equal(userErrors.hasNoPermissions);
+          })
+          .end(err => {
+            if (err) return done(err);
+            done();
+          });
+      });
+    });
+
+    describe('PATCH method', () => {
+      it('should return updated not done todo', done => {
+        request(APP)
+          .patch(API_TODO(family.todos[0].id).fullRoute)
+          .set('authorization', userTokenGenerated)
+          .type('form')
+          .send({
+            title: 'some-new-title',
+          })
+          .expect(200)
+          .expect(res => {
+            const { updatedTodo } = res.body;
+
+            expect(updatedTodo.title).to.equal('some-new-title');
+            expect(updatedTodo.updater).to.deep.equal({
+              id: family.familyHead.id,
+              firstName: family.familyHead.firstName,
+              lastName: family.familyHead.lastName,
+            });
+            expect(updatedTodo.executor).to.equal(null);
+          })
+          .end(err => {
+            if (err) return done(err);
+            done();
+          });
+      });
+
+      it('should return updated done todo', done => {
+        request(APP)
+          .patch(API_TODO(family.todos[0].id).fullRoute)
+          .set('authorization', userTokenGenerated)
+          .type('form')
+          .send({
+            isDone: true,
+          })
+          .expect(200)
+          .expect(res => {
+            const { updatedTodo } = res.body;
+
+            expect(updatedTodo.updater).to.deep.equal({
+              id: family.familyHead.id,
+              firstName: family.familyHead.firstName,
+              lastName: family.familyHead.lastName,
+            });
+            expect(updatedTodo.executor).to.deep.equal({
+              id: family.familyHead.id,
+              firstName: family.familyHead.firstName,
+              lastName: family.familyHead.lastName,
+            });
+          })
+          .end(err => {
+            if (err) return done(err);
+            done();
+          });
+      });
+
+      it('should return proper error messages for empty payload', done => {
+        request(APP)
+          .patch(API_TODO(family.todos[0].id).fullRoute)
+          .set('authorization', notVerifiedUserTokenGenerated)
+          .type('form')
+          .send({})
+          .expect(400)
+          .expect(res => {
+            expect(res.body.errors.payload).to.equal(defaultErrors.notAllowedValue);
+          })
+          .end(err => {
+            if (err) return done(err);
+            done();
+          });
+      });
+
+      it('should return proper error messages for not allowed payload', done => {
+        request(APP)
+          .patch(API_TODO(family.todos[0].id).fullRoute)
+          .set('authorization', notVerifiedUserTokenGenerated)
+          .type('form')
+          .send({ notAllowedPayload: 'some-not-allowed-payload' })
+          .expect(400)
+          .expect(res => {
+            expect(res.body.errors.payload).to.equal(defaultErrors.notAllowedValue);
+          })
+          .end(err => {
+            if (err) return done(err);
+            done();
+          });
+      });
+
+      it('should return proper error messages for not verified user', done => {
+        request(APP)
+          .patch(API_TODO(family.todos[0].id).fullRoute)
+          .set('authorization', notVerifiedUserTokenGenerated)
+          .type('form')
+          .send({
+            title: 'some-new-title',
+          })
           .expect(400)
           .expect(res => {
             expect(res.body.errors.user).to.equal(userErrors.hasNoPermissions);

@@ -600,7 +600,7 @@ describe('User Controller', () => {
         .send()
         .expect(400)
         .expect(res => {
-          expect(res.body.errors.payload).to.equal(defaultErrors.emptyPayload);
+          expect(res.body.errors.payload).to.equal(defaultErrors.notAllowedValue);
         })
         .end(err => {
           if (err) return done(err);

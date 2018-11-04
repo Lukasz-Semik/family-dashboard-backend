@@ -11,3 +11,20 @@ export const hasProperLength: (str: string, min: number, max: number) => boolean
   min,
   max
 ) => validator.isLength(String(str), { min, max });
+
+export const checkIsProperUpdatePayload: (payload: object, allowdDataKeys: string[]) => boolean = (
+  payload,
+  allowdDataKeys
+) => {
+  if (isEmpty(payload)) return false;
+
+  const payloadKeys: string[] = Object.keys(payload);
+
+  let isPayloadValid: boolean = true;
+
+  payloadKeys.forEach(key => {
+    if (!allowdDataKeys.includes(key) || isEmpty(payload[key])) isPayloadValid = false;
+  });
+
+  return isPayloadValid;
+};

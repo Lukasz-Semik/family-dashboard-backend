@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 
-import { isBlank, isEmail, hasProperLength } from './validators';
+import { isBlank, isEmail, hasProperLength, checkIsProperUpdatePayload } from './validators';
+import { allowedUpdateUserPayloadKeys } from '../constants/allowedPayloadKeys';
 
 describe('isBlank()', () => {
   it('should return true for undefined', () => {
@@ -49,5 +50,48 @@ describe('hasProperLength()', () => {
   it('should return false for not proper lengths', () => {
     expect(hasProperLength('s', 2, 4)).to.equal(false);
     expect(hasProperLength('sssssssss', 2, 4)).to.equal(false);
+  });
+});
+
+describe('checkIsProperUpdatePayload()', () => {
+  it('should return true for proper payload data', () => {
+    expect(
+      checkIsProperUpdatePayload(
+        {
+          firstName: 'John',
+          lastName: 'Doe',
+        },
+        allowedUpdateUserPayloadKeys
+      )
+    ).to.equal(true);
+  });
+
+  it('should return false for some empty value', () => {
+    expect(
+      checkIsProperUpdatePayload(
+        {
+          firstName: '',
+          lastName: 'Doe',
+        },
+        allowedUpdateUserPayloadKeys
+      )
+    ).to.equal(false);
+  });
+
+  it('should return false for not allowed data', () => {
+    expect(
+      checkIsProperUpdatePayload(
+        {
+          firstName: 'John',
+          lastName: 'Doe',
+          notAllowedData: 'some-not-allowed-data',
+        },
+        allowedUpdateUserPayloadKeys
+      )
+    ).to.equal(false);
+  });
+
+  it('should return false for empty payload', () => {
+    expect(checkIsProperUpdatePayload({}, allowedUpdateUserPayloadKeys)).to.equal(false);
   });
 });

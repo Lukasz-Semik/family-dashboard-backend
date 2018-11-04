@@ -24,7 +24,6 @@ import {
   validateSignIn,
   validateInvite,
   validateConfirmationInvited,
-  checkIsProperUpdateUserPayload,
 } from '../validators/user';
 import {
   API_USER_SIGN_UP,
@@ -46,6 +45,8 @@ import {
 } from '../constants/errors';
 import { accountSuccesses } from '../constants/successes';
 import { EXPIRE_24_H } from '../constants/expirations';
+import { allowedUpdateUserPayloadKeys } from '../constants/allowedPayloadKeys';
+import { checkIsProperUpdatePayload } from '../helpers/validators';
 
 @JsonController()
 export class UserController {
@@ -162,13 +163,10 @@ export class UserController {
   @UseBefore(urlencodedParser)
   async editUser(@Req() req: any, @Res() res: any) {
     try {
-      if (isEmpty(req.body))
-        return res.status(400).json({ errors: { payload: defaultErrors.emptyPayload } });
+      if (!checkIsProperUpdatePayload(req.body, allowedUpdateUserPayloadKeys))
+        return res.status(400).json({ errors: { payload: defaultErrors.notAllowedValue } });
 
       const { id: idDecoded } = await Token.decode(req.headers.authorization);
-
-      if (!checkIsProperUpdateUserPayload(req.body))
-        return res.status(400).json({ errors: { payload: defaultErrors.notAllowedValue } });
 
       const currentUser = await this.userRepository.findOne({ id: idDecoded });
 
