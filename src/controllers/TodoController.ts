@@ -6,7 +6,6 @@ import {
   Res,
   UseBefore,
   Authorized,
-  HeaderParam,
   Req,
 } from 'routing-controllers';
 import { getRepository } from 'typeorm';
@@ -15,6 +14,8 @@ import { isEmpty, find } from 'lodash';
 import { internalServerErrors, userErrors, defaultErrors } from '../constants/errors';
 import { todosSuccesses } from '../constants/successes';
 import { API_TODOS, API_TODO } from '../constants/routes';
+import { allowedUpdateTodoPayloadKeys } from '../constants/allowedPayloadKeys';
+import { checkIsProperUpdatePayload } from '../helpers/validators';
 import urlencodedParser from '../utils/bodyParser';
 import { Family, User, Todo } from '../entity';
 import { Token } from '.';
@@ -23,6 +24,17 @@ interface TodoDataTypes {
   title: string;
   description?: string;
   deadline?: string;
+}
+
+interface UserShortDataTypes {
+  id: number;
+  firstName: string;
+  lastName: string;
+}
+
+interface UserRoleDataTypes {
+  updater: UserShortDataTypes;
+  executor?: UserShortDataTypes;
 }
 
 @JsonController()
@@ -128,32 +140,69 @@ export class TodoController {
   @Get(API_TODO().base)
   @Authorized()
   async getTodo(@Req() req: any, @Res() res: any) {
-    const user = await this.getCurrentUser(req, res);
+    try {
+      const user = await this.getCurrentUser(req, res);
 
-    if (!user) return res.status(400).json({ errors: { user: userErrors.hasNoPermissions } });
+      if (!user) return res.status(400).json({ errors: { user: userErrors.hasNoPermissions } });
 
-    const { todos } = await this.familyWithTodosQuery(user.family.id);
+      const { todos } = await this.familyWithTodosQuery(user.family.id);
 
-    const { todoId } = req.params;
+      const { todoId } = req.params;
 
-    const foundTodos = find(todos, todo => todo.id === Number(todoId));
+      const foundTodo = find(todos, todo => todo.id === Number(todoId));
 
-    if (isEmpty(foundTodos))
-      return res.status(404).json({ errors: { todos: defaultErrors.notFound } });
+      if (isEmpty(foundTodo))
+        return res.status(404).json({ errors: { todos: defaultErrors.notFound } });
 
-    return res.status(200).json({ todos: foundTodos });
+      return res.status(200).json({ todos: foundTodo });
+    } catch (err) {
+      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
+    }
   }
 
   @Patch(API_TODO().base)
   @Authorized()
+  @UseBefore(urlencodedParser)
   async updateTodo(@Req() req: any, @Res() res: any) {
     // TODO: check payload
-    const user = await this.getCurrentUser(req, res);
+    try {
+      const {
+        body: payload,
+        params: { todoId },
+      } = req;
 
-    const { todos } = await this.familyWithTodosQuery(user.family.id);
+      if (!checkIsProperUpdatePayload(payload, allowedUpdateTodoPayloadKeys))
+        return res.status(400).json({ errors: { payload: defaultErrors.notAllowedValue } });
 
-    const { todoId } = req.params;
+      const user = await this.getCurrentUser(req, res);
 
-    const foundTodos = find(todos, todo => todo.id === Number(todoId));
+      if (!user) return res.status(400).json({ errors: { user: userErrors.hasNoPermissions } });
+
+      const { todos } = await this.familyWithTodosQuery(user.family.id);
+
+      const foundTodo = find(todos, todo => todo.id === Number(todoId));
+
+      const userShortData: UserShortDataTypes = {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      };
+
+      const userRoleData: UserRoleDataTypes = {
+        updater: userShortData,
+      };
+
+      if (payload.isDone) userRoleData.executor = userShortData;
+
+      const updatedTodo = await this.todoRepository.save({
+        ...foundTodo,
+        ...req.body,
+        ...userRoleData,
+      });
+
+      return res.status(200).json({ updatedTodo });
+    } catch (err) {
+      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
+    }
   }
 }
