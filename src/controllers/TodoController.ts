@@ -164,7 +164,6 @@ export class TodoController {
   @Authorized()
   @UseBefore(urlencodedParser)
   async updateTodo(@Req() req: any, @Res() res: any) {
-    // TODO: check payload
     try {
       const {
         body: payload,
