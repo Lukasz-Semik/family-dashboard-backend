@@ -190,6 +190,7 @@ export class TodoController {
 
       const userRoleData: UserRoleDataTypes = {
         updater: userShortData,
+        executor: null,
       };
 
       if (payload.isDone) userRoleData.executor = userShortData;
