@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Res,
   UseBefore,
   Authorized,
@@ -11,7 +12,7 @@ import {
 import { getRepository } from 'typeorm';
 import { isEmpty, find } from 'lodash';
 
-import { internalServerErrors, userErrors, defaultErrors } from '../constants/errors';
+import { internalServerErrors, userErrors, defaultErrors, todoErrors } from '../constants/errors';
 import { todosSuccesses } from '../constants/successes';
 import { API_TODOS, API_TODO } from '../constants/routes';
 import { allowedUpdateTodoPayloadKeys } from '../constants/allowedPayloadKeys';
@@ -181,6 +182,9 @@ export class TodoController {
 
       const foundTodo = find(todos, todo => todo.id === Number(todoId));
 
+      if (foundTodo.isDone)
+        return res.status(400).json({ errors: { todo: todoErrors.alreadyDone } });
+
       const userShortData: UserShortDataTypes = {
         id: user.id,
         firstName: user.firstName,
@@ -201,6 +205,31 @@ export class TodoController {
       });
 
       return res.status(200).json({ updatedTodo });
+    } catch (err) {
+      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
+    }
+  }
+
+  @Delete(API_TODO().base)
+  @Authorized()
+  async deleteTodo(@Req() req: any, @Res() res: any) {
+    try {
+      const user = await this.getCurrentUser(req, res);
+
+      if (!user) return res.status(400).json({ errors: { user: userErrors.hasNoPermissions } });
+
+      const { todos } = await this.familyWithTodosQuery(user.family.id);
+
+      const { todoId } = req.params;
+
+      const foundTodo = find(todos, todo => todo.id === Number(todoId));
+
+      if (isEmpty(foundTodo))
+        return res.status(404).json({ errors: { todo: defaultErrors.notFound } });
+
+      await this.todoRepository.remove(foundTodo);
+
+      return res.status(200).json({ todo: foundTodo });
     } catch (err) {
       return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
     }

@@ -380,5 +380,49 @@ describe('Todo Controller', async () => {
           });
       });
     });
+
+    describe('DELETE method', () => {
+      it('should return specific todo', done => {
+        request(APP)
+          .delete(API_TODO(family.todos[0].id).fullRoute)
+          .set('authorization', userTokenGenerated)
+          .expect(200)
+          .expect(res => {
+            expect(res.body.todo).to.be.a('object');
+          })
+          .end(err => {
+            if (err) return done(err);
+            done();
+          });
+      });
+
+      it('should return 404 for not existing todo', done => {
+        request(APP)
+          .delete(API_TODO(999).fullRoute)
+          .set('authorization', userTokenGenerated)
+          .expect(404)
+          .expect(res => {
+            expect(res.body.errors.todo).to.equal(defaultErrors.notFound);
+          })
+          .end(err => {
+            if (err) return done(err);
+            done();
+          });
+      });
+
+      it('should return proper error messages for not verified user', done => {
+        request(APP)
+          .delete(API_TODO(family.todos[0].id).fullRoute)
+          .set('authorization', notVerifiedUserTokenGenerated)
+          .expect(400)
+          .expect(res => {
+            expect(res.body.errors.user).to.equal(userErrors.hasNoPermissions);
+          })
+          .end(err => {
+            if (err) return done(err);
+            done();
+          });
+      });
+    });
   });
 });

@@ -77,3 +77,11 @@ export const familyErrors: FamilyErrorsTypes = {
   tooSmall: 'family-too-small',
   noSuchUser: 'family-no-such-user',
 };
+
+interface TodoErrorsTypes {
+  alreadyDone: string;
+}
+
+export const todoErrors: TodoErrorsTypes = {
+  alreadyDone: 'todo-already-done',
+};
