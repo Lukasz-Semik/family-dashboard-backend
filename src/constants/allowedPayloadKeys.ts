@@ -1,4 +1,9 @@
-export const allowedUpdateUserPayloadKeys: string[] = ['firstName', 'lastName', 'age', 'gender'];
+export const allowedUpdateUserPayloadKeys: string[] = [
+  'firstName',
+  'lastName',
+  'birthDate',
+  'gender',
+];
 
 export const allowedUpdateTodoPayloadKeys: string[] = [
   'title',

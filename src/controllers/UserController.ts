@@ -59,8 +59,15 @@ export class UserController {
   @Post(API_USER_SIGN_UP)
   @UseBefore(urlencodedParser)
   async createUser(@Body() body: any, @Res() res: any) {
-    const { email, password, firstName, lastName, gender, age } = body;
-    const { isValid, errors } = validateSignUp(email, password, firstName, lastName, gender, age);
+    const { email, password, firstName, lastName, gender, birthDate } = body;
+    const { isValid, errors } = validateSignUp(
+      email,
+      password,
+      firstName,
+      lastName,
+      gender,
+      birthDate
+    );
 
     if (!isValid) return res.status(400).json({ errors });
 
@@ -86,7 +93,7 @@ export class UserController {
         lastName,
         email,
         gender,
-        age,
+        birthDate,
       });
 
       // TODO: allow e-mails
@@ -249,8 +256,8 @@ export class UserController {
           },
         });
 
-      const { email, firstName, lastName, gender, age } = req.body;
-      const { isValid, errors } = validateInvite(email, firstName, lastName, gender, age);
+      const { email, firstName, lastName, gender, birthDate } = req.body;
+      const { isValid, errors } = validateInvite(email, firstName, lastName, gender, birthDate);
 
       const foundUser = await this.userRepository.findOne({ email });
 
@@ -272,7 +279,7 @@ export class UserController {
         lastName,
         email,
         gender,
-        age,
+        birthDate,
       });
 
       const { id: familyId } = currentUser.family;
@@ -337,7 +344,16 @@ export class UserController {
     try {
       const user = await this.userRepository.findOne({ id: idDecoded });
 
-      const { id: userId, email, isFamilyHead, hasFamily, firstName, lastName, age, gender } = user;
+      const {
+        id: userId,
+        email,
+        isFamilyHead,
+        hasFamily,
+        firstName,
+        lastName,
+        birthDate,
+        gender,
+      } = user;
 
       return res.status(200).json({
         currentUser: {
@@ -347,7 +363,7 @@ export class UserController {
           hasFamily,
           firstName,
           lastName,
-          age,
+          birthDate,
           gender,
         },
       });
