@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import * as express from 'express';
 import { useExpressServer } from 'routing-controllers';
 import { createConnection } from 'typeorm';
+import * as cors from 'cors';
 
 import authenticate from './services/authenticate';
 import { UserController, FamilyController, TodoController } from './controllers';
@@ -19,6 +20,7 @@ useExpressServer(APP, {
   routePrefix: '/api',
   controllers: [UserController, FamilyController, TodoController],
   authorizationChecker: authenticate,
+  middlewares: [cors],
 });
 
 APP.listen(PORT, () => {
