@@ -44,7 +44,7 @@ describe('User Controller', () => {
     after(async () => await dbClear(connection));
 
     it('should create not verified account', done => {
-      const { email, password, firstName, lastName, gender, age } = generateUser({});
+      const { email, password, firstName, lastName, gender, birthDate } = generateUser({});
 
       request(APP)
         .post(generateFullApi(API_USER_SIGN_UP))
@@ -54,7 +54,7 @@ describe('User Controller', () => {
           firstName,
           lastName,
           gender,
-          age,
+          birthDate,
         })
         .expect(200)
         .expect(res => {
@@ -78,7 +78,7 @@ describe('User Controller', () => {
             firstName: defaultErrors.isRequired,
             lastName: defaultErrors.isRequired,
             gender: defaultErrors.notAllowedValue,
-            age: defaultErrors.isRequired,
+            birthDate: defaultErrors.notAllowedValue,
           });
         })
         .end(err => {
@@ -103,7 +103,7 @@ describe('User Controller', () => {
             firstName: defaultErrors.isRequired,
             lastName: defaultErrors.isRequired,
             gender: defaultErrors.notAllowedValue,
-            age: defaultErrors.isRequired,
+            birthDate: defaultErrors.notAllowedValue,
           });
         })
         .end(err => {
@@ -113,7 +113,7 @@ describe('User Controller', () => {
     });
 
     it('should return proper error message for existing user', done => {
-      const { email, firstName, lastName, age, gender } = existingUser;
+      const { email, firstName, lastName, birthDate, gender } = existingUser;
 
       request(APP)
         .post(generateFullApi(API_USER_SIGN_UP))
@@ -122,7 +122,7 @@ describe('User Controller', () => {
           email,
           firstName,
           lastName,
-          age,
+          birthDate,
           gender,
         })
         .expect(400)
@@ -326,7 +326,7 @@ describe('User Controller', () => {
     after(async () => await dbClear(connection));
 
     it('should invite user', done => {
-      const { email, firstName, lastName, age, gender } = generateUser({
+      const { email, firstName, lastName, birthDate, gender } = generateUser({
         email: 'invited-user@email.com',
       });
 
@@ -334,7 +334,7 @@ describe('User Controller', () => {
         .post(generateFullApi(API_USER_INVITE))
         .set('authorization', withFamilyTokenGenerated)
         .type('form')
-        .send({ email, firstName, lastName, age, gender })
+        .send({ email, firstName, lastName, birthDate, gender })
         .expect(200)
         .expect(res => {
           expect(res.body).to.include({
@@ -359,7 +359,7 @@ describe('User Controller', () => {
             email: emailErrors.isRequired,
             firstName: defaultErrors.isRequired,
             lastName: defaultErrors.isRequired,
-            age: defaultErrors.isRequired,
+            birthDate: defaultErrors.notAllowedValue,
             gender: defaultErrors.notAllowedValue,
           });
         })
@@ -386,13 +386,13 @@ describe('User Controller', () => {
     });
 
     it('should return proper error for existing user', done => {
-      const { email, firstName, lastName, age, gender } = family.familyHead;
+      const { email, firstName, lastName, birthDate, gender } = family.familyHead;
 
       request(APP)
         .post(generateFullApi(API_USER_INVITE))
         .set('authorization', withFamilyTokenGenerated)
         .type('form')
-        .send({ email, firstName, lastName, age, gender })
+        .send({ email, firstName, lastName, birthDate, gender })
         .expect(400)
         .expect(res => {
           expect(res.body.errors.email).to.equal(emailErrors.emailTaken);
@@ -478,7 +478,15 @@ describe('User Controller', () => {
 
     describe(`Route ${generateFullApi(API_USER_GET_CURRENT)}`, () => {
       it('should return proper data for current user', done => {
-        const { email, isFamilyHead, hasFamily, firstName, lastName, age, gender } = existingUser;
+        const {
+          email,
+          isFamilyHead,
+          hasFamily,
+          firstName,
+          lastName,
+          birthDate,
+          gender,
+        } = existingUser;
 
         request(APP)
           .get(generateFullApi(API_USER_GET_CURRENT))
@@ -491,7 +499,7 @@ describe('User Controller', () => {
               hasFamily,
               firstName,
               lastName,
-              age,
+              birthDate,
               gender,
             });
 
@@ -567,7 +575,7 @@ describe('User Controller', () => {
 
     it('should return updated user', done => {
       const firstName = 'George';
-      const { lastName, gender, age, isFamilyHead, hasFamily, isVerified } = existingUser;
+      const { lastName, gender, birthDate, isFamilyHead, hasFamily, isVerified } = existingUser;
 
       request(APP)
         .patch(generateFullApi(API_USER_UPDATE))
@@ -580,7 +588,7 @@ describe('User Controller', () => {
             firstName,
             lastName,
             gender,
-            age,
+            birthDate,
             isFamilyHead,
             hasFamily,
             isVerified,

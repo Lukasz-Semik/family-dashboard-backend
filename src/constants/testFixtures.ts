@@ -4,7 +4,7 @@ export interface UsersTypes {
   lastName: string;
   email: string;
   password: string;
-  age: number;
+  birthDate: string;
   gender: string;
   isFamilyHead: boolean;
   hasFamily: boolean;
@@ -23,7 +23,7 @@ export const generateUser = ({
 }) => ({
   firstName: 'John',
   lastName: 'Doe',
-  age: 21,
+  birthDate: '1988-12-03',
   gender: 'male',
   password: defaultPassword,
   email,

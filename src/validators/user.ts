@@ -1,5 +1,6 @@
 // TODO: Improve, add tests
 import { isEmpty } from 'lodash';
+import * as moment from 'moment';
 
 import { isBlank, isEmail, hasProperLength } from '../helpers/validators';
 import {
@@ -61,7 +62,7 @@ interface SignUpErrorsTypes {
   firstName?: string;
   lastName?: string;
   gender?: string;
-  age?: string;
+  birthDate?: string;
 }
 
 interface SignUpValidatorTypes {
@@ -75,8 +76,8 @@ export const validateSignUp: (
   firstName: string,
   lastName: string,
   gender: string,
-  age: number
-) => SignUpValidatorTypes = (email, password, firstName, lastName, gender, age) => {
+  birthDate: string
+) => SignUpValidatorTypes = (email, password, firstName, lastName, gender, birthDate) => {
   const errors: SignUpErrorsTypes = {};
 
   const signInValidated: SignInValidatorTypes = validateSignIn(email, password);
@@ -89,7 +90,8 @@ export const validateSignUp: (
   if (isBlank(firstName)) errors.firstName = defaultErrors.isRequired;
   if (isBlank(lastName)) errors.lastName = defaultErrors.isRequired;
   if (!GENDERS.includes(gender)) errors.gender = defaultErrors.notAllowedValue;
-  if (!age && age !== 0) errors.age = defaultErrors.isRequired;
+  if (isBlank(birthDate) || !moment(birthDate).isValid())
+    errors.birthDate = defaultErrors.notAllowedValue;
 
   return {
     isValid: isEmpty(errors),
@@ -102,7 +104,7 @@ interface InviteErrorsTypes {
   firstName?: string;
   lastName?: string;
   gender?: string;
-  age?: string;
+  birthDate?: string;
 }
 
 interface InviteValidatorTypes {
@@ -115,8 +117,8 @@ export const validateInvite: (
   firstName: string,
   lastName: string,
   gender: string,
-  age: number
-) => InviteValidatorTypes = (email, firstName, lastName, gender, age) => {
+  birthDate: string
+) => InviteValidatorTypes = (email, firstName, lastName, gender, birthDate) => {
   const errors: InviteErrorsTypes = {};
 
   const emailError: string = validateEmail(email);
@@ -124,7 +126,8 @@ export const validateInvite: (
   if (isBlank(firstName)) errors.firstName = defaultErrors.isRequired;
   if (isBlank(lastName)) errors.lastName = defaultErrors.isRequired;
   if (!GENDERS.includes(gender)) errors.gender = defaultErrors.notAllowedValue;
-  if (!age && age !== 0) errors.age = defaultErrors.isRequired;
+  if (isBlank(birthDate) || !moment(birthDate).isValid())
+    errors.birthDate = defaultErrors.notAllowedValue;
 
   return {
     isValid: isEmpty(errors),

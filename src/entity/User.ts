@@ -65,9 +65,10 @@ export class User {
   lastName: string;
 
   @Column({
-    type: 'integer',
+    type: 'varchar',
+    length: 255,
   })
-  age: number;
+  birthDate: string;
 
   @Column({
     type: 'varchar',
