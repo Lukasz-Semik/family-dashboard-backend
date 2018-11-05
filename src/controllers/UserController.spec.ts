@@ -20,6 +20,7 @@ import {
 import { emailErrors, userErrors, passwordErrors, defaultErrors } from '../constants/errors';
 import { accountSuccesses } from '../constants/successes';
 import { Token } from '../controllers';
+import { RES_CONFLICT } from '../constants/resStatuses';
 
 describe('User Controller', () => {
   let connection = null;
@@ -125,7 +126,7 @@ describe('User Controller', () => {
           birthDate,
           gender,
         })
-        .expect(400)
+        .expect(409)
         .expect(res => {
           expect(res.body.errors).to.deep.equal({
             email: emailErrors.emailTaken,
@@ -170,7 +171,7 @@ describe('User Controller', () => {
       request(APP)
         .post(generateFullApi(API_USER_SIGN_IN))
         .send({ email: 'not-existing@guser.com', password: defaultPassword })
-        .expect(400)
+        .expect(404)
         .expect(res => {
           expect(res.body.errors.email).to.equal(emailErrors.notExist);
         })
@@ -221,7 +222,7 @@ describe('User Controller', () => {
       request(APP)
         .post(generateFullApi(API_USER_SIGN_IN))
         .send({ email, password: defaultPassword })
-        .expect(400)
+        .expect(422)
         .expect(res => {
           expect(res.body.errors).to.deep.equal({
             email: emailErrors.notVerified,
@@ -276,11 +277,11 @@ describe('User Controller', () => {
         });
     });
 
-    it('should return proper error message for lack of token', done => {
+    it('should return proper error message for not existing user', done => {
       request(APP)
         .post(generateFullApi(API_USER_CONFIRM))
         .send({ confirmationAccountToken: notExistingUserTokenGenerated })
-        .expect(400)
+        .expect(404)
         .expect(res => {
           expect(res.body.errors.email).to.equal(emailErrors.notExist);
         })
@@ -375,7 +376,7 @@ describe('User Controller', () => {
         .set('authorization', withoutFamilyTokenGenerated)
         .type('form')
         .send()
-        .expect(400)
+        .expect(422)
         .expect(res => {
           expect(res.body.errors.email).to.equal(userErrors.hasNoFamily);
         })
@@ -393,7 +394,7 @@ describe('User Controller', () => {
         .set('authorization', withFamilyTokenGenerated)
         .type('form')
         .send({ email, firstName, lastName, birthDate, gender })
-        .expect(400)
+        .expect(409)
         .expect(res => {
           expect(res.body.errors.email).to.equal(emailErrors.emailTaken);
         })
@@ -712,7 +713,7 @@ describe('User Controller', () => {
       request(APP)
         .delete(generateFullApi(API_USER_DELETE))
         .set('authorization', withBigFamilyTokenGenerated)
-        .expect(400)
+        .expect(422)
         .expect(res => {
           expect(res.body.errors.email).to.equal(userErrors.familyHeadNotRemovable);
         })

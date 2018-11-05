@@ -16,6 +16,14 @@ import { internalServerErrors, userErrors, defaultErrors, todoErrors } from '../
 import { todosSuccesses } from '../constants/successes';
 import { API_TODOS, API_TODO } from '../constants/routes';
 import { allowedUpdateTodoPayloadKeys } from '../constants/allowedPayloadKeys';
+import {
+  RES_BAD_REQUEST,
+  RES_CONFLICT,
+  RES_SUCCESS,
+  RES_INTERNAL_ERROR,
+  RES_NOT_FOUND,
+  RES_FORBIDDEN,
+} from '../constants/resStatuses';
 import { checkIsProperUpdatePayload } from '../helpers/validators';
 import urlencodedParser from '../utils/bodyParser';
 import { Family, User, Todo } from '../entity';
@@ -87,11 +95,12 @@ export class TodoController {
       const { title, description, deadline } = req.body;
 
       if (isEmpty(title))
-        return res.status(400).json({ errors: { title: defaultErrors.isRequired } });
+        return res.status(RES_BAD_REQUEST).json({ errors: { title: defaultErrors.isRequired } });
 
       const user = await this.getCurrentUser(req, res);
 
-      if (!user) return res.status(400).json({ errors: { user: userErrors.hasNoPermissions } });
+      if (!user)
+        return res.status(RES_FORBIDDEN).json({ errors: { user: userErrors.hasNoPermissions } });
 
       const todoData: TodoDataTypes = {
         title,
@@ -116,9 +125,11 @@ export class TodoController {
 
       await this.familyRepository.save(family);
 
-      return res.status(200).json({ todos: todosSuccesses.todoCreated });
+      return res.status(RES_SUCCESS).json({ todos: todosSuccesses.todoCreated });
     } catch (err) {
-      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res
+        .status(RES_INTERNAL_ERROR)
+        .json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
@@ -128,13 +139,16 @@ export class TodoController {
     try {
       const user = await this.getCurrentUser(req, res);
 
-      if (!user) return res.status(400).json({ errors: { user: userErrors.hasNoPermissions } });
+      if (!user)
+        return res.status(RES_FORBIDDEN).json({ errors: { user: userErrors.hasNoPermissions } });
 
       const family = await this.familyWithTodosQuery(user.family.id);
 
-      return res.status(200).json({ todos: family.todos });
+      return res.status(RES_SUCCESS).json({ todos: family.todos });
     } catch (err) {
-      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res
+        .status(RES_INTERNAL_ERROR)
+        .json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
@@ -144,7 +158,8 @@ export class TodoController {
     try {
       const user = await this.getCurrentUser(req, res);
 
-      if (!user) return res.status(400).json({ errors: { user: userErrors.hasNoPermissions } });
+      if (!user)
+        return res.status(RES_FORBIDDEN).json({ errors: { user: userErrors.hasNoPermissions } });
 
       const { todos } = await this.familyWithTodosQuery(user.family.id);
 
@@ -153,11 +168,13 @@ export class TodoController {
       const foundTodo = find(todos, todo => todo.id === Number(todoId));
 
       if (isEmpty(foundTodo))
-        return res.status(404).json({ errors: { todos: defaultErrors.notFound } });
+        return res.status(RES_NOT_FOUND).json({ errors: { todos: defaultErrors.notFound } });
 
-      return res.status(200).json({ todos: foundTodo });
+      return res.status(RES_SUCCESS).json({ todos: foundTodo });
     } catch (err) {
-      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res
+        .status(RES_INTERNAL_ERROR)
+        .json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
@@ -176,14 +193,15 @@ export class TodoController {
 
       const user = await this.getCurrentUser(req, res);
 
-      if (!user) return res.status(400).json({ errors: { user: userErrors.hasNoPermissions } });
+      if (!user)
+        return res.status(RES_FORBIDDEN).json({ errors: { user: userErrors.hasNoPermissions } });
 
       const { todos } = await this.familyWithTodosQuery(user.family.id);
 
       const foundTodo = find(todos, todo => todo.id === Number(todoId));
 
       if (foundTodo.isDone)
-        return res.status(400).json({ errors: { todo: todoErrors.alreadyDone } });
+        return res.status(RES_CONFLICT).json({ errors: { todo: todoErrors.alreadyDone } });
 
       const userShortData: UserShortDataTypes = {
         id: user.id,
@@ -204,9 +222,11 @@ export class TodoController {
         ...userRoleData,
       });
 
-      return res.status(200).json({ updatedTodo });
+      return res.status(RES_SUCCESS).json({ updatedTodo });
     } catch (err) {
-      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res
+        .status(RES_INTERNAL_ERROR)
+        .json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
@@ -216,7 +236,8 @@ export class TodoController {
     try {
       const user = await this.getCurrentUser(req, res);
 
-      if (!user) return res.status(400).json({ errors: { user: userErrors.hasNoPermissions } });
+      if (!user)
+        return res.status(RES_FORBIDDEN).json({ errors: { user: userErrors.hasNoPermissions } });
 
       const { todos } = await this.familyWithTodosQuery(user.family.id);
 
@@ -225,13 +246,15 @@ export class TodoController {
       const foundTodo = find(todos, todo => todo.id === Number(todoId));
 
       if (isEmpty(foundTodo))
-        return res.status(404).json({ errors: { todo: defaultErrors.notFound } });
+        return res.status(RES_NOT_FOUND).json({ errors: { todo: defaultErrors.notFound } });
 
       await this.todoRepository.remove(foundTodo);
 
-      return res.status(200).json({ todo: foundTodo });
+      return res.status(RES_SUCCESS).json({ todo: foundTodo });
     } catch (err) {
-      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res
+        .status(RES_INTERNAL_ERROR)
+        .json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 }

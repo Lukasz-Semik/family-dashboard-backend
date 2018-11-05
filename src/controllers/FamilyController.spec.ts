@@ -85,7 +85,7 @@ describe('Family Controller', async () => {
       request(APP)
         .post(generateFullApi(API_FAMILY_CREATE))
         .set('authorization', familyOwnerTokenGenerated)
-        .expect(400)
+        .expect(422)
         .expect(res => {
           expect(res.body.errors.email).to.equal(userErrors.hasFamily);
         })
@@ -160,7 +160,7 @@ describe('Family Controller', async () => {
       request(APP)
         .get(generateFullApi(API_FAMILY_GET))
         .set('authorization', withoutFamilyTokenGenerated)
-        .expect(400)
+        .expect(403)
         .expect(res => {
           expect(res.body.errors.email).to.equal(userErrors.hasNoFamily);
         })
