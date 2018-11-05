@@ -46,6 +46,14 @@ import {
 import { accountSuccesses } from '../constants/successes';
 import { EXPIRE_24_H } from '../constants/expirations';
 import { allowedUpdateUserPayloadKeys } from '../constants/allowedPayloadKeys';
+import {
+  RES_BAD_REQUEST,
+  RES_CONFLICT,
+  RES_SUCCESS,
+  RES_INTERNAL_ERROR,
+  RES_NOT_FOUND,
+  RES_UNPROCESSABLE_ENTITY,
+} from '../constants/resStatuses';
 import { checkIsProperUpdatePayload } from '../helpers/validators';
 
 @JsonController()
@@ -69,13 +77,13 @@ export class UserController {
       birthDate
     );
 
-    if (!isValid) return res.status(400).json({ errors });
+    if (!isValid) return res.status(RES_BAD_REQUEST).json({ errors });
 
     try {
       const existingUser = await this.userRepository.find({ email });
 
       if (!isEmpty(existingUser))
-        return res.status(400).json({ errors: { email: emailErrors.emailTaken } });
+        return res.status(RES_CONFLICT).json({ errors: { email: emailErrors.emailTaken } });
 
       const hashedPassword = await hash(password, 10);
 
@@ -99,9 +107,11 @@ export class UserController {
       // TODO: allow e-mails
       sendAccountConfirmationEmail(email, firstName, token);
 
-      return res.status(200).json({ account: accountSuccesses.created });
+      return res.status(RES_SUCCESS).json({ account: accountSuccesses.created });
     } catch (err) {
-      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res
+        .status(RES_INTERNAL_ERROR)
+        .json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
@@ -114,20 +124,23 @@ export class UserController {
     const { confirmationAccountToken } = body;
 
     if (isEmpty(confirmationAccountToken))
-      return res.status(400).json({ errors: { token: defaultErrors.isRequired } });
+      return res.status(RES_BAD_REQUEST).json({ errors: { token: defaultErrors.isRequired } });
 
     try {
       const { email } = await Token.decode(confirmationAccountToken);
 
       const user = await this.userRepository.findOne({ email });
 
-      if (isEmpty(user)) return res.status(400).json({ errors: { email: emailErrors.notExist } });
+      if (isEmpty(user))
+        return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
 
       await this.userRepository.save({ ...user, isVerified: true });
 
-      return res.status(200).json({ account: accountSuccesses.confirmed });
+      return res.status(RES_SUCCESS).json({ account: accountSuccesses.confirmed });
     } catch (err) {
-      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res
+        .status(RES_INTERNAL_ERROR)
+        .json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
@@ -140,25 +153,31 @@ export class UserController {
     const { email, password } = body;
     const { isValid, errors } = validateSignIn(email, password);
 
-    if (!isValid) return res.status(400).json({ errors });
+    if (!isValid) return res.status(RES_BAD_REQUEST).json({ errors });
 
     try {
       const user = await this.userRepository.findOne({ email });
 
-      if (isEmpty(user)) return res.status(400).json({ errors: { email: emailErrors.notExist } });
+      if (isEmpty(user))
+        return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
 
       if (!user.isVerified)
-        return res.status(400).json({ errors: { email: emailErrors.notVerified } });
+        return res
+          .status(RES_UNPROCESSABLE_ENTITY)
+          .json({ errors: { email: emailErrors.notVerified } });
 
       const isMatch = await compare(password, user.password);
 
-      if (!isMatch) return res.status(400).json({ errors: { password: passwordErrors.notValid } });
+      if (!isMatch)
+        return res.status(RES_BAD_REQUEST).json({ errors: { password: passwordErrors.notValid } });
 
       const token = Token.create({ email: user.email, id: user.id });
 
-      return res.status(200).json({ isAuthorized: true, token });
+      return res.status(RES_SUCCESS).json({ isAuthorized: true, token });
     } catch (err) {
-      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res
+        .status(RES_INTERNAL_ERROR)
+        .json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
@@ -171,20 +190,27 @@ export class UserController {
   async editUser(@Req() req: any, @Res() res: any) {
     try {
       if (!checkIsProperUpdatePayload(req.body, allowedUpdateUserPayloadKeys))
-        return res.status(400).json({ errors: { payload: defaultErrors.notAllowedValue } });
+        return res
+          .status(RES_BAD_REQUEST)
+          .json({ errors: { payload: defaultErrors.notAllowedValue } });
 
       const { id: idDecoded } = await Token.decode(req.headers.authorization);
 
       const currentUser = await this.userRepository.findOne({ id: idDecoded });
+
+      if (isEmpty(currentUser))
+        return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
 
       const updatedUser = await this.userRepository.save({
         ...currentUser,
         ...req.body,
       });
 
-      return res.status(200).json({ user: updatedUser });
+      return res.status(RES_SUCCESS).json({ user: updatedUser });
     } catch (err) {
-      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res
+        .status(RES_INTERNAL_ERROR)
+        .json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
@@ -198,6 +224,9 @@ export class UserController {
       const { id: idDecoded } = await Token.decode(token);
 
       const user = await this.userRepository.findOne({ id: idDecoded }, { relations: ['family'] });
+
+      if (isEmpty(user))
+        return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
 
       const { family } = user;
 
@@ -214,23 +243,27 @@ export class UserController {
 
           await this.familyRepository.remove(foundFamily);
 
-          return res.status(200).json({
+          return res.status(RES_SUCCESS).json({
             removedEmail: user.email,
             removedFamily: foundFamily.name,
           });
         }
 
         if (user.isFamilyHead)
-          return res.status(400).json({ errors: { email: userErrors.familyHeadNotRemovable } });
+          return res
+            .status(RES_UNPROCESSABLE_ENTITY)
+            .json({ errors: { email: userErrors.familyHeadNotRemovable } });
       }
 
       await this.userRepository.remove(user);
 
-      return res.status(200).json({
+      return res.status(RES_SUCCESS).json({
         removedEmail: user.email,
       });
     } catch (err) {
-      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res
+        .status(RES_INTERNAL_ERROR)
+        .json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
@@ -249,8 +282,11 @@ export class UserController {
         { relations: ['family'] }
       );
 
+      if (isEmpty(currentUser))
+        return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
+
       if (!currentUser.hasFamily)
-        return res.status(400).json({
+        return res.status(RES_UNPROCESSABLE_ENTITY).json({
           errors: {
             email: userErrors.hasNoFamily,
           },
@@ -262,9 +298,9 @@ export class UserController {
       const foundUser = await this.userRepository.findOne({ email });
 
       if (!isEmpty(foundUser))
-        return res.status(400).json({ errors: { email: emailErrors.emailTaken } });
+        return res.status(RES_CONFLICT).json({ errors: { email: emailErrors.emailTaken } });
 
-      if (!isValid) return res.status(400).json({ errors });
+      if (!isValid) return res.status(RES_BAD_REQUEST).json({ errors });
 
       const token = Token.create({ email }, EXPIRE_24_H);
 
@@ -295,9 +331,11 @@ export class UserController {
       // TODO: allow e-mails
       sendInvitationEmail(email, firstName, currentUser.firstName, family.name, token);
 
-      return res.status(200).json({ account: accountSuccesses.invited });
+      return res.status(RES_SUCCESS).json({ account: accountSuccesses.invited });
     } catch (err) {
-      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res
+        .status(RES_INTERNAL_ERROR)
+        .json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
@@ -310,14 +348,15 @@ export class UserController {
     const { password, invitationToken } = body;
     const { isValid, errors } = validateConfirmationInvited(password, invitationToken);
 
-    if (!isValid) return res.status(400).json({ errors });
+    if (!isValid) return res.status(RES_BAD_REQUEST).json({ errors });
 
     try {
       const { email: emailDecoded } = await Token.decode(invitationToken);
 
       const user = await this.userRepository.findOne({ email: emailDecoded });
 
-      if (isEmpty(user)) return res.status(404).json({ errors: { email: emailErrors.notExist } });
+      if (isEmpty(user))
+        return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
 
       const hashedPassword = await hash(password, 10);
 
@@ -327,9 +366,11 @@ export class UserController {
         isVerified: true,
       });
 
-      return res.status(200).json({ account: accountSuccesses.confirmed });
+      return res.status(RES_SUCCESS).json({ account: accountSuccesses.confirmed });
     } catch (err) {
-      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res
+        .status(RES_INTERNAL_ERROR)
+        .json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
@@ -344,6 +385,9 @@ export class UserController {
     try {
       const user = await this.userRepository.findOne({ id: idDecoded });
 
+      if (isEmpty(user))
+        return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
+
       const {
         id: userId,
         email,
@@ -355,7 +399,7 @@ export class UserController {
         gender,
       } = user;
 
-      return res.status(200).json({
+      return res.status(RES_SUCCESS).json({
         currentUser: {
           userId,
           email,
@@ -368,7 +412,9 @@ export class UserController {
         },
       });
     } catch (err) {
-      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res
+        .status(RES_INTERNAL_ERROR)
+        .json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
@@ -378,6 +424,6 @@ export class UserController {
   @Authorized()
   @Get(API_USER_IS_AUTHORIZED)
   isAuthorized(@Body() body: any, @Res() res: any) {
-    return res.status(200).json({ isAuthorized: true });
+    return res.status(RES_SUCCESS).json({ isAuthorized: true });
   }
 }

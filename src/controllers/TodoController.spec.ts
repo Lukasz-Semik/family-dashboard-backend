@@ -112,7 +112,7 @@ describe('Todo Controller', async () => {
           .set('authorization', notVerifiedUserTokenGenerated)
           .type('form')
           .send({ title: 'some-todos-title' })
-          .expect(400)
+          .expect(403)
           .expect(res => {
             expect(res.body.errors.user).to.equal(userErrors.hasNoPermissions);
           })
@@ -179,7 +179,7 @@ describe('Todo Controller', async () => {
         request(APP)
           .get(generateFullApi(API_TODOS))
           .set('authorization', notVerifiedUserTokenGenerated)
-          .expect(400)
+          .expect(403)
           .expect(res => {
             expect(res.body.errors.user).to.equal(userErrors.hasNoPermissions);
           })
@@ -263,7 +263,7 @@ describe('Todo Controller', async () => {
         request(APP)
           .get(API_TODO(family.todos[0].id).fullRoute)
           .set('authorization', notVerifiedUserTokenGenerated)
-          .expect(400)
+          .expect(403)
           .expect(res => {
             expect(res.body.errors.user).to.equal(userErrors.hasNoPermissions);
           })
@@ -370,7 +370,7 @@ describe('Todo Controller', async () => {
           .send({
             title: 'some-new-title',
           })
-          .expect(400)
+          .expect(403)
           .expect(res => {
             expect(res.body.errors.user).to.equal(userErrors.hasNoPermissions);
           })
@@ -414,7 +414,7 @@ describe('Todo Controller', async () => {
         request(APP)
           .delete(API_TODO(family.todos[0].id).fullRoute)
           .set('authorization', notVerifiedUserTokenGenerated)
-          .expect(400)
+          .expect(403)
           .expect(res => {
             expect(res.body.errors.user).to.equal(userErrors.hasNoPermissions);
           })

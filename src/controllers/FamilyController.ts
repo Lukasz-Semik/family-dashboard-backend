@@ -12,9 +12,17 @@ import {
 import { getRepository } from 'typeorm';
 import { isEmpty } from 'lodash';
 
-import { internalServerErrors, userErrors, familyErrors } from '../constants/errors';
+import { internalServerErrors, userErrors, familyErrors, emailErrors } from '../constants/errors';
 import { accountSuccesses } from '../constants/successes';
 import { API_FAMILY_CREATE, API_FAMILY_GET, API_FAMILY_ASSIGN_HEAD } from '../constants/routes';
+import {
+  RES_BAD_REQUEST,
+  RES_SUCCESS,
+  RES_INTERNAL_ERROR,
+  RES_NOT_FOUND,
+  RES_FORBIDDEN,
+  RES_UNPROCESSABLE_ENTITY,
+} from '../constants/resStatuses';
 import urlencodedParser from '../utils/bodyParser';
 import {
   validateUserAssigningFamilyHead,
@@ -27,7 +35,6 @@ import { Token } from '.';
 export class FamilyController {
   familyRepository = getRepository(Family);
   userRepository = getRepository(User);
-  minFamilySizeToAssignHead = 2;
 
   familyWithUserQuery = id =>
     this.familyRepository
@@ -57,7 +64,13 @@ export class FamilyController {
 
       const user = await this.userRepository.findOne({ id });
 
-      if (user.hasFamily) return res.status(400).json({ errors: { email: userErrors.hasFamily } });
+      if (isEmpty(user))
+        return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
+
+      if (user.hasFamily)
+        return res
+          .status(RES_UNPROCESSABLE_ENTITY)
+          .json({ errors: { email: userErrors.hasFamily } });
 
       const newFamily = new Family();
 
@@ -79,9 +92,11 @@ export class FamilyController {
 
       const family = await this.familyWithUserQuery(createdFamily.id);
 
-      return res.status(200).json({ family });
+      return res.status(RES_SUCCESS).json({ family });
     } catch (err) {
-      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res
+        .status(RES_INTERNAL_ERROR)
+        .json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
@@ -97,14 +112,19 @@ export class FamilyController {
 
       const user = await this.userRepository.findOne({ id }, { relations: ['family'] });
 
+      if (isEmpty(user))
+        return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
+
       if (!user.hasFamily || isEmpty(user.family))
-        return res.status(400).json({ errors: { email: userErrors.hasNoFamily } });
+        return res.status(RES_FORBIDDEN).json({ errors: { email: userErrors.hasNoFamily } });
 
       const family = await this.familyWithUserQuery(user.family.id);
 
-      return res.status(200).json({ family });
+      return res.status(RES_SUCCESS).json({ family });
     } catch (err) {
-      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res
+        .status(RES_INTERNAL_ERROR)
+        .json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 
@@ -127,7 +147,8 @@ export class FamilyController {
         isValid: assigningUserIsValid,
       } = validateUserAssigningFamilyHead(userCurrentHead, userToAssignId);
 
-      if (!assigningUserIsValid) return res.status(400).json({ errors: assigningUserErrors });
+      if (!assigningUserIsValid)
+        return res.status(RES_BAD_REQUEST).json({ errors: assigningUserErrors });
 
       const { users } = await this.familyWithUserQuery(userCurrentHead.family.id);
 
@@ -136,7 +157,8 @@ export class FamilyController {
         isValid: userToAssignIsValid,
       } = validateUserToAssignFamilyHead(userToAssignId, users);
 
-      if (!userToAssignIsValid) return res.status(400).json({ errors: userToAssignErrors });
+      if (!userToAssignIsValid)
+        return res.status(RES_BAD_REQUEST).json({ errors: userToAssignErrors });
 
       const userNewHead = await this.userRepository.findOne({ id: userToAssignId });
 
@@ -150,9 +172,11 @@ export class FamilyController {
         isFamilyHead: true,
       });
 
-      return res.status(200).json({ family: accountSuccesses.familyHeadAssigned });
+      return res.status(RES_SUCCESS).json({ family: accountSuccesses.familyHeadAssigned });
     } catch (err) {
-      return res.status(500).json({ error: internalServerErrors.sthWrong, caughtError: err });
+      return res
+        .status(RES_INTERNAL_ERROR)
+        .json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
 }
