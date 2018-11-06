@@ -5,6 +5,7 @@ import { EXPIRE_2_WEEKS } from '../constants/expirations';
 interface TokenPayloadTypes {
   email: string;
   id?: number;
+  familyId?: number;
 }
 
 export class Token {
@@ -14,6 +15,8 @@ export class Token {
     };
 
     if (user.id) payload.id = user.id;
+
+    if (user.familyId) payload.familyId = user.familyId;
 
     const token = jwt.sign(payload, process.env.JWT_TOKEN, {
       expiresIn,
