@@ -4,7 +4,7 @@ import { createConnection } from 'typeorm';
 
 import { APP } from '../server';
 import { dbSeedUser, dbSeedFamily, dbClear } from '../utils/testsSeeds';
-import { generateUser, defaultPassword } from '../constants/testFixtures';
+import { generateUser, defaultPassword, familyMemberEmail } from '../constants/testFixtures';
 import {
   generateFullApi,
   API_USER_SIGN_UP,
@@ -16,6 +16,7 @@ import {
   API_USER_CONFIRM_INVITED,
   API_USER_UPDATE,
   API_USER_DELETE,
+  API_USER_RESEND_INVITATION,
 } from '../constants/routes';
 import { emailErrors, userErrors, passwordErrors, defaultErrors } from '../constants/errors';
 import { accountSuccesses } from '../constants/successes';
@@ -304,9 +305,6 @@ describe('User Controller', () => {
     before(async () => {
       family = await dbSeedFamily({
         familyHeadEmail: withFamilyEmail,
-        hasFamily: true,
-        isFamilyHead: true,
-        isVerified: true,
       });
 
       withFamilyTokenGenerated = await Token.create({
@@ -397,6 +395,95 @@ describe('User Controller', () => {
         .expect(409)
         .expect(res => {
           expect(res.body.errors.email).to.equal(emailErrors.emailTaken);
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+  });
+
+  describe(`Route ${generateFullApi(API_USER_RESEND_INVITATION)}`, () => {
+    let family: any;
+    let withFamilyTokenGenerated: string;
+    const withFamilyEmail: string = 'with-family-user@email.com';
+
+    let withVerifiedFamily: any;
+    let withVerifiedFamilyTokenGenerated: string;
+    const withVerifiedFamilyyEmail: string = 'with-verified-user@email.com';
+    const notDefaultFamilyMemberEmail = 'some-verified-uesr@email.com';
+
+    before(async () => {
+      family = await dbSeedFamily({
+        familyHeadEmail: withFamilyEmail,
+        hasBigFamily: true,
+        hasMemberVerified: false,
+      });
+
+      withFamilyTokenGenerated = await Token.create({
+        email: withFamilyEmail,
+        id: family.familyHead.id,
+      });
+
+      withVerifiedFamily = await dbSeedFamily({
+        email: withVerifiedFamilyyEmail,
+        hasBigFamily: true,
+        notDefaultFamilyMemberEmail,
+      });
+
+      withVerifiedFamilyTokenGenerated = await Token.create({
+        email: withVerifiedFamilyyEmail,
+        id: withVerifiedFamily.familyHead.id,
+      });
+    });
+
+    after(async () => await dbClear(connection));
+
+    it('should invite user', done => {
+      request(APP)
+        .post(generateFullApi(API_USER_RESEND_INVITATION))
+        .set('authorization', withFamilyTokenGenerated)
+        .type('form')
+        .send({ email: familyMemberEmail })
+        .expect(200)
+        .expect(res => {
+          expect(res.body).to.include({
+            account: accountSuccesses.invited,
+          });
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+
+    it('should return proper messages for wrong data sent', done => {
+      request(APP)
+        .post(generateFullApi(API_USER_RESEND_INVITATION))
+        .set('authorization', withFamilyTokenGenerated)
+        .type('form')
+        .send()
+        .expect(400)
+        .expect(res => {
+          expect(res.body.errors).to.include({
+            email: defaultErrors.isRequired,
+          });
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+
+    it('should return proper error for user without family', done => {
+      request(APP)
+        .post(generateFullApi(API_USER_RESEND_INVITATION))
+        .set('authorization', withVerifiedFamilyTokenGenerated)
+        .type('form')
+        .send({ email: notDefaultFamilyMemberEmail })
+        .expect(422)
+        .expect(res => {
+          expect(res.body.errors.email).to.equal(emailErrors.alreadyVerified);
         })
         .end(err => {
           if (err) return done(err);

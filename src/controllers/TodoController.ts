@@ -8,7 +8,6 @@ import {
   Delete,
   Req,
   Res,
-  HeaderParam,
 } from 'routing-controllers';
 import { getRepository } from 'typeorm';
 import { isEmpty, find } from 'lodash';
@@ -77,7 +76,7 @@ export class TodoController {
       // tslint:disable-next-line semicolon
       .getOne();
 
-  getCurrentUser = async (req, res) => {
+  getCurrentUser = async req => {
     const { id: idDecoded } = await Token.decode(req.headers.authorization);
 
     const user = await this.userRepository.findOne({ id: idDecoded }, { relations: ['family'] });
@@ -88,6 +87,9 @@ export class TodoController {
     // tslint:disable-next-line semicolon
   };
 
+  // @description: post todo
+  // @full route: /api/todos
+  // @access: private
   @Post(API_TODOS)
   @UseBefore(urlencodedParser)
   @Authorized()
@@ -98,7 +100,7 @@ export class TodoController {
       if (isEmpty(title))
         return res.status(RES_BAD_REQUEST).json({ errors: { title: defaultErrors.isRequired } });
 
-      const user = await this.getCurrentUser(req, res);
+      const user = await this.getCurrentUser(req);
 
       if (!user)
         return res.status(RES_FORBIDDEN).json({ errors: { user: userErrors.hasNoPermissions } });
@@ -134,11 +136,14 @@ export class TodoController {
     }
   }
 
+  // @description: get todos
+  // @full route: /api/todos
+  // @access: private
   @Get(API_TODOS)
   @Authorized()
   async getTodos(@Req() req: any, @Res() res: any) {
     try {
-      const user = await this.getCurrentUser(req, res);
+      const user = await this.getCurrentUser(req);
 
       if (!user)
         return res.status(RES_FORBIDDEN).json({ errors: { user: userErrors.hasNoPermissions } });
@@ -153,11 +158,14 @@ export class TodoController {
     }
   }
 
+  // @description: delete todos
+  // @full route: /api/todos
+  // @access: private
   @Delete(API_TODOS)
   @Authorized()
   async deleteAllFamilyTodos(@Req() req: any, @Res() res: any) {
     try {
-      const user = await this.getCurrentUser(req, res);
+      const user = await this.getCurrentUser(req);
 
       if (!user || !user.isFamilyHead)
         return res.status(RES_FORBIDDEN).json({ errors: { user: userErrors.hasNoPermissions } });
@@ -184,11 +192,14 @@ export class TodoController {
     }
   }
 
+  // @description: get todo
+  // @full route: /api/todos/:todoId
+  // @access: private
   @Get(API_TODO().base)
   @Authorized()
   async getTodo(@Req() req: any, @Res() res: any) {
     try {
-      const user = await this.getCurrentUser(req, res);
+      const user = await this.getCurrentUser(req);
 
       if (!user)
         return res.status(RES_FORBIDDEN).json({ errors: { user: userErrors.hasNoPermissions } });
@@ -210,6 +221,9 @@ export class TodoController {
     }
   }
 
+  // @description: update todo
+  // @full route: /api/todos/:todoId
+  // @access: private
   @Patch(API_TODO().base)
   @Authorized()
   @UseBefore(urlencodedParser)
@@ -223,7 +237,7 @@ export class TodoController {
       if (!checkIsProperUpdatePayload(payload, allowedUpdateTodoPayloadKeys))
         return res.status(400).json({ errors: { payload: defaultErrors.notAllowedValue } });
 
-      const user = await this.getCurrentUser(req, res);
+      const user = await this.getCurrentUser(req);
 
       if (!user)
         return res.status(RES_FORBIDDEN).json({ errors: { user: userErrors.hasNoPermissions } });
@@ -262,11 +276,14 @@ export class TodoController {
     }
   }
 
+  // @description: delete todo
+  // @full route: /api/todos/:todoId
+  // @access: private
   @Delete(API_TODO().base)
   @Authorized()
   async deleteTodo(@Req() req: any, @Res() res: any) {
     try {
-      const user = await this.getCurrentUser(req, res);
+      const user = await this.getCurrentUser(req);
 
       if (!user)
         return res.status(RES_FORBIDDEN).json({ errors: { user: userErrors.hasNoPermissions } });

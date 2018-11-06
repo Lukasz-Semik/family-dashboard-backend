@@ -14,6 +14,7 @@ export interface UsersTypes {
 }
 
 export const defaultPassword = 'Password123*';
+export const familyMemberEmail = 'family-member-user@email.com';
 
 export const generateUser = ({
   email = 'default@email.com',

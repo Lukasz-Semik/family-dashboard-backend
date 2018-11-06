@@ -1,3 +1,4 @@
+// TODO: make correction in errors
 interface InternalServeErrorsTypes {
   sthWrong: string;
 }
@@ -11,6 +12,7 @@ interface EmailErrorsTypes {
   wrongFormat: string;
   notExist: string;
   notVerified: string;
+  alreadyVerified: string;
   isRequired: string;
 }
 
@@ -19,6 +21,7 @@ export const emailErrors: EmailErrorsTypes = {
   wrongFormat: 'email-wrong-format',
   notExist: 'email-not-exist',
   notVerified: 'email-not-verified',
+  alreadyVerified: 'email-already-verified',
   isRequired: 'email-required',
 };
 
@@ -29,6 +32,7 @@ interface UserErrorsTypes {
   isNoFamilyHead: string;
   assignItself: string;
   hasNoPermissions: string;
+  notFromFamily: string;
 }
 
 export const userErrors: UserErrorsTypes = {
@@ -38,6 +42,7 @@ export const userErrors: UserErrorsTypes = {
   isNoFamilyHead: 'user-is-no-family-head',
   assignItself: 'user-assign-itself',
   hasNoPermissions: 'user-has-no-permissions',
+  notFromFamily: 'user-not-from-family',
 };
 
 interface PasswordErrorsTypes {
