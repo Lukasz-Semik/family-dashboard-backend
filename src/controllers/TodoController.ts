@@ -88,6 +88,9 @@ export class TodoController {
     // tslint:disable-next-line semicolon
   };
 
+  // @description: post todo
+  // @full route: /api/todos
+  // @access: private
   @Post(API_TODOS)
   @UseBefore(urlencodedParser)
   @Authorized()
@@ -134,6 +137,9 @@ export class TodoController {
     }
   }
 
+  // @description: get todos
+  // @full route: /api/todos
+  // @access: private
   @Get(API_TODOS)
   @Authorized()
   async getTodos(@Req() req: any, @Res() res: any) {
@@ -153,6 +159,9 @@ export class TodoController {
     }
   }
 
+  // @description: delete todos
+  // @full route: /api/todos
+  // @access: private
   @Delete(API_TODOS)
   @Authorized()
   async deleteAllFamilyTodos(@Req() req: any, @Res() res: any) {
@@ -184,6 +193,9 @@ export class TodoController {
     }
   }
 
+  // @description: get todo
+  // @full route: /api/todos/:todoId
+  // @access: private
   @Get(API_TODO().base)
   @Authorized()
   async getTodo(@Req() req: any, @Res() res: any) {
@@ -210,6 +222,9 @@ export class TodoController {
     }
   }
 
+  // @description: update todo
+  // @full route: /api/todos/:todoId
+  // @access: private
   @Patch(API_TODO().base)
   @Authorized()
   @UseBefore(urlencodedParser)
@@ -262,6 +277,9 @@ export class TodoController {
     }
   }
 
+  // @description: delete todo
+  // @full route: /api/todos/:todoId
+  // @access: private
   @Delete(API_TODO().base)
   @Authorized()
   async deleteTodo(@Req() req: any, @Res() res: any) {

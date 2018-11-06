@@ -34,6 +34,7 @@ import {
   API_USER_CONFIRM,
   API_USER_GET_CURRENT,
   API_USER_INVITE,
+  API_USER_RESEND_INVITATION,
   API_USER_CONFIRM_INVITED,
 } from '../constants/routes';
 import {

@@ -16,6 +16,7 @@ export const API_USER_DELETE: string = '/user/delete';
 export const API_USER_IS_AUTHORIZED: string = '/user/is-authorized';
 export const API_USER_GET_CURRENT: string = '/user/current';
 export const API_USER_INVITE: string = '/user/invite';
+export const API_USER_RESEND_INVITATION: string = '/user/resend-invitation';
 export const API_USER_CONFIRM_INVITED: string = '/user/confirm-invited';
 
 // Family routes
