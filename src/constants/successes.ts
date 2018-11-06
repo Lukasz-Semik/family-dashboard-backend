@@ -14,8 +14,10 @@ export const accountSuccesses: AccountSuccessesTypes = {
 
 interface TodosSuccessesTypes {
   todoCreated: string;
+  todosDeleted: string;
 }
 
 export const todosSuccesses: TodosSuccessesTypes = {
   todoCreated: 'todos-created',
+  todosDeleted: 'todos-all-deleted',
 };

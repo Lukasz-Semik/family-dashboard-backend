@@ -1,18 +1,19 @@
 import {
   JsonController,
+  UseBefore,
+  Authorized,
   Get,
   Post,
   Patch,
   Delete,
-  Res,
-  UseBefore,
-  Authorized,
   Req,
+  Res,
+  HeaderParam,
 } from 'routing-controllers';
 import { getRepository } from 'typeorm';
 import { isEmpty, find } from 'lodash';
 
-import { internalServerErrors, userErrors, defaultErrors, todoErrors } from '../constants/errors';
+import { internalServerErrors, userErrors, defaultErrors, todosErrors } from '../constants/errors';
 import { todosSuccesses } from '../constants/successes';
 import { API_TODOS, API_TODO } from '../constants/routes';
 import { allowedUpdateTodoPayloadKeys } from '../constants/allowedPayloadKeys';
@@ -152,6 +153,37 @@ export class TodoController {
     }
   }
 
+  @Delete(API_TODOS)
+  @Authorized()
+  async deleteAllFamilyTodos(@Req() req: any, @Res() res: any) {
+    try {
+      const user = await this.getCurrentUser(req, res);
+
+      if (!user || !user.isFamilyHead)
+        return res.status(RES_FORBIDDEN).json({ errors: { user: userErrors.hasNoPermissions } });
+
+      const { todos } = await this.familyWithTodosQuery(user.family.id);
+
+      if (isEmpty(todos))
+        return res.status(RES_CONFLICT).json({ errors: { todos: todosErrors.alreadyEmpty } });
+
+      const { id } = user.family;
+
+      await this.todoRepository
+        .createQueryBuilder('todos')
+        .leftJoinAndSelect('todos.family', 'family')
+        .delete()
+        .where('family.id = :id', { id })
+        .execute();
+
+      return res.status(RES_SUCCESS).json({ todos: todosSuccesses.todosDeleted });
+    } catch (err) {
+      return res
+        .status(RES_INTERNAL_ERROR)
+        .json({ error: internalServerErrors.sthWrong, caughtError: err });
+    }
+  }
+
   @Get(API_TODO().base)
   @Authorized()
   async getTodo(@Req() req: any, @Res() res: any) {
@@ -201,7 +233,7 @@ export class TodoController {
       const foundTodo = find(todos, todo => todo.id === Number(todoId));
 
       if (foundTodo.isDone)
-        return res.status(RES_CONFLICT).json({ errors: { todo: todoErrors.alreadyDone } });
+        return res.status(RES_CONFLICT).json({ errors: { todo: todosErrors.alreadyDone } });
 
       const userShortData: UserShortDataTypes = {
         id: user.id,

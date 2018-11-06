@@ -80,8 +80,10 @@ export const familyErrors: FamilyErrorsTypes = {
 
 interface TodoErrorsTypes {
   alreadyDone: string;
+  alreadyEmpty: string;
 }
 
-export const todoErrors: TodoErrorsTypes = {
+export const todosErrors: TodoErrorsTypes = {
   alreadyDone: 'todo-already-done',
+  alreadyEmpty: 'todos-already-empty',
 };
