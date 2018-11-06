@@ -1,13 +1,14 @@
 import {
   JsonController,
+  UseBefore,
+  Authorized,
   Get,
   Post,
   Patch,
   Delete,
-  Res,
-  UseBefore,
-  Authorized,
   Req,
+  Res,
+  HeaderParam,
 } from 'routing-controllers';
 import { getRepository } from 'typeorm';
 import { isEmpty, find } from 'lodash';
@@ -151,6 +152,10 @@ export class TodoController {
         .json({ error: internalServerErrors.sthWrong, caughtError: err });
     }
   }
+
+  @Delete()
+  @Authorized()
+  async deleteAllFamilyTodos(@HeaderParam('authorization') token: string, @Res() res: any) {}
 
   @Get(API_TODO().base)
   @Authorized()
