@@ -252,7 +252,7 @@ describe('Todo Controller', async () => {
 
       it('should return proper error messages for not verified user', done => {
         request(APP)
-          .get(generateFullApi(API_TODOS))
+          .delete(generateFullApi(API_TODOS))
           .set('authorization', notVerifiedUserTokenGenerated)
           .expect(403)
           .expect(res => {
