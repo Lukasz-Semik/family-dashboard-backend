@@ -1,4 +1,3 @@
-// TODO: Improve, add tests
 import { isEmpty } from 'lodash';
 import * as moment from 'moment';
 
