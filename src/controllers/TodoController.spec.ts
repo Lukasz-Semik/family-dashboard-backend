@@ -6,7 +6,7 @@ import { APP } from '../server';
 import { dbSeedUser, dbSeedFamily, dbClear } from '../utils/testsSeeds';
 import { generateFullApi, API_TODOS, API_TODO } from '../constants/routes';
 import { todosSuccesses } from '../constants/successes';
-import { userErrors, defaultErrors } from '../constants/errors';
+import { userErrors, defaultErrors, todosErrors } from '../constants/errors';
 import { Token } from '../controllers';
 
 describe('Todo Controller', async () => {
@@ -168,6 +168,81 @@ describe('Todo Controller', async () => {
             expect(todos[0].description).to.equal('some-todos-description');
             expect(todos[0].createdAt).to.be.a('string');
             expect(todos[0].author.id).to.equal(family.familyHead.id);
+          })
+          .end(err => {
+            if (err) return done(err);
+            done();
+          });
+      });
+
+      it('should return proper error messages for not verified user', done => {
+        request(APP)
+          .get(generateFullApi(API_TODOS))
+          .set('authorization', notVerifiedUserTokenGenerated)
+          .expect(403)
+          .expect(res => {
+            expect(res.body.errors.user).to.equal(userErrors.hasNoPermissions);
+          })
+          .end(err => {
+            if (err) return done(err);
+            done();
+          });
+      });
+    });
+
+    describe('DELETE method', () => {
+      let family: any;
+      let userTokenGenerated: string;
+      const userEmail: string = 'user@email.com';
+
+      let notVerifiedUser: any;
+      let notVerifiedUserTokenGenerated: string;
+      const notVerifiedEmail: string = 'not-verified-user@email.com';
+
+      before(async () => {
+        await dbClear(connection);
+
+        family = await dbSeedFamily({
+          familyHeadEmail: userEmail,
+          hasTodos: true,
+        });
+
+        userTokenGenerated = await Token.create({
+          email: userEmail,
+          id: family.familyHead.id,
+        });
+
+        notVerifiedUser = await dbSeedUser({
+          email: notVerifiedEmail,
+        });
+
+        notVerifiedUserTokenGenerated = await Token.create({
+          email: notVerifiedEmail,
+          id: notVerifiedUser.id,
+        });
+      });
+
+      it('should delete todos', done => {
+        request(APP)
+          .delete(generateFullApi(API_TODOS))
+          .set('authorization', userTokenGenerated)
+          .expect(200)
+          .expect(res => {
+            expect(res.body.todos).to.equal(todosSuccesses.todosDeleted);
+          })
+          .end(err => {
+            if (err) return done(err);
+            done();
+          });
+      });
+
+      it('should return proper error message if there are no todos', done => {
+        request(APP)
+          .delete(generateFullApi(API_TODOS))
+          .set('authorization', userTokenGenerated)
+          .expect(409)
+          .expect(res => {
+            expect(res.body.errors.todos).to.equal(todosErrors.alreadyEmpty);
           })
           .end(err => {
             if (err) return done(err);
