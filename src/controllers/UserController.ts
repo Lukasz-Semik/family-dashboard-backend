@@ -12,7 +12,7 @@ import {
   HeaderParam,
 } from 'routing-controllers';
 import { getRepository } from 'typeorm';
-import { isEmpty, get } from 'lodash';
+import { isEmpty, get, includes } from 'lodash';
 import { hash, compare } from 'bcryptjs';
 
 import { Token } from '.';
@@ -61,6 +61,17 @@ import { checkIsProperUpdatePayload } from '../helpers/validators';
 export class UserController {
   userRepository = getRepository(User);
   familyRepository = getRepository(Family);
+
+  getCurrentUserWithFamily = async req => {
+    const { id: idDecoded } = await Token.decode(req.headers.authorization);
+
+    const currentUser = await this.userRepository.findOne(
+      { id: idDecoded },
+      { relations: ['family'] }
+    );
+    return currentUser;
+    // tslint:disable-next-line semicolon
+  };
 
   // @description: create user
   // @full route: /api/user/sign-up
@@ -275,12 +286,7 @@ export class UserController {
   @UseBefore(urlencodedParser)
   async inviteUser(@Req() req: any, @Res() res: any) {
     try {
-      const { id: idDecoded } = await Token.decode(req.headers.authorization);
-
-      const currentUser = await this.userRepository.findOne(
-        { id: idDecoded },
-        { relations: ['family'] }
-      );
+      const currentUser = await this.getCurrentUserWithFamily(req);
 
       if (isEmpty(currentUser))
         return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
@@ -329,6 +335,58 @@ export class UserController {
       await this.familyRepository.save(family);
 
       sendInvitationEmail(email, firstName, currentUser.firstName, family.name, token);
+
+      return res.status(RES_SUCCESS).json({ account: accountSuccesses.invited });
+    } catch (err) {
+      return res
+        .status(RES_INTERNAL_ERROR)
+        .json({ error: internalServerErrors.sthWrong, caughtError: err });
+    }
+  }
+
+  // @description: resend invitation user
+  // @full route: /api/user/invite
+  // @access: private
+  @Authorized()
+  @Post(API_USER_RESEND_INVITATION)
+  @UseBefore(urlencodedParser)
+  async resendInvitationUser(@Req() req: any, @Res() res: any) {
+    try {
+      if (isEmpty(req.body))
+        return res.status(RES_BAD_REQUEST).json({ errors: { email: defaultErrors.isRequired } });
+
+      const currentUser = await this.getCurrentUserWithFamily(req);
+
+      if (isEmpty(currentUser))
+        return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
+
+      if (!currentUser.hasFamily)
+        return res.status(RES_UNPROCESSABLE_ENTITY).json({
+          errors: {
+            email: userErrors.hasNoFamily,
+          },
+        });
+
+      const { email } = req.body;
+
+      const foundUser = await this.userRepository.findOne({ email });
+
+      if (isEmpty(foundUser))
+        return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
+
+      const { id: familyId } = currentUser.family;
+
+      const family = await this.familyRepository.findOne(
+        { id: familyId },
+        { relations: ['users'] }
+      );
+
+      if (!includes(family.users.map(user => Number(user.id)), Number(foundUser.id)))
+        return res.status(RES_NOT_FOUND).json({ errors: { user: userErrors.notFromFamily } });
+
+      const token = Token.create({ email }, EXPIRE_24_H);
+
+      sendInvitationEmail(email, foundUser.firstName, currentUser.firstName, family.name, token);
 
       return res.status(RES_SUCCESS).json({ account: accountSuccesses.invited });
     } catch (err) {

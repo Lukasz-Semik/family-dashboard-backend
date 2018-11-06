@@ -29,6 +29,7 @@ interface UserErrorsTypes {
   isNoFamilyHead: string;
   assignItself: string;
   hasNoPermissions: string;
+  notFromFamily: string;
 }
 
 export const userErrors: UserErrorsTypes = {
@@ -38,6 +39,7 @@ export const userErrors: UserErrorsTypes = {
   isNoFamilyHead: 'user-is-no-family-head',
   assignItself: 'user-assign-itself',
   hasNoPermissions: 'user-has-no-permissions',
+  notFromFamily: 'user-not-from-family',
 };
 
 interface PasswordErrorsTypes {
