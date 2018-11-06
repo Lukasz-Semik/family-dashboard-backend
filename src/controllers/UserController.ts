@@ -1,3 +1,4 @@
+// TODO: reuse more
 import {
   JsonController,
   UseBefore,
@@ -18,7 +19,11 @@ import { hash, compare } from 'bcryptjs';
 import { Token } from '.';
 import { User, Family } from '../entity';
 import urlencodedParser from '../utils/bodyParser';
-import { sendAccountConfirmationEmail, sendInvitationEmail } from '../services/mailers';
+import {
+  sendAccountConfirmationEmail,
+  sendInvitationEmail,
+  sendAddUserToFamilyEmail,
+} from '../services/mailers';
 import {
   validateSignUp,
   validateSignIn,
@@ -36,6 +41,7 @@ import {
   API_USER_INVITE,
   API_USER_RESEND_INVITATION,
   API_USER_CONFIRM_INVITED,
+  API_USER_ADD_TO_FAMILY,
 } from '../constants/routes';
 import {
   internalServerErrors,
@@ -54,6 +60,7 @@ import {
   RES_INTERNAL_ERROR,
   RES_NOT_FOUND,
   RES_UNPROCESSABLE_ENTITY,
+  RES_FORBIDDEN,
 } from '../constants/resStatuses';
 import { checkIsProperUpdatePayload } from '../helpers/validators';
 
@@ -429,6 +436,58 @@ export class UserController {
       });
 
       return res.status(RES_SUCCESS).json({ account: accountSuccesses.confirmed });
+    } catch (err) {
+      return res
+        .status(RES_INTERNAL_ERROR)
+        .json({ error: internalServerErrors.sthWrong, caughtError: err });
+    }
+  }
+
+  // TODO: add tests - due to make a refactor at first
+
+  // @description: add existing user to family
+  // @full route: /api/user/add-to-family
+  // @access: public
+  @Authorized()
+  @Post(API_USER_ADD_TO_FAMILY)
+  @UseBefore(urlencodedParser)
+  async addUserToFamily(@Req() req: any, @Res() res: any) {
+    try {
+      if (isEmpty(req.body))
+        return res.status(RES_BAD_REQUEST).json({ errors: { email: defaultErrors.isRequired } });
+
+      const currentUser = await this.getCurrentUserWithFamily(req);
+
+      if (isEmpty(currentUser))
+        return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
+
+      if (!currentUser.hasFamily || !currentUser.isFamilyHead)
+        return res.status(RES_FORBIDDEN).json({ errors: { user: userErrors.hasNoPermissions } });
+
+      const { email } = req.body;
+
+      const foundUser = await this.userRepository.findOne({ email });
+
+      if (isEmpty(foundUser))
+        return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
+
+      if (foundUser.hasFamily)
+        return res.status(RES_CONFLICT).json({ errors: { user: userErrors.hasFamily } });
+
+      if (!foundUser.isVerified)
+        return res.status(RES_CONFLICT).json({ errors: { email: emailErrors.notVerified } });
+
+      const token = Token.create({ email }, EXPIRE_24_H);
+
+      sendAddUserToFamilyEmail(
+        foundUser.email,
+        foundUser.firstName,
+        currentUser.firstName,
+        currentUser.family.name,
+        token
+      );
+
+      return res.status(RES_SUCCESS).json({ account: accountSuccesses.invited });
     } catch (err) {
       return res
         .status(RES_INTERNAL_ERROR)

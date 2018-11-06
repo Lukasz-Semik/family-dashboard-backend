@@ -18,6 +18,8 @@ export const API_USER_GET_CURRENT: string = '/user/current';
 export const API_USER_INVITE: string = '/user/invite';
 export const API_USER_RESEND_INVITATION: string = '/user/resend-invitation';
 export const API_USER_CONFIRM_INVITED: string = '/user/confirm-invited';
+export const API_USER_ADD_TO_FAMILY: string = '/user/add-to-family';
+export const API_USER_CONFIRM_ADDITION: string = '/user/confirm-addition';
 
 // Family routes
 export const API_FAMILY_CREATE: string = '/family/create';

@@ -67,3 +67,31 @@ export const sendInvitationEmail = (
 
   sendEmail(msg);
 };
+
+export const sendAddUserToFamilyEmail = (
+  email: string,
+  invitedUserName: string,
+  invitingUserName: string,
+  familyName: string,
+  token: string
+): void => {
+  setApiKey();
+
+  const msg = {
+    to: email,
+    from: 'family-dashboard@support.com',
+    subject: 'Family Dashboard - invitation to join family',
+    html: `
+      <h3>Hello ${invitedUserName}</h3>
+      <p>
+        You have been invited to join the ${familyName} family by ${invitingUserName}.
+        If you want to joint this family, please confirm by visiting
+        <a href='${baseUrl}/confirm?token=${token}' target="_blank">
+          this page
+        </a>
+      </p>
+    `,
+  };
+
+  sendEmail(msg);
+};
