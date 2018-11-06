@@ -1,3 +1,4 @@
+// TODO: make correction in errors
 interface InternalServeErrorsTypes {
   sthWrong: string;
 }
@@ -11,6 +12,7 @@ interface EmailErrorsTypes {
   wrongFormat: string;
   notExist: string;
   notVerified: string;
+  alreadyVerified: string;
   isRequired: string;
 }
 
@@ -19,6 +21,7 @@ export const emailErrors: EmailErrorsTypes = {
   wrongFormat: 'email-wrong-format',
   notExist: 'email-not-exist',
   notVerified: 'email-not-verified',
+  alreadyVerified: 'email-already-verified',
   isRequired: 'email-required',
 };
 

@@ -374,6 +374,11 @@ export class UserController {
       if (isEmpty(foundUser))
         return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
 
+      if (foundUser.isVerified)
+        return res
+          .status(RES_UNPROCESSABLE_ENTITY)
+          .json({ errors: { email: emailErrors.alreadyVerified } });
+
       const { id: familyId } = currentUser.family;
 
       const family = await this.familyRepository.findOne(

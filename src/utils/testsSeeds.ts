@@ -1,7 +1,12 @@
 import { getRepository } from 'typeorm';
 import { hash } from 'bcryptjs';
 
-import { generateUser, generateTodo, defaultPassword } from '../constants/testFixtures';
+import {
+  generateUser,
+  generateTodo,
+  defaultPassword,
+  familyMemberEmail,
+} from '../constants/testFixtures';
 import { User, Family, Todo } from '../entity';
 
 export const dbClear: any = async connection =>
@@ -23,7 +28,13 @@ export const dbSeedUser: any = async ({ email, isVerified, isFamilyHead, hasFami
   return createdUser;
 };
 
-export const dbSeedFamily: any = async ({ familyHeadEmail, hasBigFamily, hasTodos }) => {
+export const dbSeedFamily: any = async ({
+  familyHeadEmail,
+  hasBigFamily,
+  hasTodos,
+  hasMemberVerified = true,
+  notDefaultFamilyMemberEmail = null,
+}) => {
   const familyRepository = getRepository(Family);
   const todoListRepository = getRepository(Todo);
 
@@ -44,8 +55,8 @@ export const dbSeedFamily: any = async ({ familyHeadEmail, hasBigFamily, hasTodo
 
   if (hasBigFamily) {
     familyMember = await dbSeedUser({
-      email: 'family-member-user@emailcom',
-      isVerified: true,
+      email: notDefaultFamilyMemberEmail || familyMemberEmail,
+      isVerified: hasMemberVerified,
       hasFamily: true,
     });
 
