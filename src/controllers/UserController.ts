@@ -104,7 +104,6 @@ export class UserController {
         birthDate,
       });
 
-      // TODO: allow e-mails
       sendAccountConfirmationEmail(email, firstName, token);
 
       return res.status(RES_SUCCESS).json({ account: accountSuccesses.created });
@@ -328,7 +327,6 @@ export class UserController {
 
       await this.familyRepository.save(family);
 
-      // TODO: allow e-mails
       sendInvitationEmail(email, firstName, currentUser.firstName, family.name, token);
 
       return res.status(RES_SUCCESS).json({ account: accountSuccesses.invited });
