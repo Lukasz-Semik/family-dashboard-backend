@@ -68,7 +68,7 @@ export const sendInvitationEmail = (
   sendEmail(msg);
 };
 
-export const sendAddingUserToFamilyEmail = (
+export const sendAddUserToFamilyEmail = (
   email: string,
   invitedUserName: string,
   invitingUserName: string,

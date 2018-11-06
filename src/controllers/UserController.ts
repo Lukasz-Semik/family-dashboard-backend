@@ -1,3 +1,4 @@
+// TODO: reuse more
 import {
   JsonController,
   UseBefore,
@@ -21,7 +22,7 @@ import urlencodedParser from '../utils/bodyParser';
 import {
   sendAccountConfirmationEmail,
   sendInvitationEmail,
-  sendAddingUserToFamilyEmail,
+  sendAddUserToFamilyEmail,
 } from '../services/mailers';
 import {
   validateSignUp,
@@ -442,6 +443,8 @@ export class UserController {
     }
   }
 
+  // TODO: add tests - due to make a refactor at first
+
   // @description: add existing user to family
   // @full route: /api/user/add-to-family
   // @access: public
@@ -476,7 +479,7 @@ export class UserController {
 
       const token = Token.create({ email }, EXPIRE_24_H);
 
-      sendAddingUserToFamilyEmail(
+      sendAddUserToFamilyEmail(
         foundUser.email,
         foundUser.firstName,
         currentUser.firstName,
