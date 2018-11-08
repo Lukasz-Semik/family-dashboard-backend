@@ -10,6 +10,7 @@ import {
   familyErrors,
 } from '../constants/errors';
 import { GENDERS } from '../constants/columnTypes';
+import { RES_NOT_FOUND, RES_FORBIDDEN, RES_CONFLICT } from '../constants/resStatuses';
 
 export const validateEmail: (email: string) => string = email => {
   if (isBlank(email)) return emailErrors.isRequired;
@@ -121,6 +122,7 @@ export const validateInvite: (
   const errors: InviteErrorsTypes = {};
 
   const emailError: string = validateEmail(email);
+  // TODO: refactor this shit
   if (!isBlank(emailError)) errors.email = emailError;
   if (isBlank(firstName)) errors.firstName = defaultErrors.isRequired;
   if (isBlank(lastName)) errors.lastName = defaultErrors.isRequired;
@@ -174,6 +176,7 @@ interface UserAssingFamilyHeadValidatorErrrorsTypes {
 interface UserRequiredFieldTypes {
   isFamilyHead: boolean;
   hasFamily: boolean;
+  isVerified: boolean;
   family?: object;
   id: number;
 }
@@ -232,5 +235,89 @@ export const validateUserToAssignFamilyHead: (
   return {
     errors,
     isValid: isEmpty(errors),
+  };
+};
+
+// / TODO: validateUserPermission
+//       if (isEmpty(currentUser))
+//         return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
+
+//       if (!currentUser.hasFamily || !currentUser.isFamilyHead)
+//         return res.status(RES_FORBIDDEN).json({ errors: { user: userErrors.hasNoPermissions } });
+
+// interface UserPermissionsErrorTypes {
+//   notFound: string;
+//   forbidden: string;
+
+// }
+
+// interface UserPermissionsValidatorErrorTypes {
+//   isValid: boolean;
+//   errors: UserPermissionsErrorTypes;
+// }
+// export const validateUserPermissions: (
+//   user: UserRequiredFieldTypes
+// ) => () => {}
+
+interface UserPermissionsValidatorConfigTypes {
+  checkIsVerified: boolean;
+  checkHasFamily?: boolean;
+  shouldHasFamily?: boolean;
+  checkIsFamilyHead?: boolean;
+}
+
+interface UserPermissionsErrorTypes {
+  email?: string;
+  user?: string;
+}
+interface UserPermissionsValidatorErrorTypes {
+  isValid: boolean;
+  status: number;
+  errors: UserPermissionsErrorTypes;
+}
+
+// isUser, isVerified
+
+export const validateUserPermissions: (
+  user: UserRequiredFieldTypes,
+  config: UserPermissionsValidatorConfigTypes
+) => UserPermissionsValidatorErrorTypes = (
+  user,
+  { checkIsVerified, checkIsFamilyHead, checkHasFamily }
+) => {
+  if (isEmpty(user))
+    return {
+      isValid: false,
+      errors: { email: emailErrors.notExist },
+      status: RES_NOT_FOUND,
+    };
+
+  const { isVerified, hasFamily, isFamilyHead } = user;
+
+  if (checkIsFamilyHead && !isFamilyHead)
+    return {
+      isValid: false,
+      errors: { user: userErrors.isNoFamilyHead },
+      status: RES_FORBIDDEN,
+    };
+
+  if (checkHasFamily && !hasFamily)
+    return {
+      isValid: false,
+      errors: { user: userErrors.hasNoFamily },
+      status: RES_FORBIDDEN,
+    };
+
+  if (checkIsVerified && !isVerified)
+    return {
+      isValid: false,
+      errors: { email: emailErrors.notVerified },
+      status: RES_FORBIDDEN,
+    };
+
+  return {
+    isValid: true,
+    errors: {},
+    status: null,
   };
 };
