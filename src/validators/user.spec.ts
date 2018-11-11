@@ -61,6 +61,7 @@ describe('user validators', () => {
       id: 1,
       isFamilyHead: true,
       hasFamily: true,
+      isVerified: true,
       family: defaultFamily,
     };
 

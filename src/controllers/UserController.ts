@@ -29,6 +29,7 @@ import {
   validateSignIn,
   validateInvite,
   validateConfirmationInvited,
+  validateUserPermissions,
 } from '../validators/user';
 import {
   API_USER_SIGN_UP,
@@ -162,7 +163,7 @@ export class UserController {
     }
   }
 
-  // @description: create user
+  // @description: sign in
   // @full route: /api/user/sign-in
   // @access: public
   @Post(API_USER_SIGN_IN)
@@ -176,17 +177,20 @@ export class UserController {
     try {
       const user = await this.userRepository.findOne({ email });
 
-      if (isEmpty(user))
-        return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
+      const {
+        isValid: isUserValid,
+        errors: userPermissionsErrors,
+        status,
+      } = validateUserPermissions(user, {
+        checkIsVerified: true,
+      });
 
-      if (!user.isVerified)
-        return res
-          .status(RES_UNPROCESSABLE_ENTITY)
-          .json({ errors: { email: emailErrors.notVerified } });
+      if (!isUserValid) return res.status(status).json({ errors: userPermissionsErrors });
 
       const isMatch = await compare(password, user.password);
 
       if (!isMatch)
+        // TODO: make better erorrs msg
         return res.status(RES_BAD_REQUEST).json({ errors: { password: passwordErrors.notValid } });
 
       const token = Token.create({ email: user.email, id: user.id });
@@ -295,15 +299,16 @@ export class UserController {
     try {
       const currentUser = await this.getCurrentUserWithFamily(req);
 
-      if (isEmpty(currentUser))
-        return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
+      const {
+        isValid: isUserValid,
+        errors: userPermissionsErrors,
+        status,
+      } = validateUserPermissions(currentUser, {
+        checkIsVerified: true,
+        checkHasFamily: true,
+      });
 
-      if (!currentUser.hasFamily)
-        return res.status(RES_UNPROCESSABLE_ENTITY).json({
-          errors: {
-            email: userErrors.hasNoFamily,
-          },
-        });
+      if (!isUserValid) return res.status(status).json({ errors: userPermissionsErrors });
 
       const { email, firstName, lastName, gender, birthDate } = req.body;
       const { isValid, errors } = validateInvite(email, firstName, lastName, gender, birthDate);
@@ -364,20 +369,23 @@ export class UserController {
 
       const currentUser = await this.getCurrentUserWithFamily(req);
 
-      if (isEmpty(currentUser))
-        return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
+      // TODO: validateUserPermission
+      const {
+        isValid: isUserValid,
+        errors: userPermissionsErrors,
+        status,
+      } = validateUserPermissions(currentUser, {
+        checkIsVerified: true,
+        checkHasFamily: true,
+      });
 
-      if (!currentUser.hasFamily)
-        return res.status(RES_UNPROCESSABLE_ENTITY).json({
-          errors: {
-            email: userErrors.hasNoFamily,
-          },
-        });
+      if (!isUserValid) return res.status(status).json({ errors: userPermissionsErrors });
 
       const { email } = req.body;
 
       const foundUser = await this.userRepository.findOne({ email });
 
+      // TODO: validateUserPermission
       if (isEmpty(foundUser))
         return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
 
@@ -408,7 +416,7 @@ export class UserController {
     }
   }
 
-  // @description: confirm invite user
+  // @description: confirm invited user
   // @full route: /api/user/confirm-invited
   // @access: public
   @Post(API_USER_CONFIRM_INVITED)
@@ -458,16 +466,23 @@ export class UserController {
 
       const currentUser = await this.getCurrentUserWithFamily(req);
 
-      if (isEmpty(currentUser))
-        return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
+      const {
+        isValid: isUserValid,
+        errors: userPermissionsErrors,
+        status,
+      } = validateUserPermissions(currentUser, {
+        checkIsVerified: true,
+        checkHasFamily: true,
+        checkIsFamilyHead: true,
+      });
 
-      if (!currentUser.hasFamily || !currentUser.isFamilyHead)
-        return res.status(RES_FORBIDDEN).json({ errors: { user: userErrors.hasNoPermissions } });
+      if (!isUserValid) return res.status(status).json({ errors: userPermissionsErrors });
 
       const { email } = req.body;
 
       const foundUser = await this.userRepository.findOne({ email });
 
+      // TODO: validateUserPermission
       if (isEmpty(foundUser))
         return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
 

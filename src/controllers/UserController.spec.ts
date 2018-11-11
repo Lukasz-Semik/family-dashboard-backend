@@ -223,7 +223,7 @@ describe('User Controller', () => {
       request(APP)
         .post(generateFullApi(API_USER_SIGN_IN))
         .send({ email, password: defaultPassword })
-        .expect(422)
+        .expect(403)
         .expect(res => {
           expect(res.body.errors).to.deep.equal({
             email: emailErrors.notVerified,
@@ -314,6 +314,7 @@ describe('User Controller', () => {
 
       withoutFamilyUser = await dbSeedUser({
         email: withoutFamilyEmail,
+        isVerified: true,
       });
 
       withoutFamilyTokenGenerated = await Token.create({
@@ -374,9 +375,9 @@ describe('User Controller', () => {
         .set('authorization', withoutFamilyTokenGenerated)
         .type('form')
         .send()
-        .expect(422)
+        .expect(403)
         .expect(res => {
-          expect(res.body.errors.email).to.equal(userErrors.hasNoFamily);
+          expect(res.body.errors.user).to.equal(userErrors.hasNoFamily);
         })
         .end(err => {
           if (err) return done(err);
