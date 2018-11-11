@@ -547,7 +547,6 @@ describe('User Controller', () => {
     let withFamilyTokenGenerated: string;
     const withFamilyEmail: string = 'with-family-user@email.com';
 
-    let existingUser: any;
     const existingUserEmal: string = 'existing-user@email.com';
 
     before(async () => {
@@ -561,7 +560,7 @@ describe('User Controller', () => {
         id: family.familyHead.id,
       });
 
-      existingUser = await dbSeedUser({ email: existingUserEmal, isVerified: true });
+      await dbSeedUser({ email: existingUserEmal, isVerified: true });
     });
 
     after(async () => await dbClear(connection));
