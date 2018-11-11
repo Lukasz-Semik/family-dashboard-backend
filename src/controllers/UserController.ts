@@ -368,15 +368,17 @@ export class UserController {
       const currentUser = await this.getCurrentUserWithFamily(req);
 
       const {
-        isValid: isUserValid,
-        errors: userPermissionsErrors,
+        isValid: isCurrentUserValid,
+        errors: currentUserPermissionsErrors,
         status,
       } = validateUserPermissions(currentUser, {
         checkIsVerified: true,
         checkHasFamily: true,
+        checkIsFamilyHead: true,
       });
 
-      if (!isUserValid) return res.status(status).json({ errors: userPermissionsErrors });
+      if (!isCurrentUserValid)
+        return res.status(status).json({ errors: currentUserPermissionsErrors });
 
       const { email } = req.body;
 
@@ -447,13 +449,11 @@ export class UserController {
     }
   }
 
-  // TODO: add tests - due to make a refactor at first
-
   // @description: add existing user to family
   // @full route: /api/user/add-to-family
   // @access: public
   @Authorized()
-  @Post(API_USER_ADD_TO_FAMILY)
+  @Patch(API_USER_ADD_TO_FAMILY)
   @UseBefore(urlencodedParser)
   async addUserToFamily(@Req() req: any, @Res() res: any) {
     try {

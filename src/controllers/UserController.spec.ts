@@ -17,11 +17,11 @@ import {
   API_USER_UPDATE,
   API_USER_DELETE,
   API_USER_RESEND_INVITATION,
+  API_USER_ADD_TO_FAMILY,
 } from '../constants/routes';
 import { emailErrors, userErrors, passwordErrors, defaultErrors } from '../constants/errors';
 import { accountSuccesses } from '../constants/successes';
 import { Token } from '../controllers';
-import { RES_CONFLICT } from '../constants/resStatuses';
 
 describe('User Controller', () => {
   let connection = null;
@@ -533,6 +533,48 @@ describe('User Controller', () => {
           expect(res.body.errors).to.include({
             password: passwordErrors.isRequired,
             invitationToken: defaultErrors.isRequired,
+          });
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+  });
+
+  describe(`Route ${API_USER_ADD_TO_FAMILY}`, () => {
+    let family: any;
+    let withFamilyTokenGenerated: string;
+    const withFamilyEmail: string = 'with-family-user@email.com';
+
+    const existingUserEmal: string = 'existing-user@email.com';
+
+    before(async () => {
+      family = await dbSeedFamily({
+        familyHeadEmail: withFamilyEmail,
+        hasMemberVerified: false,
+      });
+
+      withFamilyTokenGenerated = await Token.create({
+        email: withFamilyEmail,
+        id: family.familyHead.id,
+      });
+
+      await dbSeedUser({ email: existingUserEmal, isVerified: true });
+    });
+
+    after(async () => await dbClear(connection));
+
+    it('should add user to family', done => {
+      request(APP)
+        .patch(generateFullApi(API_USER_ADD_TO_FAMILY))
+        .set('authorization', withFamilyTokenGenerated)
+        .type('form')
+        .send({ email: existingUserEmal })
+        .expect(200)
+        .expect(res => {
+          expect(res.body).to.include({
+            account: accountSuccesses.invited,
           });
         })
         .end(err => {
