@@ -1,4 +1,3 @@
-// TODO: reuse more
 import {
   JsonController,
   UseBefore,
@@ -190,7 +189,6 @@ export class UserController {
       const isMatch = await compare(password, user.password);
 
       if (!isMatch)
-        // TODO: make better erorrs msg
         return res.status(RES_BAD_REQUEST).json({ errors: { password: passwordErrors.notValid } });
 
       const token = Token.create({ email: user.email, id: user.id });
@@ -369,7 +367,6 @@ export class UserController {
 
       const currentUser = await this.getCurrentUserWithFamily(req);
 
-      // TODO: validateUserPermission
       const {
         isValid: isUserValid,
         errors: userPermissionsErrors,
@@ -385,7 +382,6 @@ export class UserController {
 
       const foundUser = await this.userRepository.findOne({ email });
 
-      // TODO: validateUserPermission
       if (isEmpty(foundUser))
         return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
 
@@ -467,8 +463,8 @@ export class UserController {
       const currentUser = await this.getCurrentUserWithFamily(req);
 
       const {
-        isValid: isUserValid,
-        errors: userPermissionsErrors,
+        isValid: isCurrentUserValid,
+        errors: currentUserPermissionsErrors,
         status,
       } = validateUserPermissions(currentUser, {
         checkIsVerified: true,
@@ -476,21 +472,26 @@ export class UserController {
         checkIsFamilyHead: true,
       });
 
-      if (!isUserValid) return res.status(status).json({ errors: userPermissionsErrors });
+      if (!isCurrentUserValid)
+        return res.status(status).json({ errors: currentUserPermissionsErrors });
 
       const { email } = req.body;
 
       const foundUser = await this.userRepository.findOne({ email });
 
-      // TODO: validateUserPermission
-      if (isEmpty(foundUser))
-        return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
+      const {
+        isValid: isFoundUserValid,
+        errors: foundUserPermissionsErrors,
+        status: foundUserStatus,
+      } = validateUserPermissions(currentUser, {
+        checkIsVerified: true,
+      });
+
+      if (!isFoundUserValid)
+        return res.status(foundUserStatus).json({ errors: foundUserPermissionsErrors });
 
       if (foundUser.hasFamily)
         return res.status(RES_CONFLICT).json({ errors: { user: userErrors.hasFamily } });
-
-      if (!foundUser.isVerified)
-        return res.status(RES_CONFLICT).json({ errors: { email: emailErrors.notVerified } });
 
       const token = Token.create({ email }, EXPIRE_24_H);
 
