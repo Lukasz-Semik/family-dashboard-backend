@@ -12,21 +12,20 @@ import {
 import { getRepository } from 'typeorm';
 import { isEmpty } from 'lodash';
 
-import { internalServerErrors, userErrors, familyErrors, emailErrors } from '../constants/errors';
+import { internalServerErrors, userErrors } from '../constants/errors';
 import { accountSuccesses } from '../constants/successes';
 import { API_FAMILY_CREATE, API_FAMILY_GET, API_FAMILY_ASSIGN_HEAD } from '../constants/routes';
 import {
   RES_BAD_REQUEST,
   RES_SUCCESS,
   RES_INTERNAL_ERROR,
-  RES_NOT_FOUND,
-  RES_FORBIDDEN,
   RES_UNPROCESSABLE_ENTITY,
 } from '../constants/resStatuses';
 import urlencodedParser from '../utils/bodyParser';
 import {
   validateUserAssigningFamilyHead,
   validateUserToAssignFamilyHead,
+  validateUserPermissions,
 } from '../validators/user';
 import { Family, User } from '../entity';
 import { Token } from '.';
@@ -64,8 +63,11 @@ export class FamilyController {
 
       const user = await this.userRepository.findOne({ id });
 
-      if (isEmpty(user))
-        return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
+      const { isValid, errors, status } = validateUserPermissions(user, {
+        checkIsVerified: true,
+      });
+
+      if (!isValid) return res.status(status).json({ errors });
 
       if (user.hasFamily)
         return res
@@ -112,11 +114,13 @@ export class FamilyController {
 
       const user = await this.userRepository.findOne({ id }, { relations: ['family'] });
 
-      if (isEmpty(user))
-        return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
+      const { isValid, errors, status } = validateUserPermissions(user, {
+        checkIsVerified: true,
+        checkHasFamily: true,
+        checkIsFamilyHead: true,
+      });
 
-      if (!user.hasFamily || isEmpty(user.family))
-        return res.status(RES_FORBIDDEN).json({ errors: { email: userErrors.hasNoFamily } });
+      if (!isValid) return res.status(status).json({ errors });
 
       const family = await this.familyWithUserQuery(user.family.id);
 

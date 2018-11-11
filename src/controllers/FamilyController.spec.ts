@@ -37,7 +37,7 @@ describe('Family Controller', async () => {
     before(async () => {
       await dbClear(connection);
 
-      familyCreator = await dbSeedUser({ email: familyCreatorEmail });
+      familyCreator = await dbSeedUser({ email: familyCreatorEmail, isVerified: true });
 
       familyCreatorTokenGenerated = await Token.create({
         email: familyCreatorEmail,
@@ -119,6 +119,7 @@ describe('Family Controller', async () => {
 
       withoutFamilyUser = await dbSeedUser({
         email: withoutFamilyEmail,
+        isFamilyHead: true,
       });
 
       withoutFamilyTokenGenerated = await Token.create({
@@ -162,7 +163,7 @@ describe('Family Controller', async () => {
         .set('authorization', withoutFamilyTokenGenerated)
         .expect(403)
         .expect(res => {
-          expect(res.body.errors.email).to.equal(userErrors.hasNoFamily);
+          expect(res.body.errors.user).to.equal(userErrors.hasNoFamily);
         })
         .end(err => {
           if (err) return done(err);
