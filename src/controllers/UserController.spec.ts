@@ -314,6 +314,7 @@ describe('User Controller', () => {
 
       withoutFamilyUser = await dbSeedUser({
         email: withoutFamilyEmail,
+        isVerified: true,
       });
 
       withoutFamilyTokenGenerated = await Token.create({

@@ -238,27 +238,6 @@ export const validateUserToAssignFamilyHead: (
   };
 };
 
-// / TODO: validateUserPermission
-//       if (isEmpty(currentUser))
-//         return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
-
-//       if (!currentUser.hasFamily || !currentUser.isFamilyHead)
-//         return res.status(RES_FORBIDDEN).json({ errors: { user: userErrors.hasNoPermissions } });
-
-// interface UserPermissionsErrorTypes {
-//   notFound: string;
-//   forbidden: string;
-
-// }
-
-// interface UserPermissionsValidatorErrorTypes {
-//   isValid: boolean;
-//   errors: UserPermissionsErrorTypes;
-// }
-// export const validateUserPermissions: (
-//   user: UserRequiredFieldTypes
-// ) => () => {}
-
 interface UserPermissionsValidatorConfigTypes {
   checkIsVerified: boolean;
   checkHasFamily?: boolean;
@@ -276,8 +255,6 @@ interface UserPermissionsValidatorErrorTypes {
   errors: UserPermissionsErrorTypes;
 }
 
-// isUser, isVerified
-
 export const validateUserPermissions: (
   user: UserRequiredFieldTypes,
   config: UserPermissionsValidatorConfigTypes
@@ -294,6 +271,13 @@ export const validateUserPermissions: (
 
   const { isVerified, hasFamily, isFamilyHead } = user;
 
+  if (checkIsVerified && !isVerified)
+    return {
+      isValid: false,
+      errors: { email: emailErrors.notVerified },
+      status: RES_FORBIDDEN,
+    };
+
   if (checkIsFamilyHead && !isFamilyHead)
     return {
       isValid: false,
@@ -305,13 +289,6 @@ export const validateUserPermissions: (
     return {
       isValid: false,
       errors: { user: userErrors.hasNoFamily },
-      status: RES_FORBIDDEN,
-    };
-
-  if (checkIsVerified && !isVerified)
-    return {
-      isValid: false,
-      errors: { email: emailErrors.notVerified },
       status: RES_FORBIDDEN,
     };
 

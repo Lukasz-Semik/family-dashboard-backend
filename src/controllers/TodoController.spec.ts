@@ -6,7 +6,7 @@ import { APP } from '../server';
 import { dbSeedUser, dbSeedFamily, dbClear } from '../utils/testsSeeds';
 import { generateFullApi, API_TODOS, API_TODO } from '../constants/routes';
 import { todosSuccesses } from '../constants/successes';
-import { userErrors, defaultErrors, todosErrors } from '../constants/errors';
+import { defaultErrors, todosErrors, emailErrors } from '../constants/errors';
 import { Token } from '../controllers';
 
 describe('Todo Controller', async () => {
@@ -114,7 +114,7 @@ describe('Todo Controller', async () => {
           .send({ title: 'some-todos-title' })
           .expect(403)
           .expect(res => {
-            expect(res.body.errors.user).to.equal(userErrors.hasNoPermissions);
+            expect(res.body.errors.email).to.equal(emailErrors.notVerified);
           })
           .end(err => {
             if (err) return done(err);
@@ -181,7 +181,7 @@ describe('Todo Controller', async () => {
           .set('authorization', notVerifiedUserTokenGenerated)
           .expect(403)
           .expect(res => {
-            expect(res.body.errors.user).to.equal(userErrors.hasNoPermissions);
+            expect(res.body.errors.email).to.equal(emailErrors.notVerified);
           })
           .end(err => {
             if (err) return done(err);
@@ -256,7 +256,7 @@ describe('Todo Controller', async () => {
           .set('authorization', notVerifiedUserTokenGenerated)
           .expect(403)
           .expect(res => {
-            expect(res.body.errors.user).to.equal(userErrors.hasNoPermissions);
+            expect(res.body.errors.email).to.equal(emailErrors.notVerified);
           })
           .end(err => {
             if (err) return done(err);
@@ -340,7 +340,7 @@ describe('Todo Controller', async () => {
           .set('authorization', notVerifiedUserTokenGenerated)
           .expect(403)
           .expect(res => {
-            expect(res.body.errors.user).to.equal(userErrors.hasNoPermissions);
+            expect(res.body.errors.email).to.equal(emailErrors.notVerified);
           })
           .end(err => {
             if (err) return done(err);
@@ -447,7 +447,7 @@ describe('Todo Controller', async () => {
           })
           .expect(403)
           .expect(res => {
-            expect(res.body.errors.user).to.equal(userErrors.hasNoPermissions);
+            expect(res.body.errors.email).to.equal(emailErrors.notVerified);
           })
           .end(err => {
             if (err) return done(err);
@@ -491,7 +491,7 @@ describe('Todo Controller', async () => {
           .set('authorization', notVerifiedUserTokenGenerated)
           .expect(403)
           .expect(res => {
-            expect(res.body.errors.user).to.equal(userErrors.hasNoPermissions);
+            expect(res.body.errors.email).to.equal(emailErrors.notVerified);
           })
           .end(err => {
             if (err) return done(err);

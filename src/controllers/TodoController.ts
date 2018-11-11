@@ -25,6 +25,7 @@ import {
   RES_FORBIDDEN,
 } from '../constants/resStatuses';
 import { checkIsProperUpdatePayload } from '../helpers/validators';
+import { validateUserPermissions } from '../validators/user';
 import urlencodedParser from '../utils/bodyParser';
 import { Family, User, Todo } from '../entity';
 import { Token } from '.';
@@ -81,8 +82,6 @@ export class TodoController {
 
     const user = await this.userRepository.findOne({ id: idDecoded }, { relations: ['family'] });
 
-    if (!user.isVerified || !user.hasFamily) return null;
-
     return user;
     // tslint:disable-next-line semicolon
   };
@@ -102,8 +101,13 @@ export class TodoController {
 
       const user = await this.getCurrentUser(req);
 
-      if (!user)
-        return res.status(RES_FORBIDDEN).json({ errors: { user: userErrors.hasNoPermissions } });
+      const { isValid, errors, status } = validateUserPermissions(user, {
+        checkIsVerified: true,
+        checkHasFamily: true,
+        checkIsFamilyHead: true,
+      });
+
+      if (!isValid) return res.status(status).json({ errors });
 
       const todoData: TodoDataTypes = {
         title,
@@ -145,8 +149,13 @@ export class TodoController {
     try {
       const user = await this.getCurrentUser(req);
 
-      if (!user)
-        return res.status(RES_FORBIDDEN).json({ errors: { user: userErrors.hasNoPermissions } });
+      const { isValid, errors, status } = validateUserPermissions(user, {
+        checkIsVerified: true,
+        checkHasFamily: true,
+        checkIsFamilyHead: true,
+      });
+
+      if (!isValid) return res.status(status).json({ errors });
 
       const family = await this.familyWithTodosQuery(user.family.id);
 
@@ -167,8 +176,13 @@ export class TodoController {
     try {
       const user = await this.getCurrentUser(req);
 
-      if (!user || !user.isFamilyHead)
-        return res.status(RES_FORBIDDEN).json({ errors: { user: userErrors.hasNoPermissions } });
+      const { isValid, errors, status } = validateUserPermissions(user, {
+        checkIsVerified: true,
+        checkHasFamily: true,
+        checkIsFamilyHead: true,
+      });
+
+      if (!isValid) return res.status(status).json({ errors });
 
       const { todos } = await this.familyWithTodosQuery(user.family.id);
 
@@ -201,8 +215,13 @@ export class TodoController {
     try {
       const user = await this.getCurrentUser(req);
 
-      if (!user)
-        return res.status(RES_FORBIDDEN).json({ errors: { user: userErrors.hasNoPermissions } });
+      const { isValid, errors, status } = validateUserPermissions(user, {
+        checkIsVerified: true,
+        checkHasFamily: true,
+        checkIsFamilyHead: true,
+      });
+
+      if (!isValid) return res.status(status).json({ errors });
 
       const { todos } = await this.familyWithTodosQuery(user.family.id);
 
@@ -239,8 +258,13 @@ export class TodoController {
 
       const user = await this.getCurrentUser(req);
 
-      if (!user)
-        return res.status(RES_FORBIDDEN).json({ errors: { user: userErrors.hasNoPermissions } });
+      const { isValid, errors, status } = validateUserPermissions(user, {
+        checkIsVerified: true,
+        checkHasFamily: true,
+        checkIsFamilyHead: true,
+      });
+
+      if (!isValid) return res.status(status).json({ errors });
 
       const { todos } = await this.familyWithTodosQuery(user.family.id);
 
@@ -285,8 +309,13 @@ export class TodoController {
     try {
       const user = await this.getCurrentUser(req);
 
-      if (!user)
-        return res.status(RES_FORBIDDEN).json({ errors: { user: userErrors.hasNoPermissions } });
+      const { isValid, errors, status } = validateUserPermissions(user, {
+        checkIsVerified: true,
+        checkHasFamily: true,
+        checkIsFamilyHead: true,
+      });
+
+      if (!isValid) return res.status(status).json({ errors });
 
       const { todos } = await this.familyWithTodosQuery(user.family.id);
 

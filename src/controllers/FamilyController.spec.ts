@@ -120,6 +120,7 @@ describe('Family Controller', async () => {
       withoutFamilyUser = await dbSeedUser({
         email: withoutFamilyEmail,
         isFamilyHead: true,
+        isVerified: true,
       });
 
       withoutFamilyTokenGenerated = await Token.create({
