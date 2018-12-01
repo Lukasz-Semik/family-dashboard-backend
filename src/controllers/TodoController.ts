@@ -12,7 +12,7 @@ import {
 import { getRepository } from 'typeorm';
 import { isEmpty, find } from 'lodash';
 
-import { internalServerErrors, userErrors, defaultErrors, todosErrors } from '../constants/errors';
+import { internalServerErrors, defaultErrors, todosErrors } from '../constants/errors';
 import { todosSuccesses } from '../constants/successes';
 import { API_TODOS, API_TODO } from '../constants/routes';
 import { allowedUpdateTodoPayloadKeys } from '../constants/allowedPayloadKeys';
@@ -22,7 +22,6 @@ import {
   RES_SUCCESS,
   RES_INTERNAL_ERROR,
   RES_NOT_FOUND,
-  RES_FORBIDDEN,
 } from '../constants/resStatuses';
 import { checkIsProperUpdatePayload } from '../helpers/validators';
 import { validateUserPermissions } from '../validators/user';
@@ -104,6 +103,7 @@ export class TodoController {
       const { isValid, errors, status } = validateUserPermissions(user, {
         checkIsVerified: true,
         checkHasFamily: true,
+        // TODO: it shouldn't be only for family head !!!
         checkIsFamilyHead: true,
       });
 

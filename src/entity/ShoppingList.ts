@@ -27,6 +27,13 @@ export class ShoppingList {
     type: 'varchar',
     length: 255,
   })
+  title: string;
+
+  @Column({
+    nullable: true,
+    type: 'varchar',
+    length: 255,
+  })
   deadline: string;
 
   @Column()
