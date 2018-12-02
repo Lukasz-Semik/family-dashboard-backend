@@ -5,11 +5,9 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
-  OneToMany,
 } from 'typeorm';
 
 import { Family } from './Family';
-import { ShoppingListItem } from './ShoppinListItem';
 
 @Entity()
 export class ShoppingList {
@@ -18,9 +16,6 @@ export class ShoppingList {
 
   @ManyToOne(type => Family, family => family.shoppingLists)
   family: Family;
-
-  @OneToMany(type => ShoppingListItem, shoppingListItem => shoppingListItem.shoppingList)
-  shoppingListItems: ShoppingListItem[];
 
   @Column({
     nullable: true,
