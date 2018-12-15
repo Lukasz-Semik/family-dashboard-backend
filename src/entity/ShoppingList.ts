@@ -31,8 +31,24 @@ export class ShoppingList {
   })
   deadline: string;
 
-  @Column()
+  @Column({
+    nullable: true,
+  })
   isDone: boolean;
+
+  @Column({
+    type: 'varchar',
+    nullable: true,
+    array: true,
+  })
+  upcomingItems: string[];
+
+  @Column({
+    type: 'varchar',
+    nullable: true,
+    array: true,
+  })
+  doneItems: string[];
 
   @CreateDateColumn({
     type: 'timestamp',

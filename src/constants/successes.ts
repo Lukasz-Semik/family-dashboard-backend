@@ -21,3 +21,11 @@ export const todosSuccesses: TodosSuccessesTypes = {
   todoCreated: 'todos-created',
   todosDeleted: 'todos-all-deleted',
 };
+
+interface ShoppingListsSuccessesTypes {
+  shoppingListCreated: string;
+}
+
+export const shoppingListsSuccesses: ShoppingListsSuccessesTypes = {
+  shoppingListCreated: 'shopping-list-created',
+};

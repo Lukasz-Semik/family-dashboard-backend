@@ -3,6 +3,7 @@ import * as express from 'express';
 import { useExpressServer } from 'routing-controllers';
 import { createConnection } from 'typeorm';
 import * as cors from 'cors';
+import * as bodyParser from 'body-parser';
 
 import authenticate from './services/authenticate';
 import {
