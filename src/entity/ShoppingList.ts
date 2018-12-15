@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 
 import { Family } from './Family';
+import { User } from './User';
 
 @Entity()
 export class ShoppingList {
@@ -49,6 +50,15 @@ export class ShoppingList {
     array: true,
   })
   doneItems: string[];
+
+  @ManyToOne(type => User, user => user.shoppingLists)
+  author: User;
+
+  @ManyToOne(type => User, user => user.doneShoppingLists)
+  executor: User;
+
+  @ManyToOne(type => User, user => user.updatedShoppingLists)
+  updater: User;
 
   @CreateDateColumn({
     type: 'timestamp',

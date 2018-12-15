@@ -1,14 +1,4 @@
-import {
-  JsonController,
-  UseBefore,
-  Authorized,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Req,
-  Res,
-} from 'routing-controllers';
+import { JsonController, UseBefore, Authorized, Get, Post, Req, Res } from 'routing-controllers';
 import { getRepository } from 'typeorm';
 import { isEmpty, find } from 'lodash';
 
@@ -42,7 +32,23 @@ export class ShoppingListController {
   familyWithShoppingListQuery = id =>
     this.familyRepository
       .createQueryBuilder('family')
-      .leftJoinAndSelect('family.shoppingLists', 'shoppingLists')
+      .leftJoin('family.shoppingLists', 'shoppingLists')
+      .leftJoin('shoppingLists.author', 'author')
+      .leftJoin('shoppingLists.executor', 'executor')
+      .leftJoin('shoppingLists.updater', 'updater')
+      .select([
+        'family',
+        'shoppingLists',
+        'author.firstName',
+        'author.lastName',
+        'author.id',
+        'executor.id',
+        'executor.firstName',
+        'executor.lastName',
+        'updater.id',
+        'updater.firstName',
+        'updater.lastName',
+      ])
       .where('family.id = :id', { id })
       // tslint:disable-next-line semicolon
       .getOne();
@@ -99,6 +105,7 @@ export class ShoppingListController {
         ...newShoppingList,
         ...shoppingListData,
         isDone: false,
+        author: user,
       });
 
       family.shoppingLists.push(shoppingList);
