@@ -1,12 +1,8 @@
 import { getRepository } from 'typeorm';
 import { hash } from 'bcryptjs';
 
-import {
-  generateUser,
-  generateTodo,
-  defaultPassword,
-  familyMemberEmail,
-} from '../constants/fixtures';
+import { defaultPassword, familyMemberEmail } from '../constants/fixtures';
+import { generateUser, generateTodo } from './dataGenerators';
 import { User, Family, Todo } from '../entity';
 
 export const dbClear: any = async connection =>

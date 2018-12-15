@@ -4,7 +4,7 @@ import { createConnection } from 'typeorm';
 
 import { APP } from '../server';
 import { dbSeedUser, dbSeedFamily, dbClear } from '../utils/testsSeeds';
-import { generateUser, defaultPassword, familyMemberEmail } from '../constants/fixtures';
+import { defaultPassword, familyMemberEmail } from '../constants/fixtures';
 import {
   generateFullApi,
   API_USER_SIGN_UP,
@@ -21,6 +21,7 @@ import {
 } from '../constants/routes';
 import { emailErrors, userErrors, passwordErrors, defaultErrors } from '../constants/errors';
 import { accountSuccesses } from '../constants/successes';
+import { generateUser } from '../utils/dataGenerators';
 import { Token } from '../controllers';
 
 describe('User Controller', () => {

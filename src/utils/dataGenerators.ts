@@ -44,3 +44,8 @@ export const generateUser: (payload: UserPayloadTypes) => UserTypes = ({
   isVerified,
   password: defaultPassword,
 });
+
+export const generateTodo = () => ({
+  title: 'some-todos-title',
+  description: 'some-todos-description',
+});
