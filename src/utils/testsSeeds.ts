@@ -6,11 +6,13 @@ import {
   generateTodo,
   defaultPassword,
   familyMemberEmail,
-} from '../constants/testFixtures';
+} from '../constants/fixtures';
 import { User, Family, Todo } from '../entity';
 
 export const dbClear: any = async connection =>
-  await connection.query('TRUNCATE TABLE "user", "family", "todo" RESTART IDENTITY;');
+  await connection.query(
+    'TRUNCATE TABLE "user", "family", "todo", "shopping_list" RESTART IDENTITY;'
+  );
 
 export const dbSeedUser: any = async ({ email, isVerified, isFamilyHead, hasFamily }) => {
   const userRepository = getRepository(User);

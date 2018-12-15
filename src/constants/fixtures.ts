@@ -1,21 +1,6 @@
-export interface UsersTypes {
-  id?: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-  birthDate: string;
-  gender: string;
-  isFamilyHead: boolean;
-  hasFamily: boolean;
-  isVerified: boolean;
-  token?: string;
-  hasBigFamily?: boolean;
-}
-
 export const defaultPassword = 'Password123*';
 export const familyMemberEmail = 'family-member-user@email.com';
-
+// TODO: use generateUser from utils.
 export const generateUser = ({
   email = 'default@email.com',
   isFamilyHead = false,

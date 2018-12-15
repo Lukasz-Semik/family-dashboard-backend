@@ -4,7 +4,7 @@ import { createConnection } from 'typeorm';
 
 import { APP } from '../server';
 import { dbSeedUser, dbSeedFamily, dbClear } from '../utils/testsSeeds';
-import { generateUser, defaultPassword, familyMemberEmail } from '../constants/testFixtures';
+import { generateUser, defaultPassword, familyMemberEmail } from '../constants/fixtures';
 import {
   generateFullApi,
   API_USER_SIGN_UP,
