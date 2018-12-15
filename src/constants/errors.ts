@@ -92,3 +92,11 @@ export const todosErrors: TodoErrorsTypes = {
   alreadyDone: 'todo-already-done',
   alreadyEmpty: 'todos-already-empty',
 };
+
+interface ShoppingListErrorsTypes {
+  emptyUpcomingItems: string;
+}
+
+export const shoppingListErrors: ShoppingListErrorsTypes = {
+  emptyUpcomingItems: 'empty-upcoming-items',
+};

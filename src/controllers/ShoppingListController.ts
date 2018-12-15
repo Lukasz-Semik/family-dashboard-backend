@@ -8,7 +8,7 @@ import {
   RES_INTERNAL_ERROR,
   RES_NOT_FOUND,
 } from '../constants/resStatuses';
-import { internalServerErrors, defaultErrors } from '../constants/errors';
+import { internalServerErrors, defaultErrors, shoppingListErrors } from '../constants/errors';
 import urlencodedParser, { jsonParser } from '../utils/bodyParser';
 import { validateUserPermissions } from '../validators/user';
 import { API_SHOPPING_LISTS, API_SHOPPING_LIST } from '../constants/routes';
@@ -73,6 +73,7 @@ export class ShoppingListController {
     try {
       const { title, deadline, items } = req.body;
 
+      console.log('body', req.body);
       if (isEmpty(title) || isEmpty(items))
         return res.status(RES_BAD_REQUEST).json({ errors: { payload: defaultErrors.isRequired } });
 
@@ -86,6 +87,11 @@ export class ShoppingListController {
       if (!isValid) return res.status(status).json({ errors });
 
       const upcomingItems: string[] = items.filter(item => !item.isDone).map(item => item.name);
+
+      if (isEmpty(upcomingItems))
+        return res
+          .status(RES_BAD_REQUEST)
+          .json({ errors: { payload: shoppingListErrors.emptyUpcomingItems } });
 
       const doneItems: string[] = items.filter(item => item.isDone).map(item => item.name);
 
