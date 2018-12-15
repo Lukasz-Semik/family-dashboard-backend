@@ -35,5 +35,11 @@ export const API_TODO: (param?: number) => RouteFieldsTypes = param => ({
   fullRoute: `${generateFullApi(todosBase)}/${String(param)}`,
 });
 
+// ShoppingList routes
 export const shoppingListsBase: string = '/shopping-lists';
 export const API_SHOPPING_LISTS: string = shoppingListsBase;
+
+export const API_SHOPPING_LIST: (param?: number) => RouteFieldsTypes = param => ({
+  base: `${shoppingListsBase}/:shoppingListId`,
+  fullRoute: `${generateFullApi(shoppingListsBase)}/${String(param)}`,
+});
