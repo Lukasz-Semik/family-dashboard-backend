@@ -12,8 +12,7 @@ import {
 import { getRepository } from 'typeorm';
 import { isEmpty } from 'lodash';
 
-import { RES_INTERNAL_ERROR } from '../constants/resStatuses';
-import { RES_BAD_REQUEST } from '../constants/resStatuses';
+import { RES_SUCCESS, RES_BAD_REQUEST, RES_INTERNAL_ERROR } from '../constants/resStatuses';
 import { internalServerErrors, defaultErrors } from '../constants/errors';
 import urlencodedParser, { jsonParser } from '../utils/bodyParser';
 import { validateUserPermissions } from '../validators/user';
@@ -102,6 +101,32 @@ export class ShoppingListController {
       await this.familyRepository.save(family);
 
       return res.status(200).json({ shoppinList: shoppingListsSuccesses.shoppingListCreated });
+    } catch (err) {
+      return res
+        .status(RES_INTERNAL_ERROR)
+        .json({ error: internalServerErrors.sthWrong, caughtError: err });
+    }
+  }
+
+  // @description: get shopping lists
+  // @full route: /api/shopping-lists
+  // @access: private
+  @Get(API_SHOPPING_LISTS)
+  @Authorized()
+  async getShoppingLists(@Req() req: any, @Res() res: any) {
+    try {
+      const user = await this.getCurrentUser(req);
+
+      const { isValid, errors, status } = validateUserPermissions(user, {
+        checkIsVerified: true,
+        checkHasFamily: true,
+      });
+
+      if (!isValid) return res.status(status).json({ errors });
+
+      const family = await this.familyWithShoppingListQuery(user.family.id);
+
+      return res.status(RES_SUCCESS).json({ shoppingLists: family.shoppingLists });
     } catch (err) {
       return res
         .status(RES_INTERNAL_ERROR)
