@@ -280,7 +280,6 @@ describe('Todo Controller', async () => {
 
       family = await dbSeedFamily({
         familyHead: userEmail,
-        hasFamily: true,
         hasTodos: true,
       });
 

@@ -73,9 +73,8 @@ export class ShoppingListController {
     try {
       const { title, deadline, items } = req.body;
 
-      console.log('body', req.body);
-      if (isEmpty(title) || isEmpty(items))
-        return res.status(RES_BAD_REQUEST).json({ errors: { payload: defaultErrors.isRequired } });
+      if (isEmpty(title))
+        return res.status(RES_BAD_REQUEST).json({ errors: { title: defaultErrors.isRequired } });
 
       const user = await this.getCurrentUser(req);
 
@@ -91,7 +90,7 @@ export class ShoppingListController {
       if (isEmpty(upcomingItems))
         return res
           .status(RES_BAD_REQUEST)
-          .json({ errors: { payload: shoppingListErrors.emptyUpcomingItems } });
+          .json({ errors: { items: shoppingListErrors.emptyUpcomingItems } });
 
       const doneItems: string[] = items.filter(item => item.isDone).map(item => item.name);
 
@@ -172,7 +171,10 @@ export class ShoppingListController {
 
       const { shoppingListId } = req.params;
 
-      const foundShoppingList = find(shoppingLists, todo => todo.id === Number(shoppingListId));
+      const foundShoppingList = find(
+        shoppingLists,
+        shoppingList => shoppingList.id === Number(shoppingListId)
+      );
 
       if (isEmpty(foundShoppingList))
         return res.status(RES_NOT_FOUND).json({ errors: { shoppingList: defaultErrors.notFound } });

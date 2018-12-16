@@ -45,7 +45,13 @@ export const generateUser: (payload: UserPayloadTypes) => UserTypes = ({
   password: defaultPassword,
 });
 
-export const generateTodo = () => ({
+export const generateMockedTodo = () => ({
   title: 'some-todos-title',
   description: 'some-todos-description',
+});
+
+export const generateMockedShoppingList = () => ({
+  title: 'shopping-list-title',
+  upcomingItems: ['item-1', 'item-2'],
+  doneItems: ['item-3'],
 });

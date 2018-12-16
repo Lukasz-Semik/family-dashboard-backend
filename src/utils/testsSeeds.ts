@@ -2,8 +2,8 @@ import { getRepository } from 'typeorm';
 import { hash } from 'bcryptjs';
 
 import { defaultPassword, familyMemberEmail } from '../constants/fixtures';
-import { generateUser, generateTodo } from './dataGenerators';
-import { User, Family, Todo } from '../entity';
+import { generateUser, generateMockedTodo, generateMockedShoppingList } from './dataGenerators';
+import { User, Family, Todo, ShoppingList } from '../entity';
 
 export const dbClear: any = async connection =>
   await connection.query(
@@ -30,11 +30,13 @@ export const dbSeedFamily: any = async ({
   familyHeadEmail,
   hasBigFamily,
   hasTodos,
+  hasShoppingLists,
   hasMemberVerified = true,
   notDefaultFamilyMemberEmail = null,
 }) => {
   const familyRepository = getRepository(Family);
   const todoListRepository = getRepository(Todo);
+  const shoppingListRepository = getRepository(ShoppingList);
 
   const familyHead = await dbSeedUser({
     email: familyHeadEmail,
@@ -66,12 +68,25 @@ export const dbSeedFamily: any = async ({
 
     todo = await todoListRepository.save({
       ...newTodo,
-      ...generateTodo(),
+      ...generateMockedTodo(),
       author: familyHead,
       isDone: false,
     });
 
     newFamily.todos = [todo];
+  }
+
+  if (hasShoppingLists) {
+    const newShoppingList = new ShoppingList();
+
+    const shoppingList = await shoppingListRepository.save({
+      ...newShoppingList,
+      ...generateMockedShoppingList(),
+      author: familyHead,
+      isDone: false,
+    });
+
+    newFamily.shoppingLists = [shoppingList];
   }
 
   await familyRepository.save({
@@ -84,5 +99,6 @@ export const dbSeedFamily: any = async ({
     familyHead,
     familyMember,
     todos: newFamily.todos,
+    shoppingLists: newFamily.shoppingLists,
   };
 };
