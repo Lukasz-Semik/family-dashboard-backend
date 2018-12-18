@@ -12,7 +12,7 @@ import {
 import { getRepository } from 'typeorm';
 import { isEmpty, find } from 'lodash';
 
-import { internalServerErrors, userErrors, defaultErrors, todosErrors } from '../constants/errors';
+import { internalServerErrors, defaultErrors, todosErrors } from '../constants/errors';
 import { todosSuccesses } from '../constants/successes';
 import { API_TODOS, API_TODO } from '../constants/routes';
 import { allowedUpdateTodoPayloadKeys } from '../constants/allowedPayloadKeys';
@@ -22,9 +22,9 @@ import {
   RES_SUCCESS,
   RES_INTERNAL_ERROR,
   RES_NOT_FOUND,
-  RES_FORBIDDEN,
 } from '../constants/resStatuses';
 import { checkIsProperUpdatePayload } from '../helpers/validators';
+import { familyItemWithAuthorExecutorUpdaterQuery } from '../helpers/dbQueries';
 import { validateUserPermissions } from '../validators/user';
 import urlencodedParser from '../utils/bodyParser';
 import { Family, User, Todo } from '../entity';
@@ -60,19 +60,7 @@ export class TodoController {
       .leftJoin('todos.author', 'author')
       .leftJoin('todos.executor', 'executor')
       .leftJoin('todos.updater', 'updater')
-      .select([
-        'family',
-        'todos',
-        'author.firstName',
-        'author.lastName',
-        'author.id',
-        'executor.id',
-        'executor.firstName',
-        'executor.lastName',
-        'updater.id',
-        'updater.firstName',
-        'updater.lastName',
-      ])
+      .select(familyItemWithAuthorExecutorUpdaterQuery('todos'))
       .where('family.id = :id', { id })
       // tslint:disable-next-line semicolon
       .getOne();
@@ -104,6 +92,7 @@ export class TodoController {
       const { isValid, errors, status } = validateUserPermissions(user, {
         checkIsVerified: true,
         checkHasFamily: true,
+        // TODO: it shouldn't be only for family head !!!
         checkIsFamilyHead: true,
       });
 

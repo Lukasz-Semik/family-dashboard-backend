@@ -1,16 +1,14 @@
 import { getRepository } from 'typeorm';
 import { hash } from 'bcryptjs';
 
-import {
-  generateUser,
-  generateTodo,
-  defaultPassword,
-  familyMemberEmail,
-} from '../constants/testFixtures';
-import { User, Family, Todo } from '../entity';
+import { defaultPassword, familyMemberEmail } from '../constants/fixtures';
+import { generateUser, generateMockedTodo, generateMockedShoppingList } from './dataGenerators';
+import { User, Family, Todo, ShoppingList } from '../entity';
 
 export const dbClear: any = async connection =>
-  await connection.query('TRUNCATE TABLE "user", "family", "todo" RESTART IDENTITY;');
+  await connection.query(
+    'TRUNCATE TABLE "user", "family", "todo", "shopping_list" RESTART IDENTITY;'
+  );
 
 export const dbSeedUser: any = async ({ email, isVerified, isFamilyHead, hasFamily }) => {
   const userRepository = getRepository(User);
@@ -32,11 +30,13 @@ export const dbSeedFamily: any = async ({
   familyHeadEmail,
   hasBigFamily,
   hasTodos,
+  hasShoppingLists,
   hasMemberVerified = true,
   notDefaultFamilyMemberEmail = null,
 }) => {
   const familyRepository = getRepository(Family);
   const todoListRepository = getRepository(Todo);
+  const shoppingListRepository = getRepository(ShoppingList);
 
   const familyHead = await dbSeedUser({
     email: familyHeadEmail,
@@ -68,12 +68,25 @@ export const dbSeedFamily: any = async ({
 
     todo = await todoListRepository.save({
       ...newTodo,
-      ...generateTodo(),
+      ...generateMockedTodo(),
       author: familyHead,
       isDone: false,
     });
 
     newFamily.todos = [todo];
+  }
+
+  if (hasShoppingLists) {
+    const newShoppingList = new ShoppingList();
+
+    const shoppingList = await shoppingListRepository.save({
+      ...newShoppingList,
+      ...generateMockedShoppingList(),
+      author: familyHead,
+      isDone: false,
+    });
+
+    newFamily.shoppingLists = [shoppingList];
   }
 
   await familyRepository.save({
@@ -86,5 +99,6 @@ export const dbSeedFamily: any = async ({
     familyHead,
     familyMember,
     todos: newFamily.todos,
+    shoppingLists: newFamily.shoppingLists,
   };
 };

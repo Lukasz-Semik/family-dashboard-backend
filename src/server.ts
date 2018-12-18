@@ -3,9 +3,15 @@ import * as express from 'express';
 import { useExpressServer } from 'routing-controllers';
 import { createConnection } from 'typeorm';
 import * as cors from 'cors';
+import * as bodyParser from 'body-parser';
 
 import authenticate from './services/authenticate';
-import { UserController, FamilyController, TodoController } from './controllers';
+import {
+  UserController,
+  FamilyController,
+  TodoController,
+  ShoppingListController,
+} from './controllers';
 
 export const APP: express.Application = express();
 
@@ -18,7 +24,7 @@ export const DbConnection = createConnection()
 
 useExpressServer(APP, {
   routePrefix: '/api',
-  controllers: [UserController, FamilyController, TodoController],
+  controllers: [UserController, FamilyController, TodoController, ShoppingListController],
   authorizationChecker: authenticate,
   middlewares: [cors],
 });

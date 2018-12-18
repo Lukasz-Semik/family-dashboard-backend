@@ -11,6 +11,7 @@ import {
 import { Family } from './Family';
 import { Todo } from './Todo';
 import { GENDERS } from '../constants/columnTypes';
+import { ShoppingList } from './ShoppingList';
 
 @Entity()
 export class User {
@@ -51,6 +52,15 @@ export class User {
 
   @OneToMany(type => Todo, todo => todo.updater)
   updatedTodos: Todo[];
+
+  @OneToMany(type => ShoppingList, shoppingList => shoppingList.author)
+  shoppingLists: ShoppingList[];
+
+  @OneToMany(type => ShoppingList, shoppingList => shoppingList.executor)
+  doneShoppingLists: ShoppingList[];
+
+  @OneToMany(type => ShoppingList, shoppingList => shoppingList.updater)
+  updatedShoppingLists: ShoppingList[];
 
   @Column({
     type: 'varchar',
