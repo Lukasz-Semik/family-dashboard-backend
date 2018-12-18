@@ -9,10 +9,11 @@ import {
   RES_NOT_FOUND,
 } from '../constants/resStatuses';
 import { internalServerErrors, defaultErrors, shoppingListErrors } from '../constants/errors';
-import urlencodedParser, { jsonParser } from '../utils/bodyParser';
-import { validateUserPermissions } from '../validators/user';
 import { API_SHOPPING_LISTS, API_SHOPPING_LIST } from '../constants/routes';
 import { shoppingListsSuccesses } from '../constants/successes';
+import urlencodedParser, { jsonParser } from '../utils/bodyParser';
+import { validateUserPermissions } from '../validators/user';
+import { familyItemWithAuthorExecutorUpdaterQuery } from '../helpers/dbQueries';
 import { User, Family, ShoppingList } from '../entity';
 import { Token } from '.';
 
@@ -36,19 +37,7 @@ export class ShoppingListController {
       .leftJoin('shoppingLists.author', 'author')
       .leftJoin('shoppingLists.executor', 'executor')
       .leftJoin('shoppingLists.updater', 'updater')
-      .select([
-        'family',
-        'shoppingLists',
-        'author.firstName',
-        'author.lastName',
-        'author.id',
-        'executor.id',
-        'executor.firstName',
-        'executor.lastName',
-        'updater.id',
-        'updater.firstName',
-        'updater.lastName',
-      ])
+      .select(familyItemWithAuthorExecutorUpdaterQuery('shoppingLists'))
       .where('family.id = :id', { id })
       // tslint:disable-next-line semicolon
       .getOne();

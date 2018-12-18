@@ -24,6 +24,7 @@ import {
   RES_NOT_FOUND,
 } from '../constants/resStatuses';
 import { checkIsProperUpdatePayload } from '../helpers/validators';
+import { familyItemWithAuthorExecutorUpdaterQuery } from '../helpers/dbQueries';
 import { validateUserPermissions } from '../validators/user';
 import urlencodedParser from '../utils/bodyParser';
 import { Family, User, Todo } from '../entity';
@@ -59,19 +60,7 @@ export class TodoController {
       .leftJoin('todos.author', 'author')
       .leftJoin('todos.executor', 'executor')
       .leftJoin('todos.updater', 'updater')
-      .select([
-        'family',
-        'todos',
-        'author.firstName',
-        'author.lastName',
-        'author.id',
-        'executor.id',
-        'executor.firstName',
-        'executor.lastName',
-        'updater.id',
-        'updater.firstName',
-        'updater.lastName',
-      ])
+      .select(familyItemWithAuthorExecutorUpdaterQuery('todos'))
       .where('family.id = :id', { id })
       // tslint:disable-next-line semicolon
       .getOne();
