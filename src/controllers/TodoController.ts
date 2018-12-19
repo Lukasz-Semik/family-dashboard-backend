@@ -23,6 +23,7 @@ import {
   RES_INTERNAL_ERROR,
   RES_NOT_FOUND,
 } from '../constants/resStatuses';
+import { UserShortDataTypes, UserRoleDataTypes } from '../constants/sharedDataTypes';
 import { checkIsProperUpdatePayload } from '../helpers/validators';
 import { familyItemWithAuthorExecutorUpdaterQuery } from '../helpers/dbQueries';
 import { validateUserPermissions } from '../validators/user';
@@ -34,17 +35,6 @@ interface TodoDataTypes {
   title: string;
   description?: string;
   deadline?: string;
-}
-
-interface UserShortDataTypes {
-  id: number;
-  firstName: string;
-  lastName: string;
-}
-
-interface UserRoleDataTypes {
-  updater: UserShortDataTypes;
-  executor?: UserShortDataTypes;
 }
 
 @JsonController()
@@ -236,6 +226,7 @@ export class TodoController {
   @Authorized()
   @UseBefore(urlencodedParser)
   async updateTodo(@Req() req: any, @Res() res: any) {
+    // TODO: make improvements here.
     try {
       const {
         body: payload,
