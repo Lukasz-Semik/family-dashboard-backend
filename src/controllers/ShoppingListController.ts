@@ -10,7 +10,7 @@ import {
   Res,
 } from 'routing-controllers';
 import { getRepository } from 'typeorm';
-import { isEmpty, find } from 'lodash';
+import { isEmpty, find, isArray } from 'lodash';
 
 import {
   RES_SUCCESS,
@@ -261,22 +261,31 @@ export class ShoppingListController {
 
       const { shoppingLists } = await this.familyWithShoppingListQuery(user.family.id);
 
-      const foundShoppingList = find(shoppingLists, todo => todo.id === Number(shoppingListId));
+      const foundShoppingList = find(
+        shoppingLists,
+        shoppingList => shoppingList.id === Number(shoppingListId)
+      );
 
-      const upcomingItems: string[] = payload.items
-        .filter(item => !item.isDone)
-        .map(item => item.name);
+      if (isEmpty(foundShoppingList))
+        return res.status(RES_NOT_FOUND).json({ errors: { shoppingList: defaultErrors.notFound } });
 
-      const doneItems: string[] = payload.items.filter(item => item.isDone).map(item => item.name);
+      const items = !isArray(payload.items) ? [] : payload.items;
 
-      const isShoppingListDone = isEmpty(upcomingItems) || payload.isDone;
+      const upcomingItems: string[] = items.filter(item => !item.isDone).map(item => item.name);
+
+      const doneItems: string[] = items.filter(item => item.isDone).map(item => item.name);
+
+      const isShoppingListDone =
+        (!isEmpty(payload.items) && isEmpty(upcomingItems)) || payload.isDone;
 
       const updatingPayload = {
         ...payload,
-        upcomingItems,
-        doneItems,
         isDone: isShoppingListDone,
       };
+
+      if (!isEmpty(upcomingItems)) updatingPayload.upcomingItems = upcomingItems;
+
+      if (!isEmpty(doneItems)) updatingPayload.doneItems = doneItems;
 
       const userShortData: UserShortDataTypes = {
         id: user.id,
@@ -331,7 +340,7 @@ export class ShoppingListController {
       );
 
       if (isEmpty(foundShoppingList))
-        return res.status(RES_NOT_FOUND).json({ errors: { todo: defaultErrors.notFound } });
+        return res.status(RES_NOT_FOUND).json({ errors: { shoppingList: defaultErrors.notFound } });
 
       await this.shoppingListRepository.remove(foundShoppingList);
 

@@ -209,7 +209,7 @@ export class TodoController {
       const foundTodo = find(todos, todo => todo.id === Number(todoId));
 
       if (isEmpty(foundTodo))
-        return res.status(RES_NOT_FOUND).json({ errors: { todos: defaultErrors.notFound } });
+        return res.status(RES_NOT_FOUND).json({ errors: { todo: defaultErrors.notFound } });
 
       return res.status(RES_SUCCESS).json({ todos: foundTodo });
     } catch (err) {
@@ -249,6 +249,9 @@ export class TodoController {
       const { todos } = await this.familyWithTodosQuery(user.family.id);
 
       const foundTodo = find(todos, todo => todo.id === Number(todoId));
+
+      if (isEmpty(foundTodo))
+        return res.status(RES_NOT_FOUND).json({ errors: { todo: defaultErrors.notFound } });
 
       if (foundTodo.isDone)
         return res.status(RES_CONFLICT).json({ errors: { todo: todosErrors.alreadyDone } });
