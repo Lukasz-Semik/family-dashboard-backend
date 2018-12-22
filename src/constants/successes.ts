@@ -24,8 +24,10 @@ export const todosSuccesses: TodosSuccessesTypes = {
 
 interface ShoppingListsSuccessesTypes {
   shoppingListCreated: string;
+  shoppingListsDeleted: string;
 }
 
 export const shoppingListsSuccesses: ShoppingListsSuccessesTypes = {
   shoppingListCreated: 'shopping-list-created',
+  shoppingListsDeleted: 'shopping-lists-all-deleted',
 };

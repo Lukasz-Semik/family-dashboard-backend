@@ -325,7 +325,7 @@ describe('Todo Controller', async () => {
           .set('authorization', userTokenGenerated)
           .expect(404)
           .expect(res => {
-            expect(res.body.errors.todos).to.equal(defaultErrors.notFound);
+            expect(res.body.errors.todo).to.equal(defaultErrors.notFound);
           })
           .end(err => {
             if (err) return done(err);
@@ -456,7 +456,7 @@ describe('Todo Controller', async () => {
     });
 
     describe('DELETE method', () => {
-      it('should return specific todo', done => {
+      it('should return specific deleted todo', done => {
         request(APP)
           .delete(API_TODO(family.todos[0].id).fullRoute)
           .set('authorization', userTokenGenerated)

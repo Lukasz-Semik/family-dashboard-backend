@@ -291,5 +291,166 @@ describe('ShoppingList Controller', async () => {
           });
       });
     });
+
+    describe('PATCH method', () => {
+      it('should return updated not done shoppingList', done => {
+        request(APP)
+          .patch(API_SHOPPING_LIST(family.shoppingLists[0].id).fullRoute)
+          .set('authorization', userTokenGenerated)
+          .type('form')
+          .send({
+            title: 'some-new-title',
+          })
+          .expect(200)
+          .expect(res => {
+            const { updatedShoppingList } = res.body;
+
+            expect(updatedShoppingList.title).to.equal('some-new-title');
+            expect(updatedShoppingList.updater).to.deep.equal({
+              id: family.familyHead.id,
+              firstName: family.familyHead.firstName,
+              lastName: family.familyHead.lastName,
+            });
+            expect(updatedShoppingList.executor).to.equal(null);
+          })
+          .end(err => {
+            if (err) return done(err);
+            done();
+          });
+      });
+
+      it('should return updated done shoppingList', done => {
+        request(APP)
+          .patch(API_SHOPPING_LIST(family.shoppingLists[0].id).fullRoute)
+          .set('authorization', userTokenGenerated)
+          .set('Accept', 'application/json')
+          .send({
+            items: [
+              {
+                name: 'item-1',
+                isDone: true,
+              },
+              {
+                name: 'item-2',
+                isDone: true,
+              },
+            ],
+          })
+          .expect(200)
+          .expect(res => {
+            const { updatedShoppingList } = res.body;
+
+            expect(updatedShoppingList.updater).to.deep.equal({
+              id: family.familyHead.id,
+              firstName: family.familyHead.firstName,
+              lastName: family.familyHead.lastName,
+            });
+            expect(updatedShoppingList.executor).to.deep.equal({
+              id: family.familyHead.id,
+              firstName: family.familyHead.firstName,
+              lastName: family.familyHead.lastName,
+            });
+            expect(updatedShoppingList.isDone).to.equal(true);
+          })
+          .end(err => {
+            if (err) return done(err);
+            done();
+          });
+      });
+
+      it('should return proper error messages for empty payload', done => {
+        request(APP)
+          .patch(API_SHOPPING_LIST(family.shoppingLists[0].id).fullRoute)
+          .set('authorization', notVerifiedUserTokenGenerated)
+          .type('form')
+          .send({})
+          .expect(400)
+          .expect(res => {
+            expect(res.body.errors.payload).to.equal(defaultErrors.notAllowedValue);
+          })
+          .end(err => {
+            if (err) return done(err);
+            done();
+          });
+      });
+
+      it('should return proper error messages for not allowed payload', done => {
+        request(APP)
+          .patch(API_SHOPPING_LIST(family.shoppingLists[0].id).fullRoute)
+          .set('authorization', notVerifiedUserTokenGenerated)
+          .type('form')
+          .send({ notAllowedPayload: 'some-not-allowed-payload' })
+          .expect(400)
+          .expect(res => {
+            expect(res.body.errors.payload).to.equal(defaultErrors.notAllowedValue);
+          })
+          .end(err => {
+            if (err) return done(err);
+            done();
+          });
+      });
+
+      it('should return proper error messages for not verified user', done => {
+        request(APP)
+          .patch(API_SHOPPING_LIST(family.shoppingLists[0].id).fullRoute)
+          .set('authorization', notVerifiedUserTokenGenerated)
+          .type('form')
+          .send({
+            title: 'some-new-title',
+          })
+          .expect(403)
+          .expect(res => {
+            expect(res.body.errors.email).to.equal(emailErrors.notVerified);
+          })
+          .end(err => {
+            if (err) return done(err);
+            done();
+          });
+      });
+
+      describe('DELETE method', () => {
+        it('should return specific todo', done => {
+          request(APP)
+            .delete(API_SHOPPING_LIST(family.shoppingLists[0].id).fullRoute)
+            .set('authorization', userTokenGenerated)
+            .expect(200)
+            .expect(res => {
+              expect(res.body.shoppingList).to.be.a('object');
+            })
+            .end(err => {
+              if (err) return done(err);
+              done();
+            });
+        });
+
+        it('should return 404 for not existing todo', done => {
+          request(APP)
+            .delete(API_SHOPPING_LIST(999).fullRoute)
+            .set('authorization', userTokenGenerated)
+            .expect(404)
+            .expect(res => {
+              expect(res.body.errors.shoppingList).to.equal(defaultErrors.notFound);
+            })
+            .end(err => {
+              if (err) return done(err);
+              done();
+            });
+        });
+
+        it('should return proper error messages for not verified user', done => {
+          request(APP)
+            .delete(API_SHOPPING_LIST(family.shoppingLists[0].id).fullRoute)
+            .set('authorization', notVerifiedUserTokenGenerated)
+            .expect(403)
+            .expect(res => {
+              expect(res.body.errors.email).to.equal(emailErrors.notVerified);
+            })
+            .end(err => {
+              if (err) return done(err);
+              done();
+            });
+        });
+      });
+    });
   });
 });

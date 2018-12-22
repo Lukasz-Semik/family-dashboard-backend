@@ -11,3 +11,5 @@ export const allowedUpdateTodoPayloadKeys: string[] = [
   'isDone',
   'deadline',
 ];
+
+export const allowedUpadteShoppingListKeys: string[] = ['title', 'isDone', 'deadline', 'items'];

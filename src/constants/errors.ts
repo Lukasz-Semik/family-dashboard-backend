@@ -95,8 +95,10 @@ export const todosErrors: TodoErrorsTypes = {
 
 interface ShoppingListErrorsTypes {
   emptyUpcomingItems: string;
+  alreadyEmpty: string;
 }
 
 export const shoppingListErrors: ShoppingListErrorsTypes = {
   emptyUpcomingItems: 'empty-upcoming-items',
+  alreadyEmpty: 'shopping-lists-already-empty',
 };

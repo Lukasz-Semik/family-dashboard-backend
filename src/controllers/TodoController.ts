@@ -23,6 +23,7 @@ import {
   RES_INTERNAL_ERROR,
   RES_NOT_FOUND,
 } from '../constants/resStatuses';
+import { UserShortDataTypes, UserRoleDataTypes } from '../constants/sharedDataTypes';
 import { checkIsProperUpdatePayload } from '../helpers/validators';
 import { familyItemWithAuthorExecutorUpdaterQuery } from '../helpers/dbQueries';
 import { validateUserPermissions } from '../validators/user';
@@ -34,17 +35,6 @@ interface TodoDataTypes {
   title: string;
   description?: string;
   deadline?: string;
-}
-
-interface UserShortDataTypes {
-  id: number;
-  firstName: string;
-  lastName: string;
-}
-
-interface UserRoleDataTypes {
-  updater: UserShortDataTypes;
-  executor?: UserShortDataTypes;
 }
 
 @JsonController()
@@ -219,7 +209,7 @@ export class TodoController {
       const foundTodo = find(todos, todo => todo.id === Number(todoId));
 
       if (isEmpty(foundTodo))
-        return res.status(RES_NOT_FOUND).json({ errors: { todos: defaultErrors.notFound } });
+        return res.status(RES_NOT_FOUND).json({ errors: { todo: defaultErrors.notFound } });
 
       return res.status(RES_SUCCESS).json({ todos: foundTodo });
     } catch (err) {
@@ -236,6 +226,7 @@ export class TodoController {
   @Authorized()
   @UseBefore(urlencodedParser)
   async updateTodo(@Req() req: any, @Res() res: any) {
+    // TODO: make improvements here.
     try {
       const {
         body: payload,
@@ -258,6 +249,9 @@ export class TodoController {
       const { todos } = await this.familyWithTodosQuery(user.family.id);
 
       const foundTodo = find(todos, todo => todo.id === Number(todoId));
+
+      if (isEmpty(foundTodo))
+        return res.status(RES_NOT_FOUND).json({ errors: { todo: defaultErrors.notFound } });
 
       if (foundTodo.isDone)
         return res.status(RES_CONFLICT).json({ errors: { todo: todosErrors.alreadyDone } });
