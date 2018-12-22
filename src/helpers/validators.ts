@@ -1,5 +1,6 @@
 import { isEmpty } from 'lodash';
 import * as validator from 'validator';
+import { isBoolean } from 'util';
 
 export const isBlank: (str: string) => boolean = str => (!str ? true : isEmpty(String(str).trim()));
 
@@ -23,7 +24,8 @@ export const checkIsProperUpdatePayload: (payload: object, allowdDataKeys: strin
   let isPayloadValid: boolean = true;
 
   payloadKeys.forEach(key => {
-    if (!allowdDataKeys.includes(key) || isEmpty(payload[key])) isPayloadValid = false;
+    if (!allowdDataKeys.includes(key) || (!isBoolean(payload[key]) && isEmpty(payload[key])))
+      isPayloadValid = false;
   });
 
   return isPayloadValid;

@@ -122,7 +122,7 @@ export const validateInvite: (
   const errors: InviteErrorsTypes = {};
 
   const emailError: string = validateEmail(email);
-  // TODO: refactor this shit
+
   if (!isBlank(emailError)) errors.email = emailError;
   if (isBlank(firstName)) errors.firstName = defaultErrors.isRequired;
   if (isBlank(lastName)) errors.lastName = defaultErrors.isRequired;

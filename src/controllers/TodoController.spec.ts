@@ -367,7 +367,7 @@ describe('Todo Controller', async () => {
               firstName: family.familyHead.firstName,
               lastName: family.familyHead.lastName,
             });
-            expect(updatedTodo.executor).to.equal(null);
+            expect(updatedTodo.executor).to.equal(undefined);
           })
           .end(err => {
             if (err) return done(err);
