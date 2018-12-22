@@ -27,7 +27,7 @@ import { UserShortDataTypes, UserRoleDataTypes } from '../constants/sharedDataTy
 import { checkIsProperUpdatePayload } from '../helpers/validators';
 import { familyItemWithAuthorExecutorUpdaterQuery } from '../helpers/dbQueries';
 import { validateUserPermissions } from '../validators/user';
-import urlencodedParser from '../utils/bodyParser';
+import urlencodedParser, { jsonParser } from '../utils/bodyParser';
 import { Family, User, Todo } from '../entity';
 import { Token } from '.';
 
@@ -82,8 +82,6 @@ export class TodoController {
       const { isValid, errors, status } = validateUserPermissions(user, {
         checkIsVerified: true,
         checkHasFamily: true,
-        // TODO: it shouldn't be only for family head !!!
-        checkIsFamilyHead: true,
       });
 
       if (!isValid) return res.status(status).json({ errors });
@@ -131,7 +129,6 @@ export class TodoController {
       const { isValid, errors, status } = validateUserPermissions(user, {
         checkIsVerified: true,
         checkHasFamily: true,
-        checkIsFamilyHead: true,
       });
 
       if (!isValid) return res.status(status).json({ errors });
@@ -146,7 +143,7 @@ export class TodoController {
     }
   }
 
-  // @description: delete todos
+  // @description: delete all todos
   // @full route: /api/todos
   // @access: private
   @Delete(API_TODOS)
@@ -197,7 +194,6 @@ export class TodoController {
       const { isValid, errors, status } = validateUserPermissions(user, {
         checkIsVerified: true,
         checkHasFamily: true,
-        checkIsFamilyHead: true,
       });
 
       if (!isValid) return res.status(status).json({ errors });
@@ -225,8 +221,8 @@ export class TodoController {
   @Patch(API_TODO().base)
   @Authorized()
   @UseBefore(urlencodedParser)
+  @UseBefore(jsonParser)
   async updateTodo(@Req() req: any, @Res() res: any) {
-    // TODO: make improvements here.
     try {
       const {
         body: payload,
@@ -241,7 +237,6 @@ export class TodoController {
       const { isValid, errors, status } = validateUserPermissions(user, {
         checkIsVerified: true,
         checkHasFamily: true,
-        checkIsFamilyHead: true,
       });
 
       if (!isValid) return res.status(status).json({ errors });
@@ -252,9 +247,6 @@ export class TodoController {
 
       if (isEmpty(foundTodo))
         return res.status(RES_NOT_FOUND).json({ errors: { todo: defaultErrors.notFound } });
-
-      if (foundTodo.isDone)
-        return res.status(RES_CONFLICT).json({ errors: { todo: todosErrors.alreadyDone } });
 
       const userShortData: UserShortDataTypes = {
         id: user.id,
@@ -267,7 +259,7 @@ export class TodoController {
         executor: null,
       };
 
-      if (payload.isDone) userRoleData.executor = userShortData;
+      userRoleData.executor = payload.isDone ? userShortData : undefined;
 
       const updatedTodo = await this.todoRepository.save({
         ...foundTodo,
@@ -295,7 +287,6 @@ export class TodoController {
       const { isValid, errors, status } = validateUserPermissions(user, {
         checkIsVerified: true,
         checkHasFamily: true,
-        checkIsFamilyHead: true,
       });
 
       if (!isValid) return res.status(status).json({ errors });

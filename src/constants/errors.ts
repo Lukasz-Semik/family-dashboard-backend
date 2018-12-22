@@ -1,4 +1,3 @@
-// TODO: make correction in errors
 interface InternalServeErrorsTypes {
   sthWrong: string;
 }
