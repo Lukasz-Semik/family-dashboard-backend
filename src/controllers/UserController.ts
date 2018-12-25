@@ -22,6 +22,7 @@ import {
   sendAccountConfirmationEmail,
   sendInvitationEmail,
   sendAddUserToFamilyEmail,
+  sendResetPasswordEdmail,
 } from '../services/mailers';
 import {
   validateSignUp,
@@ -29,6 +30,8 @@ import {
   validateInvite,
   validateConfirmationInvited,
   validateUserPermissions,
+  validatePassword,
+  validateEmail,
 } from '../validators/user';
 import {
   API_USER_SIGN_UP,
@@ -42,6 +45,8 @@ import {
   API_USER_RESEND_INVITATION,
   API_USER_CONFIRM_INVITED,
   API_USER_ADD_TO_FAMILY,
+  API_USER_SEND_EMAIL_RESET_PASSWORD,
+  API_USER_RESET_PASSWORD,
 } from '../constants/routes';
 import {
   internalServerErrors,
@@ -51,7 +56,7 @@ import {
   defaultErrors,
 } from '../constants/errors';
 import { accountSuccesses } from '../constants/successes';
-import { EXPIRE_24_H } from '../constants/expirations';
+import { EXPIRE_24_H, EXPIRE_10_M } from '../constants/expirations';
 import { allowedUpdateUserPayloadKeys } from '../constants/allowedPayloadKeys';
 import {
   RES_BAD_REQUEST,
@@ -214,6 +219,20 @@ export class UserController {
           .status(RES_BAD_REQUEST)
           .json({ errors: { payload: defaultErrors.notAllowedValue } });
 
+      const payload = { ...req.body };
+      const { password } = req.body;
+
+      if (!isEmpty(password)) {
+        const passwordError = validatePassword(password);
+
+        if (!isEmpty(passwordError))
+          return res.status(RES_BAD_REQUEST).json({ errors: { password: passwordError } });
+
+        const hashedPassword = await hash(password, 10);
+
+        payload.password = hashedPassword;
+      }
+
       const { id: idDecoded } = await Token.decode(req.headers.authorization);
 
       const currentUser = await this.userRepository.findOne({ id: idDecoded });
@@ -223,7 +242,7 @@ export class UserController {
 
       const updatedUser = await this.userRepository.save({
         ...currentUser,
-        ...req.body,
+        ...payload,
       });
 
       return res.status(RES_SUCCESS).json({ user: updatedUser });
@@ -234,8 +253,91 @@ export class UserController {
     }
   }
 
+  // @description: send email to reset password
+  // @full route: /api/user/send-email-reset-password
+  // @access: public
+
+  @Post(API_USER_SEND_EMAIL_RESET_PASSWORD)
+  @UseBefore(urlencodedParser)
+  async sendEmailWithResetPassToken(@Req() req: any, @Res() res: any) {
+    try {
+      const { email } = req.body;
+
+      const emailError = validateEmail(email);
+
+      if (!isEmpty(emailError))
+        return res.status(RES_BAD_REQUEST).json({ errors: { email: emailError } });
+
+      const user = await this.userRepository.findOne({ email });
+
+      if (isEmpty(user))
+        return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
+
+      const resetPasswordToken = Token.create({ email }, EXPIRE_10_M);
+
+      await this.userRepository.save({
+        ...user,
+        resetPasswordToken,
+      });
+
+      sendResetPasswordEdmail(email, user.firstName, resetPasswordToken);
+
+      return res.status(RES_SUCCESS).json({ account: accountSuccesses.resetEmailPassSent });
+    } catch (err) {
+      return res
+        .status(RES_INTERNAL_ERROR)
+        .json({ error: internalServerErrors.sthWrong, caughtError: err });
+    }
+  }
+
+  // TODO: investigate reseting password weird error warning in console.
+  @Patch(API_USER_RESET_PASSWORD)
+  @UseBefore(urlencodedParser)
+  async resetPassword(@Req() req: any, @Res() res: any) {
+    try {
+      const { resetPasswordToken, password, repeatedPassword } = req.body;
+
+      if (isEmpty(resetPasswordToken))
+        return res.status(RES_BAD_REQUEST).json({ errors: { token: defaultErrors.isRequired } });
+
+      const passwordError = validatePassword(password);
+
+      if (!isEmpty(passwordError))
+        return res.status(RES_BAD_REQUEST).json({ errors: { password: passwordError } });
+
+      if (password !== repeatedPassword)
+        return res
+          .status(RES_BAD_REQUEST)
+          .json({ errors: { password: defaultErrors.notAllowedValue } });
+
+      const { email: emailDecoded } = await Token.decode(resetPasswordToken);
+
+      const user = await this.userRepository.findOne({ email: emailDecoded });
+
+      if (isEmpty(user))
+        return res.status(RES_NOT_FOUND).json({ errors: { email: emailErrors.notExist } });
+
+      if (user.resetPasswordToken !== resetPasswordToken)
+        return res
+          .status(RES_BAD_REQUEST)
+          .json({ errors: { token: defaultErrors.notAllowedValue } });
+
+      const hashedPassword = await hash(password, 10);
+
+      await this.userRepository.save({
+        ...user,
+        password: hashedPassword,
+        resetPasswordToken: null,
+      });
+    } catch (err) {
+      return res
+        .status(RES_INTERNAL_ERROR)
+        .json({ error: internalServerErrors.sthWrong, caughtError: err });
+    }
+  }
+
   // @description: delete user
-  // @full route: /api/usere/delete
+  // @full route: /api/user/delete
   // @access: private
   @Authorized()
   @Delete(API_USER_DELETE)

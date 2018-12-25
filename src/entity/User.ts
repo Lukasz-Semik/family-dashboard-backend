@@ -87,6 +87,13 @@ export class User {
   })
   gender: string;
 
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
+  resetPasswordToken: string;
+
   @CreateDateColumn({
     type: 'timestamp',
   })

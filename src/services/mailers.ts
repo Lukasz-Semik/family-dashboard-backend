@@ -95,3 +95,25 @@ export const sendAddUserToFamilyEmail = (
 
   sendEmail(msg);
 };
+
+export const sendResetPasswordEdmail = (email: string, userName: string, token: string): void => {
+  setApiKey();
+
+  const msg = {
+    to: email,
+    from: 'family-dashboard@support.com',
+    subject: 'Family Dashboard - reset email request',
+    html: `
+      <h3>Hello ${userName}</h3>
+      <p>
+        To reset password, go to this link:
+
+        <a href='${baseUrl}/confirm?token=${token}' target="_blank">
+          this page
+        </a>
+      </p>
+    `,
+  };
+
+  sendEmail(msg);
+};

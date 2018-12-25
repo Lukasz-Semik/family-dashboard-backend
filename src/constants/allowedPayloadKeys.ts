@@ -3,6 +3,7 @@ export const allowedUpdateUserPayloadKeys: string[] = [
   'lastName',
   'birthDate',
   'gender',
+  'password',
 ];
 
 export const allowedUpdateTodoPayloadKeys: string[] = [

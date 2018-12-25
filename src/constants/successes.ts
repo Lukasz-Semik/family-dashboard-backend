@@ -3,6 +3,7 @@ interface AccountSuccessesTypes {
   confirmed: string;
   invited: string;
   familyHeadAssigned: string;
+  resetEmailPassSent: string;
 }
 
 export const accountSuccesses: AccountSuccessesTypes = {
@@ -10,6 +11,7 @@ export const accountSuccesses: AccountSuccessesTypes = {
   confirmed: 'account-confirmed',
   invited: 'account-invited',
   familyHeadAssigned: 'account-family-head-assigned',
+  resetEmailPassSent: 'reset-password-email-is-sent',
 };
 
 interface TodosSuccessesTypes {
