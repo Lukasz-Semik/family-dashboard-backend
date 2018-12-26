@@ -38,18 +38,10 @@ export class ShoppingList {
   isDone: boolean;
 
   @Column({
-    type: 'varchar',
+    type: 'json',
     nullable: true,
-    array: true,
   })
-  upcomingItems: string[];
-
-  @Column({
-    type: 'varchar',
-    nullable: true,
-    array: true,
-  })
-  doneItems: string[];
+  items: string;
 
   @ManyToOne(type => User, user => user.shoppingLists)
   author: User;

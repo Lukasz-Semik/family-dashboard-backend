@@ -52,6 +52,5 @@ export const generateMockedTodo = () => ({
 
 export const generateMockedShoppingList = () => ({
   title: 'shopping-list-title',
-  upcomingItems: ['item-1', 'item-2'],
-  doneItems: ['item-3'],
+  items: JSON.stringify([{ name: 'item-1', isDone: false }, { name: 'item-2', isDone: true }]),
 });
