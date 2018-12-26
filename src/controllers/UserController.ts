@@ -290,6 +290,9 @@ export class UserController {
     }
   }
 
+  // @description: reset password
+  // @full route: /api/user/reset-password
+  // @access: with token
   @Patch(API_USER_RESET_PASSWORD)
   @UseBefore(urlencodedParser)
   async resetPassword(@Req() req: any, @Res() res: any) {
