@@ -4,16 +4,26 @@ import { hash } from 'bcryptjs';
 import { defaultPassword, familyMemberEmail } from '../constants/fixtures';
 import { generateUser, generateMockedTodo, generateMockedShoppingList } from './dataGenerators';
 import { User, Family, Todo, ShoppingList } from '../entity';
+import { Token } from '../controllers/Token';
+import { EXPIRE_10_M } from '../constants/expirations';
 
 export const dbClear: any = async connection =>
   await connection.query(
     'TRUNCATE TABLE "user", "family", "todo", "shopping_list" RESTART IDENTITY;'
   );
 
-export const dbSeedUser: any = async ({ email, isVerified, isFamilyHead, hasFamily }) => {
+export const dbSeedUser: any = async ({
+  email,
+  isVerified,
+  isFamilyHead,
+  hasFamily,
+  hasResetPassToken,
+}) => {
   const userRepository = getRepository(User);
 
   const hashedPassword = await hash(defaultPassword, 10);
+
+  const resetPasswordToken = hasResetPassToken ? await Token.create({ email }, EXPIRE_10_M) : null;
 
   const newUser = new User();
 
@@ -21,6 +31,7 @@ export const dbSeedUser: any = async ({ email, isVerified, isFamilyHead, hasFami
     ...newUser,
     ...generateUser({ email, isVerified, isFamilyHead, hasFamily }),
     password: hashedPassword,
+    resetPasswordToken,
   });
 
   return createdUser;

@@ -290,7 +290,6 @@ export class UserController {
     }
   }
 
-  // TODO: investigate reseting password weird error warning in console.
   @Patch(API_USER_RESET_PASSWORD)
   @UseBefore(urlencodedParser)
   async resetPassword(@Req() req: any, @Res() res: any) {
