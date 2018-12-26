@@ -18,6 +18,8 @@ import {
   API_USER_DELETE,
   API_USER_RESEND_INVITATION,
   API_USER_ADD_TO_FAMILY,
+  API_USER_SEND_EMAIL_RESET_PASSWORD,
+  API_USER_RESET_PASSWORD,
 } from '../constants/routes';
 import { emailErrors, userErrors, passwordErrors, defaultErrors } from '../constants/errors';
 import { accountSuccesses } from '../constants/successes';
@@ -548,7 +550,7 @@ describe('User Controller', () => {
     let withFamilyTokenGenerated: string;
     const withFamilyEmail: string = 'with-family-user@email.com';
 
-    const existingUserEmal: string = 'existing-user@email.com';
+    const existingUserEmail: string = 'existing-user@email.com';
 
     before(async () => {
       family = await dbSeedFamily({
@@ -561,7 +563,7 @@ describe('User Controller', () => {
         id: family.familyHead.id,
       });
 
-      await dbSeedUser({ email: existingUserEmal, isVerified: true });
+      await dbSeedUser({ email: existingUserEmail, isVerified: true });
     });
 
     after(async () => await dbClear(connection));
@@ -571,7 +573,7 @@ describe('User Controller', () => {
         .patch(generateFullApi(API_USER_ADD_TO_FAMILY))
         .set('authorization', withFamilyTokenGenerated)
         .type('form')
-        .send({ email: existingUserEmal })
+        .send({ email: existingUserEmail })
         .expect(200)
         .expect(res => {
           expect(res.body).to.include({
@@ -588,15 +590,15 @@ describe('User Controller', () => {
   describe('Current user routes', () => {
     let existingUser: any;
     let existingUserTokenGenerated: string;
-    const existingUserEmal: string = 'existing-user@email.com';
+    const existingUserEmail: string = 'existing-user@email.com';
 
     let notExistingUserTokenGenerated: string;
 
     before(async () => {
-      existingUser = await dbSeedUser({ email: existingUserEmal });
+      existingUser = await dbSeedUser({ email: existingUserEmail });
 
       existingUserTokenGenerated = await Token.create({
-        email: existingUserEmal,
+        email: existingUserEmail,
         id: existingUser.id,
       });
 
@@ -692,13 +694,13 @@ describe('User Controller', () => {
   describe(`Route ${generateFullApi(API_USER_UPDATE)}`, () => {
     let existingUser: any;
     let existingUserTokenGenerated: string;
-    const existingUserEmal: string = 'existing-user@email.com';
+    const existingUserEmail: string = 'existing-user@email.com';
 
     before(async () => {
-      existingUser = await dbSeedUser({ email: existingUserEmal });
+      existingUser = await dbSeedUser({ email: existingUserEmail });
 
       existingUserTokenGenerated = await Token.create({
-        email: existingUserEmal,
+        email: existingUserEmail,
         id: existingUser.id,
       });
     });
@@ -753,7 +755,7 @@ describe('User Controller', () => {
         .patch(generateFullApi(API_USER_UPDATE))
         .set('authorization', existingUserTokenGenerated)
         .type('form')
-        .send({ password: 'some-fake-password' })
+        .send({ notAllowedValue: 'some-fake-value' })
         .expect(400)
         .expect(res => {
           expect(res.body.errors.payload).to.equal(defaultErrors.notAllowedValue);
@@ -765,10 +767,178 @@ describe('User Controller', () => {
     });
   });
 
+  describe(`Route ${generateFullApi(API_USER_SEND_EMAIL_RESET_PASSWORD)}`, () => {
+    let existingUser: any;
+    let existingUserTokenGenerated: string;
+    const existingUserEmail: string = 'existing-user@email.com';
+
+    before(async () => {
+      existingUser = await dbSeedUser({ email: existingUserEmail });
+
+      existingUserTokenGenerated = await Token.create({
+        email: existingUserEmail,
+        id: existingUser.id,
+      });
+    });
+
+    after(async () => await dbClear(connection));
+
+    it('should return proper message for successful email sending', done => {
+      request(APP)
+        .post(generateFullApi(API_USER_SEND_EMAIL_RESET_PASSWORD))
+        .set('authorization', existingUserTokenGenerated)
+        .type('form')
+        .send({ email: existingUserEmail })
+        .expect(200)
+        .expect(res => {
+          expect(res.body.account).to.equal(accountSuccesses.resetEmailPassSent);
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+
+    it('should return proper error message for wrong e-mail format', done => {
+      request(APP)
+        .post(generateFullApi(API_USER_SEND_EMAIL_RESET_PASSWORD))
+        .set('authorization', existingUserTokenGenerated)
+        .type('form')
+        .send({ email: 'some-wrong-email' })
+        .expect(400)
+        .expect(res => {
+          expect(res.body.errors.email).to.equal(emailErrors.wrongFormat);
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+
+    it('should return proper error message for not existing user', done => {
+      request(APP)
+        .post(generateFullApi(API_USER_SEND_EMAIL_RESET_PASSWORD))
+        .set('authorization', existingUserTokenGenerated)
+        .type('form')
+        .send({ email: 'some-fake@email.com' })
+        .expect(404)
+        .expect(res => {
+          expect(res.body.errors.email).to.equal(emailErrors.notExist);
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+  });
+
+  describe(`Route ${generateFullApi(API_USER_RESET_PASSWORD)}`, () => {
+    let existingUser: any;
+    let existingUserTokenGenerated: string;
+    const existingUserEmail: string = 'existing-user@email.com';
+
+    let notExistingUserTokenGenerated: string;
+
+    before(async () => {
+      existingUser = await dbSeedUser({ email: existingUserEmail, hasResetPassToken: true });
+
+      existingUserTokenGenerated = await Token.create({
+        email: existingUserEmail,
+        id: existingUser.id,
+      });
+
+      notExistingUserTokenGenerated = await Token.create({
+        email: 'not-existing-user@email.com',
+      });
+    });
+
+    after(async () => await dbClear(connection));
+
+    it('should return proper message for successful password reset', done => {
+      request(APP)
+        .patch(generateFullApi(API_USER_RESET_PASSWORD))
+        .set('authorization', existingUserTokenGenerated)
+        .type('form')
+        .send({
+          resetPasswordToken: existingUser.resetPasswordToken,
+          password: 'Pass123*',
+          repeatedPassword: 'Pass123*',
+        })
+        .expect(200)
+        .expect(res => {
+          expect(res.body.account).to.equal(accountSuccesses.passwordIsReset);
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+
+    it('should return proper message for not equal passwords payload', done => {
+      request(APP)
+        .patch(generateFullApi(API_USER_RESET_PASSWORD))
+        .set('authorization', existingUserTokenGenerated)
+        .type('form')
+        .send({
+          resetPasswordToken: existingUser.resetPasswordToken,
+          password: 'Pass123*',
+          repeatedPassword: 'Pass*',
+        })
+        .expect(400)
+        .expect(res => {
+          expect(res.body.errors.password).to.equal(defaultErrors.notAllowedValue);
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+
+    it('should return proper message for fake token sent', done => {
+      request(APP)
+        .patch(generateFullApi(API_USER_RESET_PASSWORD))
+        .set('authorization', existingUserTokenGenerated)
+        .type('form')
+        .send({
+          resetPasswordToken: existingUser.resetPasswordToken,
+          password: 'Pass123*',
+          repeatedPassword: 'Pass123*',
+        })
+        .expect(400)
+        .expect(res => {
+          expect(res.body.errors.token).to.equal(defaultErrors.notAllowedValue);
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+
+    it('should return proper message for not existing user in token', done => {
+      request(APP)
+        .patch(generateFullApi(API_USER_RESET_PASSWORD))
+        .set('authorization', notExistingUserTokenGenerated)
+        .type('form')
+        .send({
+          resetPasswordToken: notExistingUserTokenGenerated,
+          password: 'Pass123*',
+          repeatedPassword: 'Pass123*',
+        })
+        .expect(404)
+        .expect(res => {
+          expect(res.body.errors.email).to.equal(emailErrors.notExist);
+        })
+        .end(err => {
+          if (err) return done(err);
+          done();
+        });
+    });
+  });
+
   describe(`Route ${generateFullApi(API_USER_DELETE)}`, () => {
     let existingUser: any;
     let existingUserTokenGenerated: string;
-    const existingUserEmal: string = 'existing-user@email.com';
+    const existingUserEmail: string = 'existing-user@email.com';
 
     let family: any;
     let withFamilyTokenGenerated: string;
@@ -779,10 +949,10 @@ describe('User Controller', () => {
     const withBigFamilyEmail: string = 'with-big-family-user@email.com';
 
     before(async () => {
-      existingUser = await dbSeedUser({ email: existingUserEmal });
+      existingUser = await dbSeedUser({ email: existingUserEmail });
 
       existingUserTokenGenerated = await Token.create({
-        email: existingUserEmal,
+        email: existingUserEmail,
         id: existingUser.id,
       });
 
