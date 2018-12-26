@@ -329,6 +329,8 @@ export class UserController {
         password: hashedPassword,
         resetPasswordToken: null,
       });
+
+      return res.status(RES_SUCCESS).json({ account: accountSuccesses.passwordIsReset });
     } catch (err) {
       return res
         .status(RES_INTERNAL_ERROR)

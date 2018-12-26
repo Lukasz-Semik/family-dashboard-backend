@@ -753,7 +753,7 @@ describe('User Controller', () => {
         .patch(generateFullApi(API_USER_UPDATE))
         .set('authorization', existingUserTokenGenerated)
         .type('form')
-        .send({ password: 'some-fake-password' })
+        .send({ notAllowedValue: 'some-fake-value' })
         .expect(400)
         .expect(res => {
           expect(res.body.errors.payload).to.equal(defaultErrors.notAllowedValue);
