@@ -31,11 +31,17 @@ import { familyItemWithAuthorExecutorUpdaterQuery } from '../helpers/dbQueries';
 import { User, Family, ShoppingList } from '../entity';
 import { Token } from '.';
 
+const prepareShoppingList = shoppingList => ({
+  ...shoppingList,
+  items: JSON.parse(shoppingList.items),
+});
+
+const prepareShoppingLists = shoppingLists => shoppingLists.map(prepareShoppingList);
+
 interface ShoppingListTypes {
   title: string;
   deadline?: string;
-  upcomingItems: string[];
-  doneItems: string[];
+  items: string;
 }
 
 @JsonController()
@@ -88,14 +94,12 @@ export class ShoppingListController {
 
       if (!isValid) return res.status(status).json({ errors });
 
-      const upcomingItems: string[] = items.filter(item => !item.isDone).map(item => item.name);
+      const upcomingItems: string[] = items.filter(item => !item.isDone);
 
       if (isEmpty(upcomingItems))
         return res
           .status(RES_BAD_REQUEST)
           .json({ errors: { items: shoppingListErrors.emptyUpcomingItems } });
-
-      const doneItems: string[] = items.filter(item => item.isDone).map(item => item.name);
 
       const family = await this.familyWithShoppingListQuery(user.family.id);
 
@@ -103,8 +107,7 @@ export class ShoppingListController {
 
       const shoppingListData: ShoppingListTypes = {
         title,
-        upcomingItems,
-        doneItems,
+        items: JSON.stringify(items),
       };
 
       if (!isEmpty(deadline)) shoppingListData.deadline = deadline;
@@ -146,7 +149,9 @@ export class ShoppingListController {
 
       const family = await this.familyWithShoppingListQuery(user.family.id);
 
-      return res.status(RES_SUCCESS).json({ shoppingLists: family.shoppingLists });
+      return res
+        .status(RES_SUCCESS)
+        .json({ shoppingLists: prepareShoppingLists(family.shoppingLists) });
     } catch (err) {
       return res
         .status(RES_INTERNAL_ERROR)
@@ -159,7 +164,7 @@ export class ShoppingListController {
   // @access: private
   @Delete(API_SHOPPING_LISTS)
   @Authorized()
-  async deleteAllFamilyTodos(@Req() req: any, @Res() res: any) {
+  async deleteAllFamilyShoppingLists(@Req() req: any, @Res() res: any) {
     try {
       const user = await this.getCurrentUser(req);
 
@@ -225,7 +230,7 @@ export class ShoppingListController {
       if (isEmpty(foundShoppingList))
         return res.status(RES_NOT_FOUND).json({ errors: { shoppingList: defaultErrors.notFound } });
 
-      return res.status(RES_SUCCESS).json({ shoppingList: foundShoppingList });
+      return res.status(RES_SUCCESS).json({ shoppingList: prepareShoppingList(foundShoppingList) });
     } catch (err) {
       return res
         .status(RES_INTERNAL_ERROR)
@@ -240,14 +245,14 @@ export class ShoppingListController {
   @Authorized()
   @UseBefore(urlencodedParser)
   @UseBefore(jsonParser)
-  async updateTodo(@Req() req: any, @Res() res: any) {
+  async updateShoppingList(@Req() req: any, @Res() res: any) {
     try {
       const {
-        body: payload,
+        body,
         params: { shoppingListId },
       } = req;
 
-      if (!checkIsProperUpdatePayload(payload, allowedUpadteShoppingListKeys))
+      if (!checkIsProperUpdatePayload(body, allowedUpadteShoppingListKeys))
         return res.status(400).json({ errors: { payload: defaultErrors.notAllowedValue } });
 
       const user = await this.getCurrentUser(req);
@@ -269,23 +274,18 @@ export class ShoppingListController {
       if (isEmpty(foundShoppingList))
         return res.status(RES_NOT_FOUND).json({ errors: { shoppingList: defaultErrors.notFound } });
 
-      const items = !isArray(payload.items) ? [] : payload.items;
+      const items = !isArray(body.items) ? [] : body.items;
 
-      const upcomingItems: string[] = items.filter(item => !item.isDone).map(item => item.name);
+      const upcomingItems: string[] = items.filter(item => !item.isDone);
 
-      const doneItems: string[] = items.filter(item => item.isDone).map(item => item.name);
+      const isShoppingListDone = (!isEmpty(body.items) && isEmpty(upcomingItems)) || body.isDone;
 
-      const isShoppingListDone =
-        (!isEmpty(payload.items) && isEmpty(upcomingItems)) || payload.isDone;
-
-      const updatingPayload = {
-        ...payload,
+      const payload = {
+        ...body,
         isDone: isShoppingListDone,
       };
 
-      if (!isEmpty(upcomingItems)) updatingPayload.upcomingItems = upcomingItems;
-
-      if (!isEmpty(doneItems)) updatingPayload.doneItems = doneItems;
+      if (!isEmpty(body.items)) payload.items = JSON.stringify(body.items);
 
       const userShortData: UserShortDataTypes = {
         id: user.id,
@@ -302,11 +302,13 @@ export class ShoppingListController {
 
       const updatedShoppingList = await this.shoppingListRepository.save({
         ...foundShoppingList,
-        ...updatingPayload,
+        ...payload,
         ...userRoleData,
       });
 
-      return res.status(RES_SUCCESS).json({ updatedShoppingList });
+      return res
+        .status(RES_SUCCESS)
+        .json({ updatedShoppingList: prepareShoppingList(updatedShoppingList) });
     } catch (err) {
       return res
         .status(RES_INTERNAL_ERROR)
@@ -319,7 +321,7 @@ export class ShoppingListController {
   // @access: private
   @Delete(API_SHOPPING_LIST().base)
   @Authorized()
-  async deleteTodo(@Req() req: any, @Res() res: any) {
+  async deleteShoppingList(@Req() req: any, @Res() res: any) {
     try {
       const user = await this.getCurrentUser(req);
 
@@ -344,7 +346,7 @@ export class ShoppingListController {
 
       await this.shoppingListRepository.remove(foundShoppingList);
 
-      return res.status(RES_SUCCESS).json({ shoppingList: foundShoppingList });
+      return res.status(RES_SUCCESS).json({ shoppingList: prepareShoppingList(foundShoppingList) });
     } catch (err) {
       return res
         .status(RES_INTERNAL_ERROR)

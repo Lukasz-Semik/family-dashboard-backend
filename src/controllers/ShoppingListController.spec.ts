@@ -185,8 +185,7 @@ describe('ShoppingList Controller', async () => {
             expect(shoppingLists[0].title).to.equal('shopping-list-title');
             expect(shoppingLists[0].createdAt).to.be.a('string');
             expect(shoppingLists[0].author.id).to.equal(family.familyHead.id);
-            expect(shoppingLists[0].upcomingItems.length).to.equal(2);
-            expect(shoppingLists[0].doneItems.length).to.equal(1);
+            expect(shoppingLists[0].items.length).to.equal(2);
           })
           .end(err => {
             if (err) return done(err);
@@ -254,8 +253,7 @@ describe('ShoppingList Controller', async () => {
             expect(shoppingList.title).to.equal('shopping-list-title');
             expect(shoppingList.createdAt).to.be.a('string');
             expect(shoppingList.author.id).to.equal(family.familyHead.id);
-            expect(shoppingList.upcomingItems.length).to.equal(2);
-            expect(shoppingList.doneItems.length).to.equal(1);
+            expect(shoppingList.items.length).to.equal(2);
           })
           .end(err => {
             if (err) return done(err);
