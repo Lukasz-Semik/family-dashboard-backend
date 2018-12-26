@@ -5,6 +5,9 @@
   "repository": "git@github.com:Lukasz-Semik/family-dashboard-backend-pg.git",
   "author": "djpluki <djpluki@gmail.com>",
   "license": "MIT",
+  "engines": {
+    "node": "8.11.3"
+  },
   "scripts": {
     "tsc": "tsc",
     "watch": "nodemon",
