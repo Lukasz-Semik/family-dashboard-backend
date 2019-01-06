@@ -15,6 +15,8 @@ import {
 
 export const APP: express.Application = express();
 
+APP.use(cors());
+
 const PORT: number = Number(process.env.PORT) || 8080;
 
 // tslint:disable no-console
@@ -26,7 +28,6 @@ useExpressServer(APP, {
   routePrefix: '/api',
   controllers: [UserController, FamilyController, TodoController, ShoppingListController],
   authorizationChecker: authenticate,
-  middlewares: [cors],
 });
 
 APP.listen(PORT, () => {
